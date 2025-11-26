@@ -45,8 +45,28 @@
         }
         .key-hint { color: #fff; background: rgba(0,255,0,0.2); padding: 2px 6px; border: 1px solid #00FF00; font-size: 11px; margin: 0 5px; }
 
-        .vol-control { font-size: 10px; display: flex; align-items: center; margin-bottom: 4px; }
-        .vol-control input { width: 60px; margin-left: 10px; cursor: pointer; }
+        /* CUSTOM SLIDER STYLING */
+        .vol-control { font-size: 10px; display: flex; align-items: center; margin-bottom: 8px; }
+        .vol-label { width: 30px; text-align: right; margin-right: 8px; color: #888; }
+        .vol-btn { color: #555; font-size: 12px; margin: 0 5px; font-weight: bold; }
+        
+        input[type=range].tech-slider {
+            -webkit-appearance: none; width: 120px; background: transparent; cursor: pointer;
+        }
+        input[type=range].tech-slider:focus { outline: none; }
+        input[type=range].tech-slider::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: #333; border: 1px solid #555;
+        }
+        input[type=range].tech-slider::-webkit-slider-thumb {
+            height: 12px; width: 6px; background: #00FF00; cursor: pointer;
+            -webkit-appearance: none; margin-top: -5px; box-shadow: 0 0 5px #00FF00;
+        }
+        input[type=range].tech-slider::-moz-range-track {
+            width: 100%; height: 4px; background: #333; border: 1px solid #555;
+        }
+        input[type=range].tech-slider::-moz-range-thumb {
+            height: 12px; width: 6px; background: #00FF00; cursor: pointer; border: none;
+        }
 
         #phone-overlay {
             position: absolute; bottom: -200px; right: 30px; width: 350px;
@@ -170,10 +190,16 @@
         <div style="display:flex; align-items:center; gap:20px;">
             <div style="display:flex; flex-direction: column; align-items: flex-end;">
                 <div class="vol-control">
-                    MUS <input type="range" id="vol-music-slider" min="0" max="1" step="0.1" value="0.5">
+                    <span class="vol-label">MUS</span>
+                    <span class="vol-btn">[-]</span>
+                    <input type="range" id="vol-music-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
+                    <span class="vol-btn">[+]</span>
                 </div>
                 <div class="vol-control">
-                    SFX <input type="range" id="vol-sfx-slider" min="0" max="1" step="0.1" value="0.5">
+                    <span class="vol-label">SFX</span>
+                    <span class="vol-btn">[-]</span>
+                    <input type="range" id="vol-sfx-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
+                    <span class="vol-btn">[+]</span>
                 </div>
             </div>
             <div style="font-size:16px;">UNIT: 00-WATCHMAN</div>
@@ -468,29 +494,85 @@
         scene.add(cone);
     }
 
+    function createEnvironment() {
+        const grassGeo = new THREE.PlaneGeometry(800, 800);
+        const grassMat = new THREE.MeshLambertMaterial({ color: 0x1a2e12 }); 
+        const grass = new THREE.Mesh(grassGeo, grassMat);
+        grass.rotation.x = -Math.PI / 2;
+        grass.position.set(0, -3.0, -200); 
+        grass.receiveShadow = true;
+        scene.add(grass);
+
+        const treeCount = 60;
+        for(let i = 0; i < treeCount; i++) {
+            const treeGroup = new THREE.Group();
+            const tx = (Math.random() - 0.5) * 600;
+            const tz = -180 - (Math.random() * 300); 
+
+            const trunkH = 5 + Math.random() * 5;
+            createBlock(1.5, trunkH, 1.5, 0x3d2817, 0, trunkH/2, 0, treeGroup);
+
+            const leavesH = 10 + Math.random() * 10;
+            const leafGeo = new THREE.ConeGeometry(4 + Math.random()*3, leavesH, 8);
+            const leafMat = new THREE.MeshLambertMaterial({ color: 0x0f2e0f }); 
+            const leaves = new THREE.Mesh(leafGeo, leafMat);
+            leaves.position.set(0, trunkH + (leavesH/2) - 1, 0);
+            leaves.castShadow = true;
+            treeGroup.add(leaves);
+
+            treeGroup.position.set(tx, -2.5, tz);
+            scene.add(treeGroup);
+        }
+    }
+
+    // --- FIX FOR GLITCHING (ADJUSTED Z-DEPTHS) ---
     function buildStation() {
+        createEnvironment();
+
         const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
         const ctx = canvas.getContext('2d'); ctx.fillStyle = '#999'; ctx.fillRect(0,0,512,512);
         for(let i=0;i<8000;i++){ctx.fillStyle=Math.random()>0.5?'#777':'#BBB';ctx.fillRect(Math.random()*512,Math.random()*512,2,2);}
         const floorTex = new THREE.CanvasTexture(canvas); floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping; floorTex.repeat.set(12,8);
         
-        createBlock(350, 1, 150, null, 0, -0.5, 50, null, floorTex);
-        createBlock(350, 1, 150, 0x222222, 0, -2.0, -100);
+        // CONCOURSE: Center 50, Depth 150. Extends from Z:125 to Z:-25
+        createBlock(450, 1, 150, null, 0, -0.5, 50, null, floorTex);
+        
+        // TRACK PIT: Pushed deeper so no overlap
+        createBlock(450, 1, 300, 0x111111, 0, -2.0, -175);
 
         for(let i=0; i<6; i++) {
             const x = -100 + (i * 40);
-            createBlock(20, 2, 150, C.platform, x, -1.0, -100);
-            createBlock(1, 0.2, 150, 0x555555, x - 14, -1.9, -100); createBlock(1, 0.2, 150, 0x555555, x - 18, -1.9, -100);
+            
+            // PLATFORM FIX: 
+            // Platform Depth 250. Half is 125.
+            // Concourse ends at -25. Platform must start at -25 and go backwards.
+            // Center = -25 - 125 = -150.
+            // Previous Z was -120 (causing 30 unit overlap).
+            
+            createBlock(20, 2, 250, C.platform, x, -1.0, -150);
+            
+            // Edges
+            createBlock(1, 0.2, 250, 0x555555, x - 14, -1.9, -150); 
+            createBlock(1, 0.2, 250, 0x555555, x - 18, -1.9, -150);
+            
             const trainGroup = new THREE.Group();
+            // Train was at -60. Relative to new platform center (-150), -60 is Z=90 inside group?
+            // Let's just keep train absolute Z around -60.
             createTrain(x - 16, -1.0, -60, trainGroup);
             scene.add(trainGroup);
             
+            // Signs
             const sCanvas = document.createElement('canvas'); sCanvas.width=128; sCanvas.height=128;
             const sCtx = sCanvas.getContext('2d'); sCtx.fillStyle='#222'; sCtx.fillRect(0,0,128,128);
             sCtx.strokeStyle='#FFD700'; sCtx.lineWidth=6; sCtx.strokeRect(5,5,118,118);
             sCtx.fillStyle='#FFF'; sCtx.font='bold 80px "Courier Prime"'; sCtx.textAlign='center'; sCtx.textBaseline='middle'; sCtx.fillText(i+1,64,68);
             const sign = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(sCanvas)}));
-            sign.position.set(x, 8, -25); scene.add(sign); createBlock(0.5, 8, 0.5, 0x111111, x, 4, -25.5);
+            sign.position.set(x, 8, -50); scene.add(sign); createBlock(0.5, 8, 0.5, 0x111111, x, 4, -50.5);
+
+            // Pillars (Adjusted range)
+            for(let zP = -40; zP > -250; zP -= 60) {
+                createBlock(4, 60, 4, 0x333333, x, 30, zP);
+            }
         }
 
         createGenericShop(160, 40, "WHSmiffs");
@@ -501,9 +583,12 @@
         createGenericShop(-100, 80, "Nice:Clothes");
         createGenericShop(160, -20, "COMBS");
 
-        const roofGeo = new THREE.CylinderGeometry(120, 120, 400, 32, 1, true, 0, Math.PI);
+        createBlock(400, 5, 10, 0x222222, 0, 40, -180); 
+        createBlock(400, 1, 1, 0xff0000, 0, 43, -175); 
+
+        const roofGeo = new THREE.CylinderGeometry(180, 180, 600, 32, 1, true, 0, Math.PI);
         const roofMat = new THREE.MeshBasicMaterial({ color: 0x445566, side: THREE.DoubleSide, transparent: true, opacity: 0.2 });
-        const roof = new THREE.Mesh(roofGeo, roofMat); roof.rotation.z = Math.PI / 2; roof.position.set(0, 70, 0); scene.add(roof);
+        const roof = new THREE.Mesh(roofGeo, roofMat); roof.rotation.z = Math.PI / 2; roof.position.set(0, 90, -50); scene.add(roof);
 
         const boardGroup = new THREE.Group(); boardGroup.position.set(0, 25, -25);
         createBlock(140, 20, 2, 0x111111, 0, 0, 0, boardGroup);
@@ -660,6 +745,13 @@
         const civCount = parseInt(SETTING_CROWD);
         const packageCount = parseInt(SETTING_PACKAGES);
         
+        // Determine who gets flowers (1 to 4 random people)
+        const flowerCount = Math.floor(Math.random() * 4) + 1;
+        const flowerIndices = [];
+        for(let i=0; i<flowerCount; i++) {
+            flowerIndices.push(Math.floor(Math.random() * civCount));
+        }
+        
         const packageIndices = [];
         for(let i=0; i<packageCount; i++) packageIndices.push(i);
 
@@ -682,13 +774,33 @@
 
             const mesh = createPerson(role, x, z);
             
+            // --- ADD PACKAGE ---
             let pkg = null;
             if(hasPackage) {
                 pkg = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.1), new THREE.MeshBasicMaterial({color: C.packageColor}));
                 pkg.position.set(0.6, 1.5, 0.3); mesh.add(pkg);
             }
 
-            if(role === 'CIV' && Math.random() < 0.30) {
+            // --- ADD FLOWERS ---
+            if(flowerIndices.includes(i) && !hasPackage) {
+                const bouquet = new THREE.Group();
+                const wrap = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.4, 8), new THREE.MeshLambertMaterial({color: 0xFFFFFF}));
+                wrap.rotation.x = Math.PI; 
+                bouquet.add(wrap);
+                const fCols = [0xFF0000, 0xFFFF00, 0x9900FF]; 
+                for(let f=0; f<5; f++) {
+                    const fMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,0.1), new THREE.MeshBasicMaterial({color: fCols[Math.floor(Math.random()*3)]}));
+                    fMesh.position.set((Math.random()-0.5)*0.2, 0.2+(Math.random()*0.1), (Math.random()-0.5)*0.2);
+                    bouquet.add(fMesh);
+                }
+                bouquet.position.set(0.7, 1.6, 0.5); 
+                bouquet.rotation.x = -0.5; 
+                bouquet.rotation.z = -0.2; 
+                mesh.add(bouquet);
+            }
+            // -------------------------
+
+            if(role === 'CIV' && Math.random() < 0.30 && !flowerIndices.includes(i)) {
                 const lug = new THREE.Group();
                 lug.name = "LUGGAGE"; 
                 createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
