@@ -45,6 +45,19 @@
         }
         .key-hint { color: #fff; background: rgba(0,255,0,0.2); padding: 2px 6px; border: 1px solid #00FF00; font-size: 11px; margin: 0 5px; }
 
+        /* TIMER UI (Hidden by default) */
+        #timer-ui {
+            display: none;
+            font-family: 'Russo One', sans-serif;
+            font-size: 24px;
+            color: #FF0000;
+            text-shadow: 0 0 10px #FF0000;
+            border: 2px solid #550000;
+            background: rgba(0,0,0,0.8);
+            padding: 5px 15px;
+            margin-top: 10px;
+        }
+
         /* CUSTOM SLIDER STYLING */
         .vol-control { font-size: 10px; display: flex; align-items: center; margin-bottom: 8px; }
         .vol-label { width: 30px; text-align: right; margin-right: 8px; color: #888; }
@@ -121,6 +134,21 @@
             font-weight: bold; transform: rotate(-5deg); box-shadow: 5px 5px 0 rgba(0,0,0,0.5);
         }
 
+        /* LEADERBOARD ON MENU */
+        .leaderboard-box {
+            position: absolute; top: 50%; right: -280px; transform: translateY(-50%) rotate(2deg);
+            width: 250px; background: #111; border: 1px solid #444; color: #00FF00;
+            padding: 20px; font-family: 'Montserrat', sans-serif;
+            /* Sleek line graphic bg */
+            background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent);
+            background-size: 30px 30px;
+            box-shadow: -10px 10px 30px rgba(0,0,0,0.8);
+        }
+        .lb-title { border-bottom: 2px solid #00FF00; font-size: 14px; letter-spacing: 2px; margin-bottom: 10px; padding-bottom: 5px; }
+        .lb-row { display: flex; justify-content: space-between; font-family: 'Courier Prime', monospace; font-size: 12px; margin-bottom: 6px; color: #fff; }
+        .lb-rank { color: #555; margin-right: 10px; }
+        .lb-time { color: #FFCC00; font-weight: bold; }
+
         /* AWARD TITLE */
         #award-text {
             font-family: 'Russo One', sans-serif; font-size: 32px; color: #444;
@@ -145,13 +173,15 @@
         .chk-label { font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #ccc; }
         .chk-label input:checked + span { color: #00FF00; text-shadow: 0 0 5px #00FF00; font-weight: bold; }
 
+        .btn-row { display: flex; gap: 15px; margin-top: 15px; }
         button.action-btn {
             width: 100%; background: #111; color: white; border: none; padding: 15px;
-            font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px;
-            text-transform: uppercase; letter-spacing: 4px; cursor: pointer; transition: 0.3s;
-            margin-top: 10px;
+            font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.3s;
         }
         button.action-btn:hover { background: #C00; transform: scale(1.02); }
+        button.sec-btn { background: #222; border: 1px solid #444; color: #aaa; }
+        button.sec-btn:hover { background: #004400; color: #fff; border-color: #00FF00; }
         
         #restart-ui { position: absolute; bottom: 20px; left: 20px; z-index: 60; }
         #restart-btn { background: #333; color: #aaa; border: 1px solid #555; padding: 10px; font-family: sans-serif; font-size: 10px; cursor: pointer; text-transform: uppercase; }
@@ -186,16 +216,17 @@
             <span class="key-hint">WASD</span> AIM 
             <span class="key-hint">SPACE</span> ZOOM 
             <span class="key-hint">F</span> FIRE
+            <div id="timer-ui">00.000</div>
         </div>
         <div style="display:flex; align-items:center; gap:20px;">
             <div style="display:flex; flex-direction: column; align-items: flex-end;">
-                <div class="vol-control">
+                <div class="vol-control" id="vol-music-container">
                     <span class="vol-label">MUS</span>
                     <span class="vol-btn">[-]</span>
                     <input type="range" id="vol-music-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
                     <span class="vol-btn">[+]</span>
                 </div>
-                <div class="vol-control">
+                <div class="vol-control" id="vol-sfx-container">
                     <span class="vol-label">SFX</span>
                     <span class="vol-btn">[-]</span>
                     <input type="range" id="vol-sfx-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
@@ -218,7 +249,18 @@
     <div id="menu">
         <div id="chalk-outlines"></div>
         <div class="dossier" id="start-dossier">
-            <div class="streak-box">STREAK: <span id="streak-display">0</span></div>
+            <div class="leaderboard-box">
+                <div class="lb-title">TOP 5 AGENTS (SPEED)</div>
+                <div id="lb-content">
+                    <div class="lb-row"><span class="lb-rank">1.</span> <span>---</span></div>
+                    <div class="lb-row"><span class="lb-rank">2.</span> <span>---</span></div>
+                    <div class="lb-row"><span class="lb-rank">3.</span> <span>---</span></div>
+                    <div class="lb-row"><span class="lb-rank">4.</span> <span>---</span></div>
+                    <div class="lb-row"><span class="lb-rank">5.</span> <span>---</span></div>
+                </div>
+            </div>
+
+            <div class="streak-box" id="menu-streak-box">STREAK: <span id="streak-display">0</span></div>
             <div class="stamp">TOP SECRET</div>
             <h1>Operation: Terminus</h1>
             
@@ -255,7 +297,10 @@
                 </div>
             </div>
 
-            <button class="action-btn" onclick="startGame()">INITIATE MISSION</button>
+            <div class="btn-row">
+                <button class="action-btn" onclick="startGame('STREAK')">PLAY FOR FUN</button>
+                <button class="action-btn sec-btn" onclick="startGame('TIMED')">PLAY FOR SPEED</button>
+            </div>
         </div>
 
         <div class="dossier" id="end-dossier" style="display:none; text-align:center;">
@@ -275,12 +320,19 @@
 
 <script>
     // DESTINATIONS
-    const DESTINATIONS = ["OXFORD", "BRISTOL", "CARDIFF", "YORK", "DOVER", "BATH", "LEEDS", "RYE", "SOUTHAMPTON", "BRIGHTON", "PORTSMOUTH", "EXETER", "BOURNEMOUTH"];
+    const DESTINATIONS = [
+        "OXFORD", "BRISTOL", "CARDIFF", "YORK", "DOVER", "BATH", "LEEDS", "RYE", 
+        "SOUTHAMPTON", "BRIGHTON", "PORTSMOUTH", "EXETER", "BOURNEMOUTH",
+        "SEVENOAKS", "LITTLE CROWLEY", "HASTINGS", "EASTBOURNE", "MARGATE", "RAMSGATE", "WORTHING"
+    ];
     const NORTHERN = ["GLASGOW", "EDINBURGH", "ABERDEEN", "INVERNESS", "NEWCASTLE", "DURHAM", "MANCHESTER", "LIVERPOOL"];
 
-    // AWARDS
+    // TITLES
     const ADJECTIVES = ["Lethal", "Silent", "Phantom", "Shadow", "Iron", "Cold", "Patient", "Surgical", "Ghost", "Vengeful", "Invisible", "Swift", "Precise", "Deadly", "Golden", "Silver", "Ruthless", "Calm"];
     const NOUNS = ["Assassin", "Spirit", "Agent", "Hunter", "Spectre", "Wolf", "Eagle", "Viper", "Operator", "Sniper", "Watchman", "Sentinel", "Wraith", "Reaper", "Soldier", "Professional"];
+    
+    // WIN PHRASES
+    const WIN_TITLES = ["LEGENDARY", "STUNNING", "CLINICAL", "EXEMPLARY", "GODLIKE", "PERFECT", "FLAWLESS", "MASTERFUL", "ELITE"];
 
     const C = {
         sky: 0x88CCFF, floor: 0x999999, platform: 0x333333,
@@ -293,8 +345,14 @@
     let clock = new THREE.Clock();
     
     let gameState = 'MENU'; 
+    let gameMode = 'STREAK'; // 'STREAK' or 'TIMED'
     let gameTime = 0;
     let bleedTimer = 0;
+    
+    // Timed Mode Logic
+    let timerRunning = false;
+    let timerStartTime = 0;
+    let finalTime = 0;
     
     // Objects
     let civilians = [];
@@ -320,6 +378,7 @@
     let SETTING_CROWD = 80;
     let SETTING_PACKAGES = 4;
     let KILL_STREAK = 0;
+    let LEADERBOARD = []; // Array of floats
     
     // Audio Settings Persistence
     let SETTING_MUSIC_ON = true;
@@ -342,6 +401,11 @@
         if(localStorage.getItem('sm_pkg')) SETTING_PACKAGES = parseInt(localStorage.getItem('sm_pkg'));
         if(localStorage.getItem('sm_streak')) KILL_STREAK = parseInt(localStorage.getItem('sm_streak'));
         
+        // Load Leaderboard
+        if(localStorage.getItem('sm_leaderboard')) {
+            try { LEADERBOARD = JSON.parse(localStorage.getItem('sm_leaderboard')); } catch(e){ LEADERBOARD=[]; }
+        }
+        
         // Load Audio Settings
         if(localStorage.getItem('sm_music_on') !== null) SETTING_MUSIC_ON = (localStorage.getItem('sm_music_on') === 'true');
         if(localStorage.getItem('sm_sfx_on') !== null) SETTING_SFX_ON = (localStorage.getItem('sm_sfx_on') === 'true');
@@ -358,11 +422,25 @@
         document.getElementById('chk-music').checked = SETTING_MUSIC_ON;
         document.getElementById('chk-sfx').checked = SETTING_SFX_ON;
 
-        // Apply to In-Game UI Sliders (so they match saved state when game starts)
+        // Apply to In-Game UI Sliders
         document.getElementById('vol-music-slider').value = SETTING_MUSIC_VOL;
         document.getElementById('vol-sfx-slider').value = SETTING_SFX_VOL;
 
         updateMenuVisuals();
+        renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+        const lbDiv = document.getElementById('lb-content');
+        lbDiv.innerHTML = '';
+        const sorted = LEADERBOARD.sort((a,b) => a - b).slice(0, 5);
+        for(let i=0; i<5; i++) {
+            const timeStr = sorted[i] ? sorted[i].toFixed(3) + "s" : "---";
+            const row = document.createElement('div');
+            row.className = 'lb-row';
+            row.innerHTML = `<span class="lb-rank">${i+1}.</span> <span class="lb-time">${timeStr}</span>`;
+            lbDiv.appendChild(row);
+        }
     }
 
     function updateMenuVisuals() {
@@ -383,6 +461,7 @@
         localStorage.setItem('sm_crowd', SETTING_CROWD);
         localStorage.setItem('sm_pkg', SETTING_PACKAGES);
         localStorage.setItem('sm_streak', KILL_STREAK);
+        localStorage.setItem('sm_leaderboard', JSON.stringify(LEADERBOARD));
         
         localStorage.setItem('sm_music_on', SETTING_MUSIC_ON);
         localStorage.setItem('sm_sfx_on', SETTING_SFX_ON);
@@ -391,13 +470,11 @@
     }
 
     function updateUI() {
-        // Read Menu Values
         SETTING_CROWD = document.getElementById('slide-crowd').value;
         SETTING_PACKAGES = document.getElementById('slide-pkg').value;
         SETTING_MUSIC_ON = document.getElementById('chk-music').checked;
         SETTING_SFX_ON = document.getElementById('chk-sfx').checked;
         
-        // Update Labels
         document.getElementById('val-crowd').innerText = SETTING_CROWD;
         document.getElementById('val-pkg').innerText = SETTING_PACKAGES;
         
@@ -462,8 +539,21 @@
         return new THREE.CanvasTexture(canvas);
     }
 
+    function createGratedTexture() {
+        const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#445566'; ctx.fillRect(0,0,512,512);
+        ctx.fillStyle = '#000000';
+        for(let i=0; i<512; i+=32) ctx.fillRect(i, 0, 8, 512); 
+        for(let i=0; i<512; i+=32) ctx.fillRect(0, i, 512, 8); 
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(10, 4); 
+        return tex;
+    }
+
     function createBlock(w, h, d, col, x, y, z, parent, tex) {
-        const mat = tex ? new THREE.MeshLambertMaterial({map: tex}) : new THREE.MeshLambertMaterial({color: col});
+        const mat = tex ? new THREE.MeshLambertMaterial({map: tex, transparent:true}) : new THREE.MeshLambertMaterial({color: col});
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
         mesh.position.set(x,y,z); mesh.castShadow = true; mesh.receiveShadow = true;
         if(parent) parent.add(mesh); else scene.add(mesh);
@@ -525,7 +615,6 @@
         }
     }
 
-    // --- FIX FOR GLITCHING (ADJUSTED Z-DEPTHS) ---
     function buildStation() {
         createEnvironment();
 
@@ -534,60 +623,53 @@
         for(let i=0;i<8000;i++){ctx.fillStyle=Math.random()>0.5?'#777':'#BBB';ctx.fillRect(Math.random()*512,Math.random()*512,2,2);}
         const floorTex = new THREE.CanvasTexture(canvas); floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping; floorTex.repeat.set(12,8);
         
-        // CONCOURSE: Center 50, Depth 150. Extends from Z:125 to Z:-25
         createBlock(450, 1, 150, null, 0, -0.5, 50, null, floorTex);
-        
-        // TRACK PIT: Pushed deeper so no overlap
         createBlock(450, 1, 300, 0x111111, 0, -2.0, -175);
 
         for(let i=0; i<6; i++) {
             const x = -100 + (i * 40);
             
-            // PLATFORM FIX: 
-            // Platform Depth 250. Half is 125.
-            // Concourse ends at -25. Platform must start at -25 and go backwards.
-            // Center = -25 - 125 = -150.
-            // Previous Z was -120 (causing 30 unit overlap).
-            
             createBlock(20, 2, 250, C.platform, x, -1.0, -150);
-            
-            // Edges
             createBlock(1, 0.2, 250, 0x555555, x - 14, -1.9, -150); 
             createBlock(1, 0.2, 250, 0x555555, x - 18, -1.9, -150);
             
             const trainGroup = new THREE.Group();
-            // Train was at -60. Relative to new platform center (-150), -60 is Z=90 inside group?
-            // Let's just keep train absolute Z around -60.
             createTrain(x - 16, -1.0, -60, trainGroup);
             scene.add(trainGroup);
             
-            // Signs
+            // SIGNS: Moved to Z = -25 (Directly on edge)
+            // Fix: Pole moved slightly BACK (-25.5) so it doesn't clip number
             const sCanvas = document.createElement('canvas'); sCanvas.width=128; sCanvas.height=128;
             const sCtx = sCanvas.getContext('2d'); sCtx.fillStyle='#222'; sCtx.fillRect(0,0,128,128);
             sCtx.strokeStyle='#FFD700'; sCtx.lineWidth=6; sCtx.strokeRect(5,5,118,118);
             sCtx.fillStyle='#FFF'; sCtx.font='bold 80px "Courier Prime"'; sCtx.textAlign='center'; sCtx.textBaseline='middle'; sCtx.fillText(i+1,64,68);
+            // Sign Face: -24.8 (Closer to cam)
             const sign = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(sCanvas)}));
-            sign.position.set(x, 8, -50); scene.add(sign); createBlock(0.5, 8, 0.5, 0x111111, x, 4, -50.5);
+            sign.position.set(x, 8, -24.8); scene.add(sign); 
+            // Sign Pole: -25.5 (Further from cam)
+            createBlock(0.5, 8, 0.5, 0x111111, x, 4, -25.5);
 
-            // Pillars (Adjusted range)
-            for(let zP = -40; zP > -250; zP -= 60) {
+            for(let zP = -100; zP > -250; zP -= 60) {
                 createBlock(4, 60, 4, 0x333333, x, 30, zP);
             }
         }
 
-        createGenericShop(160, 40, "WHSmiffs");
-        createGenericShop(160, 10, "SHOES");
-        createGenericShop(100, 80, "VAPES");
-        createGenericShop(-160, 40, "NAILS");
-        createGenericShop(-160, 10, "EAT");
-        createGenericShop(-100, 80, "Nice:Clothes");
-        createGenericShop(160, -20, "COMBS");
+        // SHOPS
+        createGenericShop(160, 40, "WHSmiffs", 0x707070); 
+        createGenericShop(160, 10, "SHOES", 0x808080);
+        createGenericShop(100, 80, "VAPES", 0x606060);
+        createGenericShop(-160, 40, "NAILS", 0x757575);
+        createGenericShop(-160, 10, "EAT", 0x666666); 
+        createGenericShop(-100, 80, "Nice:Clothes", 0x555555);
+        createGenericShop(160, -20, "COMBS", 0x777777);
 
         createBlock(400, 5, 10, 0x222222, 0, 40, -180); 
         createBlock(400, 1, 1, 0xff0000, 0, 43, -175); 
 
+        // ROOF
         const roofGeo = new THREE.CylinderGeometry(180, 180, 600, 32, 1, true, 0, Math.PI);
-        const roofMat = new THREE.MeshBasicMaterial({ color: 0x445566, side: THREE.DoubleSide, transparent: true, opacity: 0.2 });
+        const roofTex = createGratedTexture();
+        const roofMat = new THREE.MeshBasicMaterial({ map: roofTex, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
         const roof = new THREE.Mesh(roofGeo, roofMat); roof.rotation.z = Math.PI / 2; roof.position.set(0, 90, -50); scene.add(roof);
 
         const boardGroup = new THREE.Group(); boardGroup.position.set(0, 25, -25);
@@ -611,13 +693,35 @@
         }
     }
 
-    function createGenericShop(x, z, text) {
+    function createGenericShop(x, z, text, greyCol) {
         const s = new THREE.Group(); s.position.set(x, 0, z);
-        createBlock(25, 15, 25, 0x888888, 0, 7.5, 0, s); 
+        createBlock(25, 15, 25, greyCol, 0, 7.5, 0, s); 
+        
+        let bgCol = '#444';
+        if(text === "EAT") bgCol = '#006600'; 
+        if(text === "WHSmiffs") bgCol = '#003399'; 
+
         const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;const ctx=canvas.getContext('2d');
-        ctx.fillStyle='#444';ctx.fillRect(0,0,256,64);ctx.fillStyle='#FFF';ctx.font='bold 30px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,32);
+        ctx.fillStyle=bgCol;ctx.fillRect(0,0,256,64);ctx.fillStyle='#FFF';ctx.font='bold 30px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,32);
         const sign = new THREE.Mesh(new THREE.PlaneGeometry(18, 4), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(canvas)}));
-        sign.position.set(x>0?-13.1:13.1, 12, 0); sign.rotation.y = x>0?-Math.PI/2:Math.PI/2; s.add(sign); scene.add(s);
+        sign.position.set(x>0?-13.1:13.1, 12, 0); sign.rotation.y = x>0?-Math.PI/2:Math.PI/2; s.add(sign); 
+
+        if(text === "VAPES") {
+            const vGroup = new THREE.Group(); vGroup.position.set(0, 15, 0);
+            const leg1 = createBlock(2, 8, 2, 0xEEEEEE, -2, 4, 0, vGroup); leg1.rotation.z = -0.3;
+            const leg2 = createBlock(2, 8, 2, 0xEEEEEE, 2, 4, 0, vGroup); leg2.rotation.z = 0.3;
+            s.add(vGroup);
+        }
+        if(text === "Nice:Clothes") {
+            const hGroup = new THREE.Group(); hGroup.position.set(0, 15, 0);
+            createBlock(10, 1, 1, 0xEEEEEE, 0, 2, 0, hGroup); 
+            const l1 = createBlock(6, 1, 1, 0xEEEEEE, -2, 4, 0, hGroup); l1.rotation.z = -0.5;
+            const l2 = createBlock(6, 1, 1, 0xEEEEEE, 2, 4, 0, hGroup); l2.rotation.z = 0.5;
+            createBlock(1, 2, 1, 0xEEEEEE, 0, 6, 0, hGroup); 
+            s.add(hGroup);
+        }
+
+        scene.add(s);
     }
 
     function drawBoard(lines) {
@@ -630,7 +734,7 @@
 
     function createPerson(role, x, z) {
         const mesh = new THREE.Group(); mesh.position.set(x, 0, z);
-        const isWorker = role === 'WORKER';
+        const isWorker = role === 'WORKER' || role === 'GUARD';
         let shirtCol = 0x333333;
         let shirtTex = null;
 
@@ -656,49 +760,35 @@
 
     // --- GAME LOGIC ---
 
-    function startGame() {
-        // --- AUDIO INITIALIZATION ---
+    function startGame(mode) {
+        gameMode = mode;
+        timerRunning = false;
+        timerStartTime = 0;
+        document.getElementById('timer-ui').style.display = (gameMode === 'TIMED') ? 'block' : 'none';
+        document.getElementById('timer-ui').innerText = "00.000";
+        document.getElementById('menu-streak-box').style.display = (gameMode === 'STREAK') ? 'block' : 'none';
+
+        document.getElementById('vol-music-container').style.display = SETTING_MUSIC_ON ? 'flex' : 'none';
+        document.getElementById('vol-sfx-container').style.display = SETTING_SFX_ON ? 'flex' : 'none';
+
         const bgm = document.getElementById('bgm');
         const sfx = document.getElementById('sfx-ambience');
         const sliderMusic = document.getElementById('vol-music-slider');
         const sliderSFX = document.getElementById('vol-sfx-slider');
         
-        // Music Logic
         if(bgm && sliderMusic) {
             bgm.volume = sliderMusic.value;
-            // Only play if the Menu Checkbox was ON
-            if(SETTING_MUSIC_ON) {
-                bgm.play().catch(e => console.log("Music play failed:", e));
-            } else {
-                bgm.pause();
-                bgm.currentTime = 0;
-            }
-            // Update volume real-time
-            sliderMusic.addEventListener('input', function() {
-                bgm.volume = this.value;
-                SETTING_MUSIC_VOL = parseFloat(this.value);
-                saveSettings(); // Save volume preference for next time
-            });
+            if(SETTING_MUSIC_ON) { bgm.play().catch(e => console.log("Music play failed:", e)); } 
+            else { bgm.pause(); bgm.currentTime = 0; }
+            sliderMusic.addEventListener('input', function() { bgm.volume = this.value; SETTING_MUSIC_VOL = parseFloat(this.value); saveSettings(); });
         }
 
-        // Ambience Logic
         if(sfx && sliderSFX) {
             sfx.volume = sliderSFX.value;
-            // Only play if the Menu Checkbox was ON
-            if(SETTING_SFX_ON) {
-                sfx.play().catch(e => console.log("SFX play failed:", e));
-            } else {
-                sfx.pause();
-                sfx.currentTime = 0;
-            }
-            // Update volume real-time
-            sliderSFX.addEventListener('input', function() {
-                sfx.volume = this.value;
-                SETTING_SFX_VOL = parseFloat(this.value);
-                saveSettings(); // Save volume preference for next time
-            });
+            if(SETTING_SFX_ON) { sfx.play().catch(e => console.log("SFX play failed:", e)); } 
+            else { sfx.pause(); sfx.currentTime = 0; }
+            sliderSFX.addEventListener('input', function() { sfx.volume = this.value; SETTING_SFX_VOL = parseFloat(this.value); saveSettings(); });
         }
-        // -------------------------
 
         document.getElementById('menu').style.display = 'none';
         document.getElementById('phone-overlay').style.bottom = "-200px";
@@ -711,12 +801,8 @@
         pigeons.forEach(p => scene.remove(p.mesh)); pigeons = [];
         confetti.forEach(c => scene.remove(c.mesh)); confetti = [];
         particles.forEach(p => scene.remove(p.mesh)); particles = [];
-        
         looseItems.forEach(i => scene.remove(i.mesh)); looseItems = [];
         
-        if(statuePos) {
-        }
-
         drawBoard(["AWAITING DATA..."]);
 
         gameState = 'MINGLE';
@@ -725,8 +811,13 @@
         targetObj = null;
         bloodSpawned = false;
         
-        isZoomed = false; toggleZoom(true);
-        camera.position.set(0, 50, 130); camera.lookAt(0,0,0); pitch = -0.4; yaw = 0;
+        // --- SNIPER POV VARIANCE ---
+        let camY = 50;
+        if(Math.random() < 0.17) { 
+            camY += (Math.random() > 0.5 ? 5 : -5); 
+        }
+        camera.position.set(0, camY, 130);
+        camera.lookAt(0,0,0); pitch = -0.4; yaw = 0;
         
         targetTown = DESTINATIONS[Math.floor(Math.random() * DESTINATIONS.length)];
         targetPlatform = Math.floor(Math.random() * 6); 
@@ -736,21 +827,31 @@
     }
 
     function spawnCrowd() {
-        // 5 Workers
         for(let i=0; i<5; i++) {
             const mesh = createPerson('WORKER', (Math.random()-0.5)*200, -30 + Math.random()*10);
             civilians.push({mesh:mesh, role:'WORKER', state:'IDLE', waypoints:[]});
         }
 
+        const guardMesh = createPerson('GUARD', (Math.random()-0.5)*200, -50);
+        civilians.push({mesh:guardMesh, role:'GUARD', state:'WALKING', waypoints:[new THREE.Vector3(100,0,-50), new THREE.Vector3(-100,0,-50)], speed:0.02});
+
+        const staticCount = 5 + Math.floor(Math.random() * 22); 
+        for(let i=0; i<staticCount; i++) {
+            const sm = createPerson('CIV', (Math.random()-0.5)*250, 20 + Math.random()*60);
+            if(Math.random() < 0.15) { 
+                const lug = new THREE.Group(); lug.name="LUGGAGE";
+                createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
+                lug.position.set(0.8, 0, 0.5); sm.add(lug);
+            }
+            civilians.push({mesh:sm, role:'STATIC', state:'STATIC', waypoints:[], speed:0, sway:Math.random()*100});
+        }
+
         const civCount = parseInt(SETTING_CROWD);
         const packageCount = parseInt(SETTING_PACKAGES);
         
-        // Determine who gets flowers (1 to 4 random people)
         const flowerCount = Math.floor(Math.random() * 4) + 1;
         const flowerIndices = [];
-        for(let i=0; i<flowerCount; i++) {
-            flowerIndices.push(Math.floor(Math.random() * civCount));
-        }
+        for(let i=0; i<flowerCount; i++) flowerIndices.push(Math.floor(Math.random() * civCount));
         
         const packageIndices = [];
         for(let i=0; i<packageCount; i++) packageIndices.push(i);
@@ -764,29 +865,22 @@
             if(i < packageCount) {
                 hasPackage = true;
                 if(i === 0) role = 'TARGET';
-                else { 
-                    role = 'DECOY';
-                    isDecoy = true; 
-                }
-            } else if(i >= packageCount && i < packageCount + 3) {
+                else { role = 'DECOY'; isDecoy = true; }
+            } else if(i >= packageCount && i < packageCount + 8) {
                 role = 'STRIPED'; 
             }
 
             const mesh = createPerson(role, x, z);
             
-            // --- ADD PACKAGE ---
-            let pkg = null;
             if(hasPackage) {
                 pkg = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.1), new THREE.MeshBasicMaterial({color: C.packageColor}));
                 pkg.position.set(0.6, 1.5, 0.3); mesh.add(pkg);
             }
 
-            // --- ADD FLOWERS ---
             if(flowerIndices.includes(i) && !hasPackage) {
                 const bouquet = new THREE.Group();
                 const wrap = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.4, 8), new THREE.MeshLambertMaterial({color: 0xFFFFFF}));
-                wrap.rotation.x = Math.PI; 
-                bouquet.add(wrap);
+                wrap.rotation.x = Math.PI; bouquet.add(wrap);
                 const fCols = [0xFF0000, 0xFFFF00, 0x9900FF]; 
                 for(let f=0; f<5; f++) {
                     const fMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,0.1), new THREE.MeshBasicMaterial({color: fCols[Math.floor(Math.random()*3)]}));
@@ -794,15 +888,13 @@
                     bouquet.add(fMesh);
                 }
                 bouquet.position.set(0.7, 1.6, 0.5); 
-                bouquet.rotation.x = -0.5; 
-                bouquet.rotation.z = -0.2; 
+                bouquet.rotation.x = -0.5; bouquet.rotation.z = -0.2; 
+                bouquet.scale.set(2.5, 2.5, 2.5);
                 mesh.add(bouquet);
             }
-            // -------------------------
 
             if(role === 'CIV' && Math.random() < 0.30 && !flowerIndices.includes(i)) {
-                const lug = new THREE.Group();
-                lug.name = "LUGGAGE"; 
+                const lug = new THREE.Group(); lug.name = "LUGGAGE"; 
                 createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
                 lug.position.set(0.8, 0, 0.5); mesh.add(lug);
             }
@@ -811,9 +903,7 @@
                 mesh: mesh, role: role, pkg: pkg, isDecoy: isDecoy,
                 state: 'IDLE', waypoints: [], speed: 0.04 + Math.random()*0.02, sway: Math.random()*100
             };
-            
             if(role === 'TARGET') targetObj = civ;
-
             civilians.push(civ);
         }
     }
@@ -821,9 +911,11 @@
     function triggerRush() {
         gameState = 'RUSH';
         civilians.forEach(c => {
-            if(c.role === 'WORKER') {
-                c.state = 'WALKING'; c.speed = 0.02;
-                c.waypoints = [new THREE.Vector3((Math.random()-0.5)*200, 0, -40 - Math.random()*40)];
+            if(c.role === 'WORKER' || c.role === 'GUARD' || c.role === 'STATIC') {
+                if(c.role === 'WORKER') {
+                    c.state = 'WALKING'; c.speed = 0.02;
+                    c.waypoints = [new THREE.Vector3((Math.random()-0.5)*200, 0, -40 - Math.random()*40)];
+                }
                 return;
             }
             
@@ -867,7 +959,14 @@
             document.getElementById('phone-overlay').style.bottom = "20px";
         }
 
+        // --- TIMER TRIGGER POINT ---
         if(gameTime > 17 && gameTime < 17.1) {
+             // START TIMER ONLY IF TIMED MODE
+             if(gameMode === 'TIMED' && !timerRunning) {
+                 timerRunning = true;
+                 timerStartTime = performance.now();
+             }
+
              let plats = [0,1,2,3,4,5];
              let boardRows = [];
              
@@ -929,23 +1028,13 @@
     function updateLooseItems(dt) {
         for(let i=looseItems.length-1; i>=0; i--) {
             const item = looseItems[i];
-            
             if(item.life > 0) {
                 item.mesh.position.add(item.vel);
                 item.mesh.rotation.x += item.rotVel.x;
                 item.mesh.rotation.z += item.rotVel.z;
-                
                 item.vel.multiplyScalar(0.96);
-                
-                if(item.mesh.rotation.x > -Math.PI/2) {
-                    item.mesh.rotation.x -= dt * 2.0; 
-                }
-                
-                if(item.mesh.position.y < 0) {
-                    item.mesh.position.y = 0;
-                    item.vel.y = 0;
-                }
-                
+                if(item.mesh.rotation.x > -Math.PI/2) item.mesh.rotation.x -= dt * 2.0; 
+                if(item.mesh.position.y < 0) { item.mesh.position.y = 0; item.vel.y = 0; }
                 item.life -= dt;
             }
         }
@@ -955,35 +1044,29 @@
         requestAnimationFrame(animate);
         const dt = clock.getDelta();
 
+        // TIMER UPDATE
+        if(timerRunning) {
+            const now = performance.now();
+            const elapsed = (now - timerStartTime) / 1000;
+            document.getElementById('timer-ui').innerText = elapsed.toFixed(3);
+        }
+
         if(gameState === 'BLEEDING') {
             bleedTimer += dt;
-            
             if(victimRef && victimRef.mesh && victimRef.mesh.rotation.x > -Math.PI/2) {
                 victimRef.mesh.rotation.x -= dt * 5.0; 
                 victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); 
             }
-
             updateLooseItems(dt);
-
-            if(bleedTimer > 0.3 && !bloodSpawned) {
-                 spawnBlood(victimRef);
-                 bloodSpawned = true;
-            }
-
+            if(bleedTimer > 0.3 && !bloodSpawned) { spawnBlood(victimRef); bloodSpawned = true; }
             if(bloodPuddles.length > 0) {
                 const p = bloodPuddles[bloodPuddles.length-1];
                 if(p.scale < 1.5) { p.scale += dt * 2; p.mesh.scale.setScalar(p.scale); }
             }
-
             if(bleedTimer > 3.0) {
                 if(resultIsWin) showEndScreen();
-                else {
-                    gameState = 'SCREEN_EFFECT';
-                    bleedTimer = 0;
-                    triggerScreenBlood();
-                }
+                else { gameState = 'SCREEN_EFFECT'; bleedTimer = 0; triggerScreenBlood(); }
             }
-            
             renderer.render(scene, camera);
             return;
         }
@@ -1019,6 +1102,11 @@
         camera.rotation.x = pitch; camera.rotation.y = yaw;
 
         civilians.forEach(c => {
+            if(c.role === 'STATIC') {
+                c.mesh.rotation.y = Math.sin(gameTime + c.sway) * 0.5;
+                return;
+            }
+
             if(c.state === 'IDLE' && c.role !== 'WORKER' && Math.random() < 0.01) {
                  c.state = 'WALKING'; 
                  c.waypoints = [new THREE.Vector3((Math.random()-0.5)*250, 0, 20 + Math.random()*80)];
@@ -1038,7 +1126,9 @@
                 if(dir.length() < 1.0) {
                     c.waypoints.shift();
                     if(c.waypoints.length === 0) {
-                        if(gameState === 'RUSH' && c.role !== 'WORKER') { c.state = 'BOARDED'; scene.remove(c.mesh); } else c.state = 'IDLE';
+                        if(c.role === 'GUARD') c.waypoints = [new THREE.Vector3(c.mesh.position.x > 0 ? -100 : 100, 0, -50)];
+                        else if(gameState === 'RUSH' && c.role !== 'WORKER') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
+                        else c.state = 'IDLE';
                     }
                 } else {
                     dir.normalize(); c.mesh.position.add(dir.multiplyScalar(c.speed * 60 * dt)); c.mesh.lookAt(c.mesh.position.clone().add(dir));
@@ -1085,16 +1175,24 @@
 
     function processHit(civ) {
         document.getElementById('scope-overlay').style.display = 'none';
+
+        // STOP TIMER
+        if(timerRunning) {
+            timerRunning = false;
+            finalTime = (performance.now() - timerStartTime) / 1000;
+        }
         
         if(civ === targetObj) {
-            resultIsWin = true;
-            KILL_STREAK++;
+            resultIsWin = true; KILL_STREAK++;
+            if(gameMode === 'TIMED') {
+                LEADERBOARD.push(finalTime);
+            }
         } else {
-            resultIsWin = false;
-            KILL_STREAK = 0;
-            victimRef = civ;
+            resultIsWin = false; KILL_STREAK = 0; victimRef = civ;
             if(civ.role === 'DECOY') resultReason = "YOU SHOT A DECOY (WRONG TRAIN/SHOP).";
             else if(civ.role === 'STRIPED') resultReason = "DISTRACTION TARGET. CIVILIAN CASUALTY.";
+            else if(civ.role === 'STATIC') resultReason = "BYSTANDER CASUALTY.";
+            else if(civ.role === 'GUARD') resultReason = "OFFICER DOWN. MISSION COMPROMISED.";
             else resultReason = "CIVILIAN CASUALTY.";
         }
         saveSettings();
@@ -1102,20 +1200,12 @@
         if(civ && civ.mesh) {
             const luggage = civ.mesh.getObjectByName("LUGGAGE");
             if(luggage) {
-                const worldPos = new THREE.Vector3();
-                luggage.getWorldPosition(worldPos);
-                const worldQuat = new THREE.Quaternion();
-                luggage.getWorldQuaternion(worldQuat);
-
-                civ.mesh.remove(luggage);
-                scene.add(luggage);
-                
-                luggage.position.copy(worldPos);
-                luggage.quaternion.copy(worldQuat);
-
+                const worldPos = new THREE.Vector3(); luggage.getWorldPosition(worldPos);
+                const worldQuat = new THREE.Quaternion(); luggage.getWorldQuaternion(worldQuat);
+                civ.mesh.remove(luggage); scene.add(luggage);
+                luggage.position.copy(worldPos); luggage.quaternion.copy(worldQuat);
                 const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(civ.mesh.quaternion).normalize();
                 const speed = (civ.speed || 0.04) * 80; 
-
                 looseItems.push({
                     mesh: luggage,
                     vel: forward.multiplyScalar(speed).add(new THREE.Vector3((Math.random()-0.5)*0.5, 0, (Math.random()-0.5)*0.5)),
@@ -1133,14 +1223,9 @@
 
     function spawnBlood(civ) {
         if(!civ || !civ.mesh) return;
-
-        const b = new THREE.Mesh(new THREE.CircleGeometry(0.6,16), new THREE.MeshBasicMaterial({
-            color:0xaa0000, depthTest:false, transparent:false 
-        }));
-        b.renderOrder = 999; 
-        b.rotation.x = -Math.PI/2; 
-        b.position.set(civ.mesh.position.x, 0.02, civ.mesh.position.z); 
-        scene.add(b);
+        const b = new THREE.Mesh(new THREE.CircleGeometry(0.6,16), new THREE.MeshBasicMaterial({color:0xaa0000, depthTest:false, transparent:false}));
+        b.renderOrder = 999; b.rotation.x = -Math.PI/2; 
+        b.position.set(civ.mesh.position.x, 0.02, civ.mesh.position.z); scene.add(b);
         bloodPuddles.push({mesh:b, scale:0.1}); 
     }
 
@@ -1172,8 +1257,19 @@
                 confetti.push({mesh:c, speed:Math.random()*0.5});
             }
             spawnFireworks();
-            stamp.innerText = "HERO"; title.innerText = "LEGENDARY"; desc.innerText = "TARGET NEUTRALIZED. THE CROWN SLEEPS SAFELY.";
-            award.innerText = generateCodeName();
+            // Random Win Title
+            const rndTitle = WIN_TITLES[Math.floor(Math.random() * WIN_TITLES.length)];
+            stamp.innerText = "SUCCESS"; 
+            title.innerText = rndTitle; 
+            
+            if(gameMode === 'TIMED') {
+                desc.innerText = "TARGET DOWN. TIME: " + finalTime.toFixed(3) + "s";
+                award.innerText = "";
+                renderLeaderboard(); // Update UI
+            } else {
+                desc.innerText = "TARGET NEUTRALIZED. THE CROWN SLEEPS SAFELY.";
+                award.innerText = generateCodeName();
+            }
         } else {
             stamp.innerText = "FAILED"; title.innerText = "DISAVOWED"; 
             desc.innerText = resultReason + " CATASTROPHIC FAILURE.";
