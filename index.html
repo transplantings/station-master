@@ -153,9 +153,9 @@
             z-index: 25; pointer-events: none; display: none;
         }
         #timer-ui {
-            font-family: 'Russo One', sans-serif; font-size: 24px; color: #FF0000;
+            font-family: 'Courier Prime', monospace; font-size: 24px; color: #FF0000;
             text-shadow: 0 0 10px #FF0000; border: 2px solid #550000;
-            background: rgba(0,0,0,0.8); padding: 5px 15px;
+            background: rgba(0,0,0,0.8); padding: 5px 15px; font-weight: bold;
         }
 
         .key-hint { color: #fff; background: rgba(0,255,0,0.2); padding: 2px 6px; border: 1px solid #00FF00; font-size: 11px; margin: 0 5px; }
@@ -167,7 +167,7 @@
         .vol-btn:hover { color: #fff; }
         
         input[type=range].tech-slider {
-            -webkit-appearance: none; width: 100px; background: transparent; cursor: pointer;
+            -webkit-appearance: none; width: 140px; background: transparent; cursor: pointer; /* Extended width */
         }
         input[type=range].tech-slider:focus { outline: none; }
         input[type=range].tech-slider::-webkit-slider-runnable-track {
@@ -211,7 +211,19 @@
             position: absolute; top: 30px; right: 30px;
             border: 5px solid #C00; color: #C00; font-family: 'Montserrat', sans-serif;
             font-size: 40px; font-weight: 900; padding: 5px 20px;
-            transform: rotate(12deg); opacity: 0.8; mix-blend-mode: multiply;
+            transform: rotate(12deg) scale(3); opacity: 0; mix-blend-mode: multiply;
+            /* Default state hidden for animation */
+            pointer-events: none;
+        }
+
+        /* STAMP ANIMATION */
+        @keyframes stamp-slam {
+            0% { opacity: 0; transform: rotate(12deg) scale(3); }
+            70% { opacity: 0.8; transform: rotate(12deg) scale(0.9); }
+            100% { opacity: 0.8; transform: rotate(12deg) scale(1.0); }
+        }
+        .stamp.slammed {
+            animation: stamp-slam 0.4s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
         @keyframes sheen { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -290,6 +302,16 @@
             letter-spacing: 1px; transition: 0.2s;
         }
         .preset-btn:hover { background: #444; color: #fff; border-color: #888; }
+        
+        /* CLASSY DIFFICULTY BUTTON STYLES */
+        #btn-easy { border-bottom: 2px solid #00AA00; }
+        #btn-easy:hover { background: #002200; color: #00FF00; border-color: #00FF00; }
+        
+        #btn-med { border-bottom: 2px solid #AA6600; }
+        #btn-med:hover { background: #221100; color: #FFAA00; border-color: #FFAA00; }
+        
+        #btn-hard { border-bottom: 2px solid #AA0000; }
+        #btn-hard:hover { background: #220000; color: #FF0000; border-color: #FF0000; }
 
         .btn-row { display: flex; gap: 15px; margin-top: 15px; }
         
@@ -345,6 +367,32 @@
         }
         #hs-input:focus { outline: none; background: #003300; }
 
+        /* CUSTOM CONFIRM MODAL */
+        #confirm-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 300;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .confirm-box {
+            background: #111; border: 2px solid #FFCC00; padding: 30px; width: 400px;
+            text-align: center; font-family: 'Montserrat', sans-serif; color: #fff;
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.2);
+            position: relative;
+        }
+        .confirm-title { font-size: 20px; color: #FFCC00; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 20px; letter-spacing: 2px; }
+        .confirm-msg { font-size: 14px; margin-bottom: 30px; font-family: 'Courier Prime', monospace; color: #ccc; line-height: 1.5; }
+        .confirm-btn-row { display: flex; gap: 20px; justify-content: center; }
+        .conf-btn { padding: 10px 20px; font-family: 'Montserrat', sans-serif; font-weight: bold; cursor: pointer; border: 1px solid #444; transition: 0.2s; font-size: 12px; }
+        .btn-yes { background: #300; color: #f55; border-color: #500; }
+        .btn-yes:hover { background: #f00; color: #fff; }
+        .btn-no { background: #222; color: #aaa; }
+        .btn-no:hover { background: #444; color: #fff; }
+        .warning-stripe {
+            position: absolute; top: -10px; left: -10px; background: #FFCC00; color: #000;
+            font-size: 10px; padding: 5px; font-weight: bold; transform: rotate(-5deg); border: 2px solid #000;
+        }
+
+
         /* VERTICAL MENU SLIDER */
         #menu-vol-container {
             position: absolute; top: 50%; left: -70px;
@@ -383,16 +431,30 @@
         <button id="intro-btn" onclick="enterGame()">Yes I am</button>
     </div>
 
-    <!-- NEW READY OVERLAY -->
     <div id="ready-overlay">
         <div id="ready-msg">Area Secure</div>
         <button id="ready-btn" onclick="confirmReady()">I'm Ready</button>
     </div>
 
-    <!-- NEW RETURN OVERLAY (For when page reloads) -->
     <div id="return-overlay">
         <div id="return-msg">System Rebooted</div>
         <button id="return-btn" onclick="confirmReturn()">Resume Operation</button>
+    </div>
+
+    <div id="confirm-modal">
+        <div class="confirm-box">
+            <div class="warning-stripe">IRREVERSIBLE</div>
+            <div class="confirm-title">SYSTEM PURGE</div>
+            <div class="confirm-msg">
+                Are you sure you want to wipe all field reports and leaderboard data?
+                <br><br>
+                <span style="color:#f55;">THIS ACTION CANNOT BE UNDONE.</span>
+            </div>
+            <div class="confirm-btn-row">
+                <button class="conf-btn btn-yes" onclick="performReset()">CONFIRM PURGE</button>
+                <button class="conf-btn btn-no" onclick="closeConfirm()">CANCEL</button>
+            </div>
+        </div>
     </div>
 
     <div id="top-ui-container" class="minimized">
@@ -408,13 +470,13 @@
                         <span class="vol-label">&#9834;</span>
                         <span class="vol-btn" onclick="nextTrack()">[>>]</span>
                         <span class="vol-btn">[-]</span>
-                        <input type="range" id="vol-music-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
+                        <input type="range" id="vol-music-slider" class="tech-slider" min="0" max="1" step="0.02" value="0.3">
                         <span class="vol-btn">[+]</span>
                     </div>
                     <div class="vol-control" id="vol-sfx-container">
                         <span class="vol-label">SFX</span>
                         <span class="vol-btn">[-]</span>
-                        <input type="range" id="vol-sfx-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
+                        <input type="range" id="vol-sfx-slider" class="tech-slider" min="0" max="1" step="0.02" value="0.8">
                         <span class="vol-btn">[+]</span>
                     </div>
                 </div>
@@ -476,7 +538,7 @@
             </div>
 
             <div class="streak-box" id="menu-streak-box">STREAK: <span id="streak-display">0</span></div>
-            <div class="stamp">TOP SECRET</div>
+            <div class="stamp" style="opacity:0.8; transform: rotate(12deg) scale(1);">TOP SECRET</div>
             <h1>Operation: Terminus</h1>
             
             <div class="mission-brief">
@@ -487,9 +549,9 @@
 
             <div class="settings-box">
                 <div class="preset-row">
-                    <button class="preset-btn" onclick="setDifficulty('EASY')">EASY</button>
-                    <button class="preset-btn" onclick="setDifficulty('MEDIUM')">MEDIUM</button>
-                    <button class="preset-btn" onclick="setDifficulty('HARD')">HARD</button>
+                    <button id="btn-easy" class="preset-btn" onclick="setDifficulty('EASY')">EASY</button>
+                    <button id="btn-med" class="preset-btn" onclick="setDifficulty('MEDIUM')">MEDIUM</button>
+                    <button id="btn-hard" class="preset-btn" onclick="setDifficulty('HARD')">HARD</button>
                 </div>
                 <div class="slider-row">
                     <label>CROWD DENSITY</label>
@@ -589,17 +651,22 @@
     let particles = []; 
     let looseItems = [];
     let statuePos = null; 
+    let jamboni = null; // The cleaner vehicle
+    let shopStaff = []; // The shopkeepers
     
     // Logic
     let targetObj = null; 
     let targetTown = "";
     let targetPlatform = -1; 
     let isInitializing = false; // Prevent double init
+    let boardDataGenerated = false; // Prevent board redraw loop
     
     let boardCanvas, boardCtx, boardTexture;
     let nextPigeonTime = 5;
     let stripeTexture;
+    let marbleTexture; // Light grey marble texture
     let bloodSpawned = false;
+    let obstacles = []; // Global obstacles for collision
 
     // Settings & Persistence
     let SETTING_CROWD = 80;
@@ -609,8 +676,9 @@
     
     let SETTING_MUSIC_ON = true;
     let SETTING_SFX_ON = true;
-    let SETTING_MUSIC_VOL = 0.5;
-    let SETTING_SFX_VOL = 0.5;
+    // UPDATED DEFAULTS handled in loadSettings
+    let SETTING_MUSIC_VOL = 0.3;
+    let SETTING_SFX_VOL = 0.8;
     let SETTING_MENU_VOL = 0.5;
     let SETTING_RANDOM_PL = false;
     
@@ -654,8 +722,20 @@
         if(localStorage.getItem('sm_music_on') !== null) SETTING_MUSIC_ON = (localStorage.getItem('sm_music_on') === 'true');
         if(localStorage.getItem('sm_sfx_on') !== null) SETTING_SFX_ON = (localStorage.getItem('sm_sfx_on') === 'true');
         if(localStorage.getItem('sm_random_pl') !== null) SETTING_RANDOM_PL = (localStorage.getItem('sm_random_pl') === 'true');
-        if(localStorage.getItem('sm_music_vol')) SETTING_MUSIC_VOL = parseFloat(localStorage.getItem('sm_music_vol'));
-        if(localStorage.getItem('sm_sfx_vol')) SETTING_SFX_VOL = parseFloat(localStorage.getItem('sm_sfx_vol'));
+        
+        // NEW DEFAULT VOLUME LOGIC (80% SFX, 30% Music if not set)
+        if(localStorage.getItem('sm_music_vol')) {
+            SETTING_MUSIC_VOL = parseFloat(localStorage.getItem('sm_music_vol'));
+        } else {
+            SETTING_MUSIC_VOL = 0.3;
+        }
+
+        if(localStorage.getItem('sm_sfx_vol')) {
+            SETTING_SFX_VOL = parseFloat(localStorage.getItem('sm_sfx_vol'));
+        } else {
+            SETTING_SFX_VOL = 0.8;
+        }
+
         if(localStorage.getItem('sm_menu_vol')) SETTING_MENU_VOL = parseFloat(localStorage.getItem('sm_menu_vol'));
 
         document.getElementById('slide-crowd').value = SETTING_CROWD;
@@ -726,13 +806,21 @@
     }
 
     function resetAllData() {
-        if(confirm("Wipe all Field Reports and Leaderboard data?")) {
-            LEADERBOARD = [];
-            STATS = { target:0, decoy:0, civ:0, abort:0 };
-            KILL_STREAK = 0;
-            saveSettings();
-            loadSettings();
-        }
+        // Show Custom Modal instead of window.confirm
+        document.getElementById('confirm-modal').style.display = 'flex';
+    }
+    
+    function closeConfirm() {
+        document.getElementById('confirm-modal').style.display = 'none';
+    }
+    
+    function performReset() {
+        LEADERBOARD = [];
+        STATS = { target:0, decoy:0, civ:0, abort:0 };
+        KILL_STREAK = 0;
+        saveSettings();
+        loadSettings();
+        closeConfirm();
     }
 
     function setDifficulty(level) {
@@ -930,7 +1018,11 @@
     }
 
     function drawMatrix() {
-        if(gameState !== 'MENU') return;
+        if(gameState !== 'MENU' && gameState !== 'ENDED') return;
+        
+        // Slower background if ENDED screen
+        const bgSpeedMult = (gameState === 'ENDED') ? 0.85 : 1.0;
+
         matCtx.fillStyle = 'rgba(0, 0, 0, 0.08)'; matCtx.fillRect(0, 0, matCanvas.width, matCanvas.height);
         matCtx.font = matFontSize + 'px monospace';
         for(let i=0; i<matColumns.length; i++) {
@@ -939,7 +1031,7 @@
             matCtx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
             const char = col.word[col.wordIdx % col.word.length];
             matCtx.fillText(char, i * matFontSize, col.y);
-            col.y += col.speed;
+            col.y += (col.speed * bgSpeedMult); // Apply speed mult
             if(Math.floor(col.y) % 20 < 2) col.wordIdx++;
             if(col.y > matCanvas.height && Math.random() > 0.98) {
                 col.y = 0; col.wordIdx = 0; col.word = matrixWords[Math.floor(Math.random() * matrixWords.length)];
@@ -976,6 +1068,7 @@
         scene.add(sun);
 
         stripeTexture = createStripeTexture();
+        marbleTexture = createMarbleTexture();
         buildStation();
 
         document.getElementById('hs-input').addEventListener('keydown', function(e) {
@@ -1027,6 +1120,24 @@
         ctx.fillStyle = '#FFD700'; ctx.fillRect(0,0,64,64);
         ctx.fillStyle = '#000000';
         for(let i=0; i<64; i+=8) ctx.fillRect(0, i, 64, 4);
+        return new THREE.CanvasTexture(canvas);
+    }
+    
+    function createMarbleTexture() {
+        const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        // Base light grey - LIGHTER NOW
+        ctx.fillStyle = '#F0F0F0'; 
+        ctx.fillRect(0,0,256,256);
+        // Veins
+        ctx.strokeStyle = '#CCCCCC'; 
+        ctx.lineWidth = 2;
+        for(let i=0; i<20; i++) {
+            ctx.beginPath(); 
+            ctx.moveTo(Math.random()*256, Math.random()*256);
+            ctx.bezierCurveTo(Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256);
+            ctx.stroke();
+        }
         return new THREE.CanvasTexture(canvas);
     }
 
@@ -1105,6 +1216,26 @@
         createGenericShop(-160, 10, "EAT", 0x666666); 
         createGenericShop(-100, 80, "Nice:Clothes", 0x555555);
         createGenericShop(160, -20, "COMBS", 0x777777);
+        
+        // --- NEW FENCES LOGIC: PERPENDICULAR BETWEEN PLATFORMS ---
+        // Fences along Z = -25 (Edge of concourse).
+        // Gaps correspond to platform entrances. Platform centers: -100, -60, -20, 20, 60, 100
+        // Width 20 -> Gaps: [-110, -90], [-70, -50], [-30, -10], [10, 30], [50, 70], [90, 110]
+        // Fences go in the VOIDS between these gaps.
+        
+        const gaps = [
+            {s: -200, e: -110}, // Left of Plat 1
+            {s: -90, e: -70},   // Between 1 & 2
+            {s: -50, e: -30},   // Between 2 & 3
+            {s: -10, e: 10},    // Between 3 & 4
+            {s: 30, e: 50},     // Between 4 & 5
+            {s: 70, e: 90},     // Between 5 & 6
+            {s: 110, e: 200}    // Right of Plat 6
+        ];
+        
+        gaps.forEach(g => {
+            createPerpendicularFence(-25, g.s, g.e);
+        });
 
         createBlock(400, 5, 10, 0x222222, 0, 40, -180); 
         createBlock(400, 1, 1, 0xff0000, 0, 43, -175); 
@@ -1122,6 +1253,32 @@
         const screen = new THREE.Mesh(new THREE.PlaneGeometry(130, 16), new THREE.MeshBasicMaterial({map: boardTexture}));
         screen.position.set(0, 0, 1.1); boardGroup.add(screen); scene.add(boardGroup);
     }
+    
+    // --- CREATE PERPENDICULAR FENCE HELPER ---
+    // Fence runs along X axis at a specific Z
+    function createPerpendicularFence(z, xStart, xEnd) {
+        const group = new THREE.Group();
+        const length = Math.abs(xEnd - xStart);
+        const centerX = (xStart + xEnd) / 2;
+        const segmentLen = 10;
+        const count = Math.floor(length / segmentLen);
+        
+        // Height 2.0 (Twice previous 1.0)
+        // Top Rail (Y=1.8)
+        createBlock(length, 0.2, 0.5, 0xAAAAAA, centerX, 1.8, z, group);
+        // Mid Rail (Y=1.0)
+        createBlock(length, 0.2, 0.5, 0xAAAAAA, centerX, 1.0, z, group);
+        
+        // Posts
+        for(let i=0; i<=count; i++) {
+            const x = xStart + (i * segmentLen);
+            // Don't place post if it exceeds xEnd slightly due to rounding
+            if(x > xEnd + 0.1) continue;
+            createBlock(0.5, 2.0, 0.5, 0x888888, x, 1.0, z, group);
+        }
+        
+        scene.add(group);
+    }
 
     function createTrain(x, y, zStart, parent) {
         const col = C.trainColors[Math.floor(Math.random() * C.trainColors.length)];
@@ -1135,20 +1292,146 @@
         }
     }
 
+    // Helper to get skin color
+    function getRandomSkinColor() {
+        // SKIN COLOR LOGIC
+        let skinCol = 0xFFCCAA; // Default
+        const whiteChance = 0.58 + (Math.random() * (0.81 - 0.58)); // 58% to 81% chance
+        if(Math.random() < whiteChance) {
+            skinCol = Math.random() > 0.5 ? 0xFFCCAA : 0xF5D0B0;
+        } else {
+            // Brown, Light Brown, Light Black, Dark Black
+            const skins = [0xD2A679, 0xB07E55, 0x8D5524, 0x5C3836, 0x3B2319];
+            skinCol = skins[Math.floor(Math.random() * skins.length)];
+        }
+        return skinCol;
+    }
+
     function createGenericShop(x, z, text, greyCol) {
         const s = new THREE.Group(); s.position.set(x, 0, z);
-        createBlock(25, 15, 25, greyCol, 0, 7.5, 0, s); 
+
+        if (text === "VAPES") {
+            // Walk-in Marquee Style
+            
+            // 4 Corner Columns
+            const colW = 1.5; const colH = 15;
+            createBlock(colW, colH, colW, greyCol, -11.5, 7.5, -11.5, s); // Back Left
+            createBlock(colW, colH, colW, greyCol, 11.5, 7.5, -11.5, s);  // Back Right
+            createBlock(colW, colH, colW, greyCol, -11.5, 7.5, 11.5, s);  // Front Left
+            createBlock(colW, colH, colW, greyCol, 11.5, 7.5, 11.5, s);   // Front Right
+            
+            // Roof
+            createBlock(26, 6, 26, greyCol, 0, 13, 0, s);
+            
+            // --- UPDATED VAPE SHOP COUNTER ---
+            const dW = 9.8; 
+            const dH = 1.82; 
+            const dThick = 1;
+            const yPos = dH / 2;
+            const brightWhite = 0xFFFFFF; // Use white to let texture shine brightest
+            
+            // Front bar
+            createBlock(dW, dH, dThick, brightWhite, 0, yPos, 2.5, s, marbleTexture);
+            // Back bar
+            createBlock(dW, dH, dThick, brightWhite, 0, yPos, -2.5, s, marbleTexture);
+            // Left bar
+            createBlock(dThick, dH, 4, brightWhite, -4.4, yPos, 0, s, marbleTexture); // Offset X to half of 9.8 approx (4.9 minus padding)
+            // Right bar
+            createBlock(dThick, dH, 4, brightWhite, 4.4, yPos, 0, s, marbleTexture);
+            
+            // ADD OBSTACLE FOR COLLISION
+            obstacles.push({x: x, z: z, r: 8.0}); // Radius 8 for slightly safer boundary
+
+            // Shopkeeper INSIDE the counter (Center)
+            // UPDATED: Full body person logic
+            const staffGrp = new THREE.Group();
+            staffGrp.position.set(0, 0, 0); 
+            
+            // Random Pink/Purple Shirt
+            const shirtCols = [0xFFC0CB, 0xFF69B4, 0x800080, 0x9370DB, 0xDA70D6];
+            const shirtCol = shirtCols[Math.floor(Math.random() * shirtCols.length)];
+            const skinCol = getRandomSkinColor();
+
+            // Legs (Relative to group center 0,0,0)
+            // Group will be raised to stand on floor.
+            // Legs: x=+/-0.2, y=0.8, z=0
+            createBlock(0.25, 1.6, 0.25, 0x111111, -0.2, 0.8, 0, staffGrp); // Left Leg
+            createBlock(0.25, 1.6, 0.25, 0x111111, 0.2, 0.8, 0, staffGrp); // Right Leg
+            
+            // Body (Shirt)
+            createBlock(0.9, 1.4, 0.5, shirtCol, 0, 2.2, 0, staffGrp); 
+            
+            // Arms
+            createBlock(0.25, 1.3, 0.25, shirtCol, -0.6, 2.2, 0, staffGrp); // Left Arm
+            createBlock(0.25, 1.3, 0.25, shirtCol, 0.6, 2.2, 0, staffGrp); // Right Arm
+
+            // Head
+            createBlock(0.5, 0.6, 0.5, skinCol, 0, 3.2, 0, staffGrp); 
+            
+            // Add to scene (Group sits at y=0 local, so legs touch y=0)
+            s.add(staffGrp);
+            
+            shopStaff.push({
+                mesh: staffGrp,
+                basePos: staffGrp.position.clone(),
+                timer: 0,
+                targetRot: Math.random() * Math.PI * 2,
+                interval: 15 + Math.random() * 10, // 15-25 seconds rotation
+                swayTimer: 0,
+                vapeTimer: 0,
+                // Start random 3-8s, then switch to long interval
+                vapeInterval: 3 + Math.random() * 5 
+            });
+            
+        } else {
+            // Standard Block Shop 
+            createBlock(25, 15, 25, greyCol, 0, 7.5, 0, s); 
+        }
+
+        // SIGN GENERATION
         let bgCol = '#444';
         if(text === "EAT") bgCol = '#006600'; if(text === "WHSmiffs") bgCol = '#003399'; 
+        
         const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;const ctx=canvas.getContext('2d');
         ctx.fillStyle=bgCol;ctx.fillRect(0,0,256,64);ctx.fillStyle='#FFF';ctx.font='bold 30px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,32);
-        const sign = new THREE.Mesh(new THREE.PlaneGeometry(18, 4), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(canvas)}));
-        sign.position.set(x>0?-13.1:13.1, 12, 0); sign.rotation.y = x>0?-Math.PI/2:Math.PI/2; s.add(sign); 
-        if(text === "VAPES") {
-            const vGroup = new THREE.Group(); vGroup.position.set(0, 15, 0);
-            const leg1 = createBlock(2, 8, 2, 0xEEEEEE, -2, 4, 0, vGroup); leg1.rotation.z = -0.3;
-            const leg2 = createBlock(2, 8, 2, 0xEEEEEE, 2, 4, 0, vGroup); leg2.rotation.z = 0.3; s.add(vGroup);
+        const signTex = new THREE.CanvasTexture(canvas);
+
+        if (text === "VAPES" || text === "Nice:Clothes") {
+            // SIGN ON ALL 4 SIDES
+            const offsets = [
+                { pos: new THREE.Vector3(0, 12, 13.1), rot: 0 },          // Front (Z+)
+                { pos: new THREE.Vector3(0, 12, -13.1), rot: Math.PI },   // Back (Z-)
+                { pos: new THREE.Vector3(-13.1, 12, 0), rot: -Math.PI/2 },// Left (X-)
+                { pos: new THREE.Vector3(13.1, 12, 0), rot: Math.PI/2 }   // Right (X+)
+            ];
+            
+            offsets.forEach(off => {
+                const sign = new THREE.Mesh(new THREE.PlaneGeometry(18, 4), new THREE.MeshBasicMaterial({map: signTex}));
+                sign.position.copy(off.pos);
+                sign.rotation.y = off.rot;
+                // For "Nice:Clothes" extra height adjustment if needed, but 12 is fine standard
+                s.add(sign);
+            });
+
+        } else {
+            // Standard Sign Placement (Side Facing)
+            const sign = new THREE.Mesh(new THREE.PlaneGeometry(18, 4), new THREE.MeshBasicMaterial({map: signTex}));
+            sign.position.set(x>0?-13.1:13.1, 12, 0); 
+            sign.rotation.y = x>0?-Math.PI/2:Math.PI/2; 
+            s.add(sign); 
+            
+            // WHSmiffs EXTRA SIGN
+            if(text === "WHSmiffs") {
+                const sign2 = new THREE.Mesh(new THREE.PlaneGeometry(18, 4), new THREE.MeshBasicMaterial({map: signTex}));
+                // Face Positive Z (Towards Sniper)
+                // Shop is at 160, 40. Dimensions 25x25. Half dim 12.5.
+                // Front Face is Z = +12.5 (local).
+                sign2.position.set(0, 12, 12.6); 
+                sign2.rotation.y = 0; // Face Z+
+                s.add(sign2);
+            }
         }
+        
         if(text === "Nice:Clothes") {
             const hGroup = new THREE.Group(); hGroup.position.set(0, 15, 0);
             createBlock(10, 1, 1, 0xEEEEEE, 0, 2, 0, hGroup); 
@@ -1157,6 +1440,83 @@
             createBlock(1, 2, 1, 0xEEEEEE, 0, 6, 0, hGroup); s.add(hGroup);
         }
         scene.add(s);
+    }
+
+    function triggerVape(staff) {
+        if (!staff || !staff.mesh) return;
+        
+        // 1. Calculate Mouth Position in World Space
+        const worldPos = new THREE.Vector3();
+        staff.mesh.getWorldPosition(worldPos);
+        
+        // Height adjustment (Head is at y=3.2 roughly, world scaling is 1)
+        // Group is at 0. Staff y position inside group might vary.
+        // Mesh center is usually 0,0,0 relative to parent.
+        // Let's assume mouth is ~3.0 units high in world space from shop floor
+        worldPos.y += 3.0; 
+
+        // 2. Get Facing Direction
+        const worldQuat = new THREE.Quaternion();
+        staff.mesh.getWorldQuaternion(worldQuat);
+        const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(worldQuat).normalize();
+        
+        // Move start pos slightly forward
+        worldPos.add(fwd.clone().multiplyScalar(0.5));
+
+        // 3. Spawn Particles
+        for(let i=0; i<20; i++) { // More particles
+            const p = createBlock(0.15, 0.15, 0.15, 0xEEEEEE, worldPos.x, worldPos.y, worldPos.z, null);
+            
+            // Random spread
+            p.position.x += (Math.random() - 0.5) * 0.4;
+            p.position.y += (Math.random() - 0.5) * 0.4;
+            p.position.z += (Math.random() - 0.5) * 0.4;
+
+            // Velocity: Slowly forward + Slow Up + Drag
+            const vel = fwd.clone().multiplyScalar(0.05 + Math.random() * 0.05); 
+            vel.y += 0.02 + Math.random() * 0.03; // Slow rise
+            vel.x += (Math.random()-0.5) * 0.02;
+            vel.z += (Math.random()-0.5) * 0.02;
+
+            particles.push({ 
+                mesh: p, 
+                vel: vel, 
+                life: 3.5 + Math.random() * 1.5, // Linger 3.5-5s
+                maxLife: 5.0,
+                isVape: true 
+            });
+        }
+    }
+
+    function updateShopStaff(dt) {
+        shopStaff.forEach(staff => {
+            // Rotation Logic
+            staff.timer += dt;
+            if (staff.timer > staff.interval) {
+                staff.targetRot = Math.random() * Math.PI * 2;
+                staff.timer = 0;
+                staff.interval = 15 + Math.random() * 10; // Reset to 15-25s
+            }
+            const diff = staff.targetRot - staff.mesh.rotation.y;
+            staff.mesh.rotation.y += diff * dt * 0.5; 
+            
+            // Sway Logic
+            if(staff.basePos) {
+                 staff.swayTimer += dt;
+                 staff.mesh.position.x = staff.basePos.x + Math.sin(staff.swayTimer * 0.5) * 0.3;
+            }
+
+            // VAPE LOGIC
+            if (staff.vapeInterval) { 
+                staff.vapeTimer += dt;
+                if(staff.vapeTimer > staff.vapeInterval) {
+                    triggerVape(staff);
+                    staff.vapeTimer = 0;
+                    // Reset to regular 27-46s interval
+                    staff.vapeInterval = 27 + Math.random() * 19; 
+                }
+            }
+        });
     }
 
     function drawBoard(lines) {
@@ -1179,20 +1539,10 @@
         createBlock(0.9, 1.4, 0.5, shirtCol, 0, 2.2, 0, mesh, shirtTex); 
         createBlock(0.25, 1.3, 0.25, shirtCol, -0.6, 2.2, 0, mesh, shirtTex); createBlock(0.25, 1.3, 0.25, shirtCol, 0.6, 2.2, 0, mesh, shirtTex);
         
-        // SKIN COLOR LOGIC
-        let skinCol = 0xFFCCAA; // Default
-        const whiteChance = 0.58 + (Math.random() * (0.81 - 0.58)); // 58% to 81% chance
-        if(Math.random() < whiteChance) {
-            skinCol = Math.random() > 0.5 ? 0xFFCCAA : 0xF5D0B0;
-        } else {
-            // Brown, Light Brown, Light Black, Dark Black
-            const skins = [0xD2A679, 0xB07E55, 0x8D5524, 0x5C3836, 0x3B2319];
-            skinCol = skins[Math.floor(Math.random() * skins.length)];
-        }
-        createBlock(0.5, 0.6, 0.5, skinCol, 0, 3.2, 0, mesh); 
+        createBlock(0.5, 0.6, 0.5, getRandomSkinColor(), 0, 3.2, 0, mesh); 
         
         // LUGGAGE LOGIC (Applied to approx 30% of all people, unless they are specific roles that might look weird, but let's keep it broad)
-        if(Math.random() < 0.30) {
+        if(Math.random() < 0.30 && role !== 'WORKER') {
             const lug = new THREE.Group(); lug.name = "LUGGAGE"; 
             createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
             // Position slightly to the side
@@ -1202,6 +1552,118 @@
 
         scene.add(mesh); return mesh;
     }
+    
+    // --- JAMBONI (CLEANER) ---
+    function createJamboni() {
+        if(jamboni) scene.remove(jamboni.mesh);
+        
+        const group = new THREE.Group();
+        // Initial pos: somewhere in the near-side shops area
+        group.position.set((Math.random()-0.5)*100, 0, 40);
+        
+        // SCALING: 17% smaller => 0.83 scale factor
+        const s = 0.83;
+
+        // Main Body (Darker Orange)
+        createBlock(6*s, 3*s, 8*s, 0xAA4400, 0, 1.5*s, 0, group);
+        
+        // SIDE STRIPE (Diagonal)
+        // A thin plane on the right side
+        const stripe = createBlock(0.2*s, 0.4*s, 7*s, 0xAAAAAA, 3.1*s, 2.0*s, 0, group);
+        stripe.rotation.x = 0.15; // Angled down front-to-back
+        // Left side stripe
+        const stripe2 = createBlock(0.2*s, 0.4*s, 7*s, 0xAAAAAA, -3.1*s, 2.0*s, 0, group);
+        stripe2.rotation.x = 0.15;
+
+        // Seat/Engine bump
+        createBlock(5*s, 2*s, 3*s, 0x883300, 0, 3.5*s, 2*s, group);
+        
+        // Wheels
+        createBlock(7*s, 1.5*s, 1.5*s, 0x111111, 0, 0.75*s, -2.5*s, group); // Back Axle
+        createBlock(7*s, 1.5*s, 1.5*s, 0x111111, 0, 0.75*s, 2.5*s, group); // Front Axle
+        
+        // Driver
+        const driver = new THREE.Group();
+        driver.position.set(0, 3*s, 1.5*s);
+        // Orange Overalls
+        createBlock(0.8*s, 1.2*s, 0.5*s, 0xFF6600, 0, 1.0*s, 0, driver);
+        // Grey Stripe
+        createBlock(0.2*s, 1.2*s, 0.51*s, 0x888888, 0, 1.0*s, 0, driver);
+        // Head (Random Skin)
+        createBlock(0.5*s, 0.6*s, 0.5*s, getRandomSkinColor(), 0, 2.0*s, 0, driver);
+        // Arms
+        createBlock(0.2*s, 0.8*s, 0.2*s, 0xFF6600, -0.6*s, 1.0*s, 0.5*s, driver).rotation.x = -1;
+        createBlock(0.2*s, 0.8*s, 0.2*s, 0xFF6600, 0.6*s, 1.0*s, 0.5*s, driver).rotation.x = -1;
+        
+        group.add(driver);
+        scene.add(group);
+        
+        // Return object with state logic
+        return {
+            mesh: group,
+            angle: Math.random() * Math.PI * 2,
+            speed: 0.05,
+            turnSpeed: 0,
+            timer: 0
+        };
+    }
+    
+    function updateJamboni(dt) {
+        if(!jamboni) return;
+        
+        jamboni.timer -= dt;
+        
+        // State change logic
+        if(jamboni.timer <= 0) {
+            const r = Math.random();
+            if(r < 0.5) {
+                // Drive straight
+                jamboni.turnSpeed = 0;
+                jamboni.timer = 2 + Math.random() * 4;
+            } else if (r < 0.8) {
+                // Zig Zag / Turn
+                jamboni.turnSpeed = (Math.random() - 0.5) * 1.5;
+                jamboni.timer = 1 + Math.random() * 2;
+            } else {
+                // U-Turn attempt
+                jamboni.turnSpeed = 2.5; // Sharp turn
+                jamboni.timer = 1.5;
+            }
+
+            // Path correction bias
+            const pos = jamboni.mesh.position;
+            if (pos.x > -80 && pos.x < 80) {
+                if (Math.random() > 0.33) {
+                    jamboni.turnSpeed = (pos.x > 0) ? 0.5 : -0.5;
+                }
+            }
+        }
+        
+        // Apply rotation
+        jamboni.angle += jamboni.turnSpeed * dt;
+        jamboni.mesh.rotation.y = jamboni.angle + Math.PI; // Face forward
+        
+        // Move forward
+        const dir = new THREE.Vector3(Math.sin(jamboni.angle), 0, Math.cos(jamboni.angle));
+        const newPos = jamboni.mesh.position.clone().add(dir.multiplyScalar(jamboni.speed * 60 * dt));
+        
+        // Collision check for Jamboni
+        let hit = false;
+        // Wall boundaries
+        if(newPos.x < -180 || newPos.x > 180 || newPos.z < -20 || newPos.z > 90) hit = true;
+        // Obstacle collision
+        for(let ob of obstacles) {
+            if(newPos.distanceTo(new THREE.Vector3(ob.x, 0, ob.z)) < ob.r + 3) hit = true;
+        }
+
+        if(hit) {
+             jamboni.angle += Math.PI + (Math.random()-0.5);
+             jamboni.timer = 2.0;
+             jamboni.turnSpeed = 0;
+        } else {
+            jamboni.mesh.position.copy(newPos);
+        }
+    }
 
     function spawnPigeon() {
         const p = new THREE.Group();
@@ -1210,7 +1672,36 @@
         const startX = Math.random() > 0.5 ? -200 : 200;
         p.position.set(startX, 20 + Math.random()*10, 20 + Math.random()*20);
         scene.add(p);
-        pigeons.push({ mesh: p, wings: [w1, w2], vel: new THREE.Vector3(startX > 0 ? -25 : 25, 0, (Math.random()-0.5)*5) });
+        
+        // CHAOTIC LOGIC TRIGGER
+        // If gameTime > 75, we have a 50% chance of a chaotic pigeon, OR random high chance around that time
+        let isChaotic = false;
+        if(gameTime > 75) {
+            if(Math.random() < 0.6) isChaotic = true;
+        }
+
+        pigeons.push({ 
+            mesh: p, 
+            wings: [w1, w2], 
+            // Chaotic ones move slower on X to stay on screen longer for twisting
+            vel: new THREE.Vector3(startX > 0 ? (isChaotic ? -15 : -25) : (isChaotic ? 15 : 25), 0, (Math.random()-0.5)*5),
+            isChaotic: isChaotic,
+            nextFeather: 0,
+            baseY: p.position.y,
+            seed: Math.random() * 100 // Random seed for unique chaos path
+        });
+    }
+    
+    function createFeather(pos) {
+        const f = createBlock(0.1, 0.01, 0.1, 0xFFFFFF, pos.x, pos.y, pos.z, null);
+        // Special particles for feathers: Slowly falling, drifting
+        particles.push({ 
+            mesh: f, 
+            vel: new THREE.Vector3((Math.random()-0.5)*0.5, -1.5, (Math.random()-0.5)*0.5), // Falling down
+            life: 2.5, // 2.5 seconds life
+            maxLife: 2.5,
+            isFeather: true
+        });
     }
 
     // --- LOGIC ---
@@ -1242,10 +1733,19 @@
         confetti.forEach(c => scene.remove(c.mesh)); confetti = [];
         particles.forEach(p => scene.remove(p.mesh)); particles = [];
         looseItems.forEach(i => scene.remove(i.mesh)); looseItems = [];
+        
+        obstacles = []; // Clear obstacles (rebuilt in buildStation if static, but shops are static)
+        
+        shopStaff = []; 
+        
+        // Create Jamboni
+        jamboni = createJamboni();
+        
         drawBoard(["AWAITING DATA..."]);
 
         gameState = 'READY_CHECK'; // Wait here
         targetObj = null;
+        boardDataGenerated = false;
 
         let camY = 50; if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
         camera.position.set(0, camY, 130); camera.lookAt(0,0,0); pitch = -0.4; yaw = 0;
@@ -1369,7 +1869,11 @@
             document.getElementById('phone-text').innerText = "TARGET TO: " + targetTown;
             document.getElementById('phone-overlay').style.bottom = "20px";
         }
-        if(gameTime > 17 && gameTime < 17.1) {
+        
+        // BUG FIX: Ensure board only generates ONCE to prevent freeze/loop
+        if(gameTime > 17 && !boardDataGenerated) {
+             boardDataGenerated = true;
+             
              if(gameMode === 'TIMED' && !timerRunning) { timerRunning = true; timerStartTime = performance.now(); }
              let boardRows = [];
              let availableDestinations = DESTINATIONS.filter(d => d !== targetTown); let otherIdx = 0;
@@ -1415,8 +1919,13 @@
     function animate() {
         requestAnimationFrame(animate);
         const dt = clock.getDelta();
+        
+        // Always draw matrix, but it handles speed inside the function
+        drawMatrix();
 
-        if(gameState === 'MENU') { drawMatrix(); return; }
+        if(gameState === 'MENU' || gameState === 'ENDED') { 
+            return; 
+        }
 
         if(timerRunning) {
             const now = performance.now(); const elapsed = (now - timerStartTime) / 1000;
@@ -1460,13 +1969,44 @@
         }
 
         for(let i=particles.length-1; i>=0; i--) {
-            const p = particles[i]; p.mesh.position.add(p.vel); p.life -= dt; p.mesh.scale.setScalar(p.life);
-            if(p.life <= 0) { scene.remove(p.mesh); particles.splice(i,1); }
+            const p = particles[i]; 
+            p.mesh.position.add(p.vel.clone().multiplyScalar(dt)); // Scale velocity by dt for all particles now
+            
+            if(p.isFeather) {
+                 // Feathers float down gently with sway
+                 p.mesh.position.x += Math.sin(gameTime * 3 + p.life) * 0.05;
+                 p.mesh.position.z += Math.cos(gameTime * 2 + p.life) * 0.05;
+                 p.mesh.rotation.x += dt;
+                 p.mesh.rotation.y += dt;
+                 // Fade out logic (scale)
+                 const scale = (p.life / p.maxLife); // 1 to 0
+                 p.mesh.scale.setScalar(scale);
+            } else if (p.isVape) {
+                 // Vape smoke: float up + drag + fade/shrink
+                 p.vel.y += dt * 0.5; // Acceleration up
+                 p.vel.x *= 0.95; // Drag
+                 p.vel.z *= 0.95; 
+                 p.mesh.scale.setScalar(p.life * 0.5); 
+            } else {
+                 // Standard fireworks scaling
+                 p.mesh.scale.setScalar(p.life);
+            }
+
+            p.life -= dt; 
+            if(p.life <= 0) { 
+                scene.remove(p.mesh); 
+                // BUG FIX: Dispose geometry to prevent memory leak/freeze over time
+                if(p.mesh.geometry) p.mesh.geometry.dispose();
+                if(p.mesh.material) p.mesh.material.dispose();
+                particles.splice(i,1); 
+            }
         }
         confetti.forEach(c => { c.mesh.position.y -= c.speed; c.mesh.rotation.x += 0.1; });
         if(gameState === 'ENDED') return;
 
         updateLogic(dt);
+        updateJamboni(dt); // Update the cleaner
+        updateShopStaff(dt); // Update shopkeepers
 
         const aimSpeed = isZoomed ? 0.2 * dt : 1.0 * dt;
         if(keyState['w'] || keyState['arrowup']) pitch += aimSpeed; if(keyState['s'] || keyState['arrowdown']) pitch -= aimSpeed;
@@ -1488,7 +2028,25 @@
                 const target = c.waypoints[0];
                 const dir = new THREE.Vector3().subVectors(target, c.mesh.position);
                 if(statuePos && c.mesh.position.distanceTo(statuePos) < 8) dir.add(c.mesh.position.clone().sub(statuePos).normalize().multiplyScalar(0.5));
-                if(dir.length() < 1.0) {
+                
+                // Obstacle Avoidance (Collision Check)
+                let collision = false;
+                for(let ob of obstacles) {
+                     let dist = c.mesh.position.distanceTo(new THREE.Vector3(ob.x, 0, ob.z));
+                     if(dist < ob.r) {
+                         collision = true;
+                         // HARD COLLISION FIX: Push to edge of radius immediately
+                         let pushDir = c.mesh.position.clone().sub(new THREE.Vector3(ob.x, 0, ob.z)).normalize();
+                         // Ensure we don't get NaN if exactly on top (rare but possible)
+                         if (pushDir.lengthSq() === 0) pushDir.set(1, 0, 0);
+                         
+                         let newPos = new THREE.Vector3(ob.x, 0, ob.z).add(pushDir.multiplyScalar(ob.r + 0.5));
+                         c.mesh.position.x = newPos.x;
+                         c.mesh.position.z = newPos.z;
+                     }
+                }
+
+                if(dir.length() < 1.0 && !collision) {
                     c.waypoints.shift();
                     if(c.waypoints.length === 0) {
                         if(c.role === 'GUARD') c.waypoints = [new THREE.Vector3(c.mesh.position.x > 0 ? -100 : 100, 0, -50)];
@@ -1496,7 +2054,10 @@
                         else if(c.role === 'STATIC') { c.state = 'STATIC'; } else c.state = 'IDLE';
                     }
                 } else {
-                    dir.normalize(); c.mesh.position.add(dir.multiplyScalar(c.speed * 60 * dt)); c.mesh.lookAt(c.mesh.position.clone().add(dir));
+                    dir.normalize(); 
+                    const moveVec = dir.multiplyScalar(c.speed * 60 * dt);
+                    c.mesh.position.add(moveVec); 
+                    c.mesh.lookAt(c.mesh.position.clone().add(dir));
                     const legL = c.mesh.children[0]; const legR = c.mesh.children[1];
                     legL.rotation.x = Math.sin(gameTime * 15 + c.sway) * 0.6; legR.rotation.x = -Math.sin(gameTime * 15 + c.sway) * 0.6;
                 }
@@ -1504,9 +2065,48 @@
         });
 
         for(let i=pigeons.length-1; i>=0; i--) {
-            const p = pigeons[i]; p.mesh.position.add(p.vel.clone().multiplyScalar(dt));
+            const p = pigeons[i]; 
+            
+            // Chaotic Movement Logic
+            let currentVel = p.vel.clone();
+            
+            if(p.isChaotic) {
+                // Apply chaotic wave functions based on time and seed
+                // Use a faster time scale for "twitchy" chaotic movement
+                // Twist and turn over "concourse-ish area" (Z > -30)
+                if (p.mesh.position.z > -30) {
+                     const chaosT = gameTime * 3.0 + p.seed;
+                     currentVel.y += Math.sin(chaosT * 2.0) * 8; // Vertical wobble
+                     currentVel.z += Math.cos(chaosT * 1.5) * 15; // Horizontal sway
+                     
+                     // Rotation banking
+                     p.mesh.rotation.z = Math.sin(chaosT) * 0.8; 
+                     p.mesh.rotation.x = Math.cos(chaosT * 0.5) * 0.3;
+                     
+                     // Drop Feathers
+                     if(gameTime > p.nextFeather) {
+                         // Random small burst of 2-3 feathers
+                         const count = 2 + Math.floor(Math.random()*2);
+                         for(let f=0; f<count; f++) {
+                             // Slight random offset for feather spawn
+                             const fPos = p.mesh.position.clone();
+                             fPos.x += (Math.random()-0.5);
+                             fPos.y -= 0.2;
+                             fPos.z += (Math.random()-0.5);
+                             createFeather(fPos);
+                         }
+                         // Random delay before next drop (0.3s to 0.8s)
+                         p.nextFeather = gameTime + 0.3 + Math.random() * 0.5;
+                     }
+                }
+            }
+
+            p.mesh.position.add(currentVel.multiplyScalar(dt));
+            
+            // Despawn
             if(Math.abs(p.mesh.position.x) > 300) { scene.remove(p.mesh); pigeons.splice(i,1); }
         }
+        
         bullets.forEach((b,i) => { b.age+=dt; b.mesh.material.opacity-=dt*3; if(b.age>0.3){scene.remove(b.mesh);bullets.splice(i,1);} });
         const fov = isZoomed ? 10 : 60; camera.fov += (fov - camera.fov) * 0.15; camera.updateProjectionMatrix();
         renderer.render(scene, camera);
@@ -1637,6 +2237,15 @@
         const desc = document.getElementById('outcome-desc');
         const award = document.getElementById('award-text');
 
+        // ANIMATION RESET
+        stamp.classList.remove('slammed'); // Reset animation
+        stamp.style.opacity = '0'; // Ensure hidden initially
+        
+        // Trigger Stamp Slam after slight delay
+        setTimeout(() => {
+            stamp.classList.add('slammed');
+        }, 800);
+
         if(resultIsWin) {
             for(let i=0; i<100; i++) {
                 const c = createBlock(0.5, 0.5, 0, [0xff0000,0x00ff00,0xffff00][Math.floor(Math.random()*3)], (Math.random()-0.5)*50, 40+Math.random()*20, -50);
@@ -1644,7 +2253,9 @@
             }
             spawnFireworks();
             const rndTitle = WIN_TITLES[Math.floor(Math.random() * WIN_TITLES.length)];
-            stamp.innerText = "SUCCESS"; title.innerText = rndTitle; 
+            stamp.innerText = "SUCCESS"; 
+            stamp.style.color = "#00AA00"; stamp.style.borderColor = "#00AA00";
+            title.innerText = rndTitle; 
             if(gameMode === 'TIMED') {
                 desc.innerText = "TARGET DOWN. TIME: " + finalTime.toFixed(3) + "s";
                 award.innerText = "";
@@ -1654,7 +2265,9 @@
                 award.innerText = generateCodeName();
             }
         } else {
-            stamp.innerText = "FAILED"; title.innerText = "DISAVOWED"; 
+            stamp.innerText = "FAILED"; 
+            stamp.style.color = "#C00"; stamp.style.borderColor = "#C00";
+            title.innerText = "DISAVOWED"; 
             desc.innerText = resultReason + " CATASTROPHIC FAILURE.";
             award.innerText = "";
         }
