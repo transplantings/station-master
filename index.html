@@ -52,14 +52,12 @@
             background: #eee; color: #000; border-color: #fff; animation: none;
         }
 
-        /* --- READY OVERLAY (NEW) --- */
+        /* --- READY OVERLAY (GAME START) --- */
         #ready-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(200, 200, 200, 0.15); /* Foggy look */
-            backdrop-filter: blur(8px); /* Blur the 3D background */
-            -webkit-backdrop-filter: blur(8px); /* Safari support */
-            z-index: 150; display: none; /* Hidden by default */
-            flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(200, 200, 200, 0.15);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 150; display: none; flex-direction: column; align-items: center; justify-content: center;
         }
         #ready-msg {
             font-family: 'Montserrat', sans-serif; font-size: 30px; color: #fff;
@@ -72,9 +70,29 @@
             cursor: pointer; transition: 0.2s; box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
             text-transform: uppercase; letter-spacing: 2px;
         }
-        #ready-btn:hover {
-            background: #00FF00; color: #000; box-shadow: 0 0 40px rgba(0, 255, 0, 0.8);
+        #ready-btn:hover { background: #00FF00; color: #000; box-shadow: 0 0 40px rgba(0, 255, 0, 0.8); }
+
+        /* --- RETURN OVERLAY (MENU RESTART) --- */
+        #return-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(50, 50, 50, 0.9); /* Grey overlay */
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            z-index: 250; /* Above menu but below intro */
+            display: none; flex-direction: column; align-items: center; justify-content: center;
         }
+        #return-msg {
+            font-family: 'Montserrat', sans-serif; font-size: 30px; color: #fff;
+            text-shadow: 0 0 10px #000; letter-spacing: 5px; margin-bottom: 30px;
+            text-transform: uppercase; border-bottom: 2px solid #FFCC00; padding-bottom: 10px;
+        }
+        #return-btn {
+            background: rgba(0, 0, 0, 0.8); color: #FFCC00; border: 2px solid #FFCC00;
+            padding: 20px 60px; font-family: 'Russo One', sans-serif; font-size: 24px;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        #return-btn:hover { background: #FFCC00; color: #000; box-shadow: 0 0 40px rgba(255, 204, 0, 0.8); }
+
 
         /* --- VISUAL FX --- */
         #scope-overlay {
@@ -369,6 +387,12 @@
     <div id="ready-overlay">
         <div id="ready-msg">Area Secure</div>
         <button id="ready-btn" onclick="confirmReady()">I'm Ready</button>
+    </div>
+
+    <!-- NEW RETURN OVERLAY (For when page reloads) -->
+    <div id="return-overlay">
+        <div id="return-msg">System Rebooted</div>
+        <button id="return-btn" onclick="confirmReturn()">Resume Operation</button>
     </div>
 
     <div id="top-ui-container" class="minimized">
@@ -762,17 +786,23 @@
         const seenIntro = sessionStorage.getItem('sm_intro_seen');
         if(seenIntro) {
             document.getElementById('intro-splash').style.display = 'none';
-            setTimeout(() => {
-                if(gameState === 'MENU' && !menuMusicStarted) {
-                    const menuBgm = document.getElementById('menu-bgm');
-                    menuBgm.currentTime = Math.random() * 60; 
-                    menuBgm.volume = 0;
-                    menuBgm.play().then(() => {
-                        menuMusicStarted = true;
-                        fadeInAudio(menuBgm, SETTING_MENU_VOL, 3000);
-                    }).catch(e=>console.log("Menu music fail",e));
-                }
-            }, 500);
+            // NEW: Instead of auto-playing (which browsers block on reload), show return overlay
+            document.getElementById('return-overlay').style.display = 'flex';
+        }
+    }
+
+    // NEW: Handle return click to start music
+    function confirmReturn() {
+        document.getElementById('return-overlay').style.display = 'none';
+        
+        if(gameState === 'MENU' && !menuMusicStarted) {
+            const menuBgm = document.getElementById('menu-bgm');
+            menuBgm.currentTime = Math.random() * 60; 
+            menuBgm.volume = 0;
+            menuBgm.play().then(() => {
+                menuMusicStarted = true;
+                fadeInAudio(menuBgm, SETTING_MENU_VOL, 3000);
+            }).catch(e=>console.log("Menu music fail",e));
         }
     }
 
@@ -975,10 +1005,19 @@
     }
 
     function handleKey(e, isDown) {
-        keyState[e.key.toLowerCase()] = isDown; keyState[e.code] = isDown;
+        // Prevent default browser actions for game keys to avoid scrolling/interactions
+        if(isDown && (e.code === 'Space' || e.code === 'KeyF' || e.code === 'Enter')) {
+            // e.preventDefault(); // Optional, but good for Space (scrolling)
+        }
+
+        const key = e.key.toLowerCase();
+        keyState[key] = isDown; 
+        keyState[e.code] = isDown;
+        
         if(isDown && (gameState === 'MINGLE' || gameState === 'RUSH')) {
             if(e.code === 'Space') toggleZoom();
-            if(e.key === 'f' || e.key === 'Enter') fire();
+            // FIX: Check for 'f' OR 'F' via toLowerCase, or use e.code 'KeyF'
+            if(key === 'f' || e.code === 'KeyF' || e.code === 'Enter') fire();
         }
     }
 
