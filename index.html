@@ -3,10 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Station Master: Terminal Velocity VII</title>
+    <title>Station Master: Terminal Velocity VIII</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Montserrat:wght@800&family=Russo+One&display=swap');
+        /* ADDED 'Satisfy' for the handwritten font */
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Montserrat:wght@800&family=Russo+One&family=Satisfy&display=swap');
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier Prime', monospace; user-select: none; }
+
+        /* --- INTRO SPLASH (FIRST LOAD) --- */
+        #intro-splash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 300; /* Highest Z-Index */
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 1; transition: opacity 2s ease-out;
+        }
+        .intro-text {
+            font-family: 'Satisfy', cursive;
+            font-size: 42px; color: #eee;
+            margin-bottom: 40px;
+            text-align: center;
+            padding: 0 20px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+        /* Blinking Dots Animation */
+        .dot { animation: blink-dot 1.4s infinite both; }
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes blink-dot {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Flashing Button Animation */
+        @keyframes flash-white {
+            0% { border-color: #444; color: #888; box-shadow: 0 0 0 #000; }
+            50% { border-color: #fff; color: #fff; box-shadow: 0 0 15px #fff; }
+            100% { border-color: #444; color: #888; box-shadow: 0 0 0 #000; }
+        }
+
+        #intro-btn {
+            background: #111; color: #888; border: 2px solid #444;
+            padding: 15px 40px; font-family: 'Montserrat', sans-serif;
+            font-size: 18px; letter-spacing: 2px; text-transform: uppercase;
+            cursor: pointer; transition: 0.3s;
+            animation: flash-white 2.5s infinite;
+        }
+        #intro-btn:hover {
+            background: #eee; color: #000; border-color: #fff; animation: none;
+        }
 
         /* --- VISUAL FX --- */
         #scope-overlay {
@@ -331,6 +377,13 @@
         <source src="menumusic.mp3" type="audio/mp3">
     </audio>
 
+    <div id="intro-splash">
+        <div class="intro-text">
+            So... are you ready to die for your country<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+        </div>
+        <button id="intro-btn" onclick="enterGame()">Yes I am</button>
+    </div>
+
     <div id="top-ui-container" class="minimized">
         <div id="top-ui">
             <div style="margin-top:10px;">
@@ -479,6 +532,9 @@
     </div>
 
 <script>
+    // --- GITHUB PAGES FIX: Use lowercase filenames for compatibility ---
+    const MUSIC_TRACKS = ['music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 'music5.mp3'];
+
     // DESTINATIONS
     const DESTINATIONS = [
         "OXFORD", "BRISTOL", "CARDIFF", "YORK", "DOVER", "BATH", "LEEDS", "RYE", 
@@ -552,7 +608,6 @@
     let STATS = { target:0, decoy:0, civ:0, abort:0 };
 
     // Audio Globals
-    const MUSIC_TRACKS = ['music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 'music5.mp3'];
     let currentMusicIdx = 0;
     let activeMusicAudio = null;
     let fadeInterval = null;
@@ -735,25 +790,49 @@
     // --- AUDIO SYSTEM ---
 
     function startMenuMusicTimer() {
-        setTimeout(() => {
-            if(gameState === 'MENU' && !menuMusicStarted) {
-                const menuBgm = document.getElementById('menu-bgm');
-                // Randomize start time
-                menuBgm.currentTime = Math.random() * 60; 
-                menuBgm.volume = 0;
-                menuBgm.play().then(() => {
-                    menuMusicStarted = true;
-                    fadeInAudio(menuBgm, SETTING_MENU_VOL, 3000);
-                }).catch(e=>console.log("Menu music fail",e));
-            }
-        }, 4400);
+        // If SessionStorage says we already saw intro, just do menu music.
+        // If not, wait for Intro logic to call this or handle it.
+        const seenIntro = sessionStorage.getItem('sm_intro_seen');
+        if(seenIntro) {
+            document.getElementById('intro-splash').style.display = 'none';
+            // Start Menu Music after slight delay if not already playing
+            setTimeout(() => {
+                if(gameState === 'MENU' && !menuMusicStarted) {
+                    const menuBgm = document.getElementById('menu-bgm');
+                    menuBgm.currentTime = Math.random() * 60; 
+                    menuBgm.volume = 0;
+                    menuBgm.play().then(() => {
+                        menuMusicStarted = true;
+                        fadeInAudio(menuBgm, SETTING_MENU_VOL, 3000);
+                    }).catch(e=>console.log("Menu music fail",e));
+                }
+            }, 500);
+        } else {
+            // First time load: Show Intro, don't play music yet.
+            // Logic handled by enterGame()
+        }
+    }
+
+    function enterGame() {
+        sessionStorage.setItem('sm_intro_seen', 'true');
+        const splash = document.getElementById('intro-splash');
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.display = 'none', 2000);
+        
+        // Start Menu Music immediately upon click interaction
+        const menuBgm = document.getElementById('menu-bgm');
+        menuBgm.currentTime = 0;
+        menuBgm.volume = 0;
+        menuBgm.play().then(() => {
+            menuMusicStarted = true;
+            fadeInAudio(menuBgm, SETTING_MENU_VOL, 3000);
+        });
     }
 
     function initiateGame(mode, btn) {
         // Button Feedback: Add clicked class and inject spinner
         if(btn) {
             btn.classList.add('clicked');
-            // Save text? Not needed as we reload
             btn.innerHTML = '<div class="spinner"></div>';
         }
         
