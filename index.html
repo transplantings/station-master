@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Station Master: Terminal Velocity</title>
+    <title>Station Master: Terminal Velocity VII</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Montserrat:wght@800&family=Russo+One&display=swap');
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier Prime', monospace; user-select: none; }
@@ -14,7 +14,7 @@
             background: radial-gradient(circle, transparent 15%, #000 60%);
             pointer-events: none; display: none; z-index: 10;
         }
-        
+
         #blood-screen-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 90; overflow: hidden; display: none;
@@ -36,18 +36,39 @@
         }
 
         /* --- UI --- */
-        #top-ui {
-            position: absolute; top: 0; left: 0; width: 100%;
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
-            padding: 10px 30px; display: flex; justify-content: space-between; align-items: flex-start;
-            color: #00FF00; font-family: 'Montserrat', sans-serif; letter-spacing: 2px; font-size: 14px; z-index: 20;
-            text-shadow: 0 0 5px #00FF00;
+        #top-ui-container {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 20;
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .key-hint { color: #fff; background: rgba(0,255,0,0.2); padding: 2px 6px; border: 1px solid #00FF00; font-size: 11px; margin: 0 5px; }
+        /* Default state is hidden (minimized) */
+        #top-ui-container.minimized {
+            transform: translateY(-92%); 
+        }
 
-        /* TIMER UI (Hidden by default) */
+        #top-ui {
+            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 90%, transparent 100%);
+            padding: 10px 30px 20px 30px; display: flex; justify-content: space-between; align-items: flex-start;
+            color: #00FF00; font-family: 'Montserrat', sans-serif; letter-spacing: 2px; font-size: 14px;
+            text-shadow: 0 0 5px #00FF00; position: relative;
+        }
+        
+        #ui-toggle-btn {
+            position: absolute; bottom: -24px; left: 0; 
+            background: rgba(0,0,0,0.8); color: #00FF00; border: 1px solid #005500; border-top: none; border-left: none;
+            padding: 4px 15px; cursor: pointer; font-size: 10px; border-radius: 0 0 10px 0;
+            text-shadow: 0 0 5px #00FF00; pointer-events: auto; display: flex; align-items: center; gap: 5px;
+            font-family: 'Montserrat', sans-serif; letter-spacing: 1px;
+        }
+        #ui-toggle-btn:hover { background: #002200; }
+        .arrow-icon { font-size: 14px; font-weight: bold; }
+
+        /* TIMER FIXED - SEPARATE FROM MOVING UI */
+        #fixed-timer-container {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            z-index: 25; pointer-events: none;
+            display: none; /* Toggled by JS */
+        }
         #timer-ui {
-            display: none;
             font-family: 'Russo One', sans-serif;
             font-size: 24px;
             color: #FF0000;
@@ -55,16 +76,18 @@
             border: 2px solid #550000;
             background: rgba(0,0,0,0.8);
             padding: 5px 15px;
-            margin-top: 10px;
         }
 
+        .key-hint { color: #fff; background: rgba(0,255,0,0.2); padding: 2px 6px; border: 1px solid #00FF00; font-size: 11px; margin: 0 5px; }
+
         /* CUSTOM SLIDER STYLING */
-        .vol-control { font-size: 10px; display: flex; align-items: center; margin-bottom: 8px; }
-        .vol-label { width: 30px; text-align: right; margin-right: 8px; color: #888; }
-        .vol-btn { color: #555; font-size: 12px; margin: 0 5px; font-weight: bold; }
+        .vol-control { font-size: 10px; display: flex; align-items: center; margin-bottom: 8px; justify-content: flex-end; }
+        .vol-label { width: 20px; text-align: center; margin-right: 5px; color: #888; font-size: 14px; }
+        .vol-btn { color: #555; font-size: 12px; margin: 0 5px; font-weight: bold; cursor: pointer;}
+        .vol-btn:hover { color: #fff; }
         
         input[type=range].tech-slider {
-            -webkit-appearance: none; width: 120px; background: transparent; cursor: pointer;
+            -webkit-appearance: none; width: 100px; background: transparent; cursor: pointer;
         }
         input[type=range].tech-slider:focus { outline: none; }
         input[type=range].tech-slider::-webkit-slider-runnable-track {
@@ -73,12 +96,6 @@
         input[type=range].tech-slider::-webkit-slider-thumb {
             height: 12px; width: 6px; background: #00FF00; cursor: pointer;
             -webkit-appearance: none; margin-top: -5px; box-shadow: 0 0 5px #00FF00;
-        }
-        input[type=range].tech-slider::-moz-range-track {
-            width: 100%; height: 4px; background: #333; border: 1px solid #555;
-        }
-        input[type=range].tech-slider::-moz-range-thumb {
-            height: 12px; width: 6px; background: #00FF00; cursor: pointer; border: none;
         }
 
         #phone-overlay {
@@ -93,14 +110,18 @@
         /* --- MENUS --- */
         #menu {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5,5,5,0.92); z-index: 100;
+            background: #000; z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             overflow: hidden;
         }
-        /* CHALK OUTLINE BACKGROUND */
+        /* MATRIX BACKGROUND */
+        #matrix-canvas {
+            position: absolute; top: 0; left: 0; z-index: 0; opacity: 0.25;
+        }
+
         #chalk-outlines {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; opacity: 0.2; pointer-events: none;
+            z-index: 1; opacity: 0.2; pointer-events: none;
         }
         .chalk-body {
             position: absolute; width: 100px; height: 180px;
@@ -120,7 +141,21 @@
             font-size: 40px; font-weight: 900; padding: 5px 20px;
             transform: rotate(12deg); opacity: 0.8; mix-blend-mode: multiply;
         }
-        h1 { font-family: 'Montserrat', sans-serif; font-size: 40px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: -2px; border-bottom: 4px solid #111; }
+        
+        /* SHEEN ANIMATION */
+        @keyframes sheen {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        h1 { 
+            font-family: 'Montserrat', sans-serif; font-size: 40px; margin: 0 0 10px 0; 
+            text-transform: uppercase; letter-spacing: -2px; border-bottom: 4px solid #111; 
+            position: relative; overflow: hidden;
+            background: linear-gradient(90deg, #111 0%, #111 45%, #555 50%, #111 55%, #111 100%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: sheen 3s infinite linear;
+        }
         
         .mission-brief {
             background: #ddd; padding: 15px; border-left: 5px solid #111;
@@ -136,17 +171,31 @@
 
         /* LEADERBOARD ON MENU */
         .leaderboard-box {
-            position: absolute; top: 50%; right: -280px; transform: translateY(-50%) rotate(2deg);
+            position: absolute; top: 15%; right: -280px; transform: rotate(2deg);
             width: 250px; background: #111; border: 1px solid #444; color: #00FF00;
             padding: 20px; font-family: 'Montserrat', sans-serif;
-            /* Sleek line graphic bg */
             background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent);
             background-size: 30px 30px;
             box-shadow: -10px 10px 30px rgba(0,0,0,0.8);
         }
+        
+        /* BODY COUNT STATS BOX */
+        .stats-box {
+            position: absolute; top: 60%; right: -300px; transform: rotate(-1deg);
+            width: 270px; background: #000; border: 2px solid #fff; color: #fff;
+            padding: 15px; font-family: 'Courier Prime', monospace;
+            box-shadow: -10px 10px 30px rgba(0,0,0,0.8);
+        }
+        .stats-title { text-align: center; border-bottom: 1px dashed #fff; margin-bottom: 10px; font-weight: bold; letter-spacing: 2px; }
+        .stats-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+        .stats-val { font-weight: bold; color: #FFCC00; }
+        .reset-btn-small { margin-top:10px; width: 100%; background: #222; border: 1px solid #555; color: #777; font-size: 10px; padding: 5px; cursor: pointer; }
+        .reset-btn-small:hover { background: #500; color: #fff; border-color: #f00; }
+
         .lb-title { border-bottom: 2px solid #00FF00; font-size: 14px; letter-spacing: 2px; margin-bottom: 10px; padding-bottom: 5px; }
         .lb-row { display: flex; justify-content: space-between; font-family: 'Courier Prime', monospace; font-size: 12px; margin-bottom: 6px; color: #fff; }
         .lb-rank { color: #555; margin-right: 10px; }
+        .lb-name { color: #00FF00; margin-right: 5px; }
         .lb-time { color: #FFCC00; font-weight: bold; }
 
         /* AWARD TITLE */
@@ -169,72 +218,153 @@
         .slider-row input[type=range] { flex-grow: 1; margin: 0 15px; cursor: pointer; }
         .slider-row span { font-weight: bold; color: #FFCC00; width: 30px; text-align: right; }
         
-        .chk-group { display: flex; gap: 20px; align-items: center; }
+        .chk-group { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         .chk-label { font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #ccc; }
         .chk-label input:checked + span { color: #00FF00; text-shadow: 0 0 5px #00FF00; font-weight: bold; }
 
+        .preset-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .preset-btn {
+            flex: 1; background: #222; color: #888; border: 1px solid #444;
+            font-size: 10px; padding: 5px; cursor: pointer; font-family: 'Montserrat', sans-serif;
+            letter-spacing: 1px; transition: 0.2s;
+        }
+        .preset-btn:hover { background: #444; color: #fff; border-color: #888; }
+
         .btn-row { display: flex; gap: 15px; margin-top: 15px; }
+        
+        @keyframes pulse-btn {
+            0% { box-shadow: 0 0 0 0 rgba(200, 0, 0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(200, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(200, 0, 0, 0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            width: 20px; height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
         button.action-btn {
             width: 100%; background: #111; color: white; border: none; padding: 15px;
             font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px;
             text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.3s;
+            animation: pulse-btn 2s infinite; height: 50px; /* Fixed height for spinner placement */
         }
-        button.action-btn:hover { background: #C00; transform: scale(1.02); }
-        button.sec-btn { background: #222; border: 1px solid #444; color: #aaa; }
+        button.action-btn:hover { background: #C00; transform: scale(1.02); animation: none; }
+        
+        /* CLICKED STATE ANIMATION */
+        button.action-btn.clicked {
+            animation: none;
+            transform: scale(0.95);
+            background: #333; /* Neutral dark grey */
+            box-shadow: inset 0 0 10px #000;
+            border: 1px solid #555;
+        }
+
+        button.sec-btn { background: #222; border: 1px solid #444; color: #aaa; animation: none; }
         button.sec-btn:hover { background: #004400; color: #fff; border-color: #00FF00; }
         
         #restart-ui { position: absolute; bottom: 20px; left: 20px; z-index: 60; }
         #restart-btn { background: #333; color: #aaa; border: 1px solid #555; padding: 10px; font-family: sans-serif; font-size: 10px; cursor: pointer; text-transform: uppercase; }
         #restart-btn:hover { background: #C00; color: #fff; border-color: #C00; }
 
-        /* END STATES */
-        .win-theme { border-top: 20px solid #00CC00; }
-        .win-theme h1 { color: #006600; }
-        .win-theme .stamp { color: #00CC00; border-color: #00CC00; }
-        .win-theme button { background: #004400; }
-        
-        .lose-theme { border-top: 20px solid #8a0303; }
-        .lose-theme h1 { color: #8a0303; }
-        .lose-theme .stamp { color: #8a0303; border-color: #8a0303; }
-        .lose-theme button { background: #550000; }
+        /* HIGH SCORE MODAL */
+        #high-score-modal {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 200;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .hs-content {
+            background: #111; border: 2px solid #555; padding: 40px;
+            text-align: center; font-family: 'Courier Prime', monospace;
+            box-shadow: 0 0 50px #000; border-top: 5px solid #00FF00;
+        }
+        .hs-title { font-size: 24px; color: #00FF00; margin-bottom: 20px; font-weight: bold; font-family: 'Montserrat', sans-serif; letter-spacing: 2px;}
+        #new-record-time { font-family: 'Russo One', sans-serif; font-size: 40px; color: #FFCC00; margin-bottom: 20px; }
+        #hs-input {
+            background: #222; border: 2px solid #00FF00; color: #fff;
+            font-size: 40px; text-transform: uppercase; text-align: center;
+            width: 200px; padding: 10px; font-family: 'Courier Prime', monospace;
+            margin: 20px 0; letter-spacing: 10px;
+        }
+        #hs-input:focus { outline: none; background: #003300; }
+
+        /* VERTICAL MENU SLIDER */
+        #menu-vol-container {
+            position: absolute; top: 50%; left: -70px; /* Moved outside left */
+            transform: translateY(-50%) rotate(-90deg);
+            display: flex; align-items: center; gap: 10px;
+            background: #111; padding: 8px; border: 1px solid #444;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.8);
+            z-index: 6;
+        }
+        #menu-vol-container label { font-size: 9px; color: #888; letter-spacing: 2px; font-family: 'Montserrat', sans-serif; }
+        input[type=range].vertical-slider {
+            -webkit-appearance: none; width: 80px; background: transparent; cursor: pointer;
+        }
+        input[type=range].vertical-slider:focus { outline: none; }
+        input[type=range].vertical-slider::-webkit-slider-runnable-track {
+            width: 100%; height: 2px; background: #555;
+        }
+        input[type=range].vertical-slider::-webkit-slider-thumb {
+            height: 10px; width: 10px; background: #00FF00; cursor: pointer;
+            -webkit-appearance: none; margin-top: -4px; border-radius: 50%;
+        }
 
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <audio id="bgm" loop>
-        <source src="music.mp3" type="audio/mp3">
-    </audio>
-
     <audio id="sfx-ambience" loop>
         <source src="ambience.mp3" type="audio/mp3">
     </audio>
+    <audio id="menu-bgm" loop>
+        <source src="menumusic.mp3" type="audio/mp3">
+    </audio>
 
-    <div id="top-ui">
-        <div style="margin-top:10px;">
-            <span class="key-hint">WASD</span> AIM 
-            <span class="key-hint">SPACE</span> ZOOM 
-            <span class="key-hint">F</span> FIRE
-            <div id="timer-ui">00.000</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:20px;">
-            <div style="display:flex; flex-direction: column; align-items: flex-end;">
-                <div class="vol-control" id="vol-music-container">
-                    <span class="vol-label">MUS</span>
-                    <span class="vol-btn">[-]</span>
-                    <input type="range" id="vol-music-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
-                    <span class="vol-btn">[+]</span>
-                </div>
-                <div class="vol-control" id="vol-sfx-container">
-                    <span class="vol-label">SFX</span>
-                    <span class="vol-btn">[-]</span>
-                    <input type="range" id="vol-sfx-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
-                    <span class="vol-btn">[+]</span>
-                </div>
+    <div id="top-ui-container" class="minimized">
+        <div id="top-ui">
+            <div style="margin-top:10px;">
+                <span class="key-hint">WASD</span> AIM 
+                <span class="key-hint">SPACE</span> ZOOM 
+                <span class="key-hint">F</span> FIRE
             </div>
-            <div style="font-size:16px;">UNIT: 00-WATCHMAN</div>
+            <div style="display:flex; align-items:center; gap:20px;">
+                <div style="display:flex; flex-direction: column; align-items: flex-end;">
+                    <div class="vol-control" id="vol-music-container">
+                        <span class="vol-label">&#9834;</span>
+                        <span class="vol-btn" onclick="nextTrack()">[>>]</span>
+                        <span class="vol-btn">[-]</span>
+                        <input type="range" id="vol-music-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
+                        <span class="vol-btn">[+]</span>
+                    </div>
+                    <div class="vol-control" id="vol-sfx-container">
+                        <span class="vol-label">SFX</span>
+                        <span class="vol-btn">[-]</span>
+                        <input type="range" id="vol-sfx-slider" class="tech-slider" min="0" max="1" step="0.1" value="0.5">
+                        <span class="vol-btn">[+]</span>
+                    </div>
+                </div>
+                <div style="font-size:16px;">UNIT: 00-WATCHMAN</div>
+            </div>
+            <button id="ui-toggle-btn" onclick="toggleTopUI()">
+                <span class="arrow-icon" id="toggle-icon">^</span>
+                <span id="toggle-text">OPEN MENU</span>
+            </button>
         </div>
+    </div>
+
+    <div id="fixed-timer-container">
+        <div id="timer-ui">00.000</div>
     </div>
 
     <div id="scope-overlay"></div>
@@ -246,18 +376,39 @@
         <div class="intel-body" id="phone-text">CONNECTING...</div>
     </div>
     
+    <div id="high-score-modal">
+        <div class="hs-content">
+            <div class="hs-title">RECORD BREAKER</div>
+            <div id="new-record-time">00.000s</div>
+            <div style="font-size:12px; color:#aaa;">ENTER INITIALS:</div>
+            <input type="text" id="hs-input" maxlength="3" placeholder="___">
+            <br>
+            <button class="action-btn" style="width:auto; padding:10px 30px; margin-top:20px;" onclick="submitScore()">SUBMIT</button>
+        </div>
+    </div>
+
     <div id="menu">
+        <canvas id="matrix-canvas"></canvas>
         <div id="chalk-outlines"></div>
+        
         <div class="dossier" id="start-dossier">
+            <div id="menu-vol-container">
+                <label>MENU AUDIO</label>
+                <input type="range" id="slide-menu-vol" class="vertical-slider" min="0" max="1" step="0.1" value="0.5" oninput="updateMenuVol()">
+            </div>
+
             <div class="leaderboard-box">
                 <div class="lb-title">TOP 5 AGENTS (SPEED)</div>
-                <div id="lb-content">
-                    <div class="lb-row"><span class="lb-rank">1.</span> <span>---</span></div>
-                    <div class="lb-row"><span class="lb-rank">2.</span> <span>---</span></div>
-                    <div class="lb-row"><span class="lb-rank">3.</span> <span>---</span></div>
-                    <div class="lb-row"><span class="lb-rank">4.</span> <span>---</span></div>
-                    <div class="lb-row"><span class="lb-rank">5.</span> <span>---</span></div>
-                </div>
+                <div id="lb-content"></div>
+            </div>
+
+            <div class="stats-box">
+                <div class="stats-title">FIELD REPORT</div>
+                <div class="stats-row"><span>TARGET COURIERS</span> <span class="stats-val" id="stat-target">0</span></div>
+                <div class="stats-row"><span>DECOYS HIT</span> <span class="stats-val" id="stat-decoy">0</span></div>
+                <div class="stats-row"><span>BYSTANDERS HIT</span> <span class="stats-val" id="stat-civ">0</span></div>
+                <div class="stats-row"><span>ABORTS</span> <span class="stats-val" id="stat-abort">0</span></div>
+                <button class="reset-btn-small" onclick="resetAllData()">[ RESET DATA / LEADERBOARD ]</button>
             </div>
 
             <div class="streak-box" id="menu-streak-box">STREAK: <span id="streak-display">0</span></div>
@@ -271,14 +422,19 @@
             </div>
 
             <div class="settings-box">
+                <div class="preset-row">
+                    <button class="preset-btn" onclick="setDifficulty('EASY')">EASY</button>
+                    <button class="preset-btn" onclick="setDifficulty('MEDIUM')">MEDIUM</button>
+                    <button class="preset-btn" onclick="setDifficulty('HARD')">HARD</button>
+                </div>
                 <div class="slider-row">
                     <label>CROWD DENSITY</label>
-                    <input type="range" id="slide-crowd" min="117" max="415" value="80" oninput="updateUI()">
+                    <input type="range" id="slide-crowd" min="117" max="499" value="80" oninput="updateUI()">
                     <span id="val-crowd">80</span>
                 </div>
                 <div class="slider-row">
                     <label>PACKAGE HOLDERS</label>
-                    <input type="range" id="slide-pkg" min="2" max="43" value="4" oninput="updateUI()">
+                    <input type="range" id="slide-pkg" min="2" max="99" value="4" oninput="updateUI()">
                     <span id="val-pkg">4</span>
                 </div>
                 <hr style="border-color:#555; margin:15px 0;">
@@ -287,7 +443,11 @@
                     <div class="chk-group">
                         <label class="chk-label">
                             <input type="checkbox" id="chk-music" checked onchange="updateUI()"> 
-                            <span>SOUNDTRACK</span>
+                            <span>GAME MUSIC</span>
+                        </label>
+                        <label class="chk-label">
+                            <input type="checkbox" id="chk-random-pl" onchange="updateUI()"> 
+                            <span>RANDOM PLAYLIST</span>
                         </label>
                         <label class="chk-label">
                             <input type="checkbox" id="chk-sfx" checked onchange="updateUI()"> 
@@ -298,8 +458,8 @@
             </div>
 
             <div class="btn-row">
-                <button class="action-btn" onclick="startGame('STREAK')">PLAY FOR FUN</button>
-                <button class="action-btn sec-btn" onclick="startGame('TIMED')">PLAY FOR SPEED</button>
+                <button id="btn-fun" class="action-btn" onclick="initiateGame('STREAK', this)">PLAY FOR FUN</button>
+                <button id="btn-speed" class="action-btn sec-btn" onclick="initiateGame('TIMED', this)">PLAY FOR SPEED</button>
             </div>
         </div>
 
@@ -309,13 +469,13 @@
             <div id="award-text"></div>
             <p id="outcome-desc" style="font-size:18px; font-weight:bold;">...</p>
             <div style="margin-top:30px; text-align:right;">
-                <button class="action-btn" style="width:auto; padding:15px 40px;" onclick="location.reload()">NEW ASSIGNMENT >></button>
+                <button class="action-btn" style="width:auto; padding:15px 40px;" onclick="reloadWithFade()">NEW ASSIGNMENT >></button>
             </div>
         </div>
     </div>
     
     <div id="restart-ui">
-        <button id="restart-btn" onclick="location.reload()">ABORT / RESTART</button>
+        <button id="restart-btn" onclick="reloadWithFade()">ABORT / RESTART</button>
     </div>
 
 <script>
@@ -378,13 +538,30 @@
     let SETTING_CROWD = 80;
     let SETTING_PACKAGES = 4;
     let KILL_STREAK = 0;
-    let LEADERBOARD = []; // Array of floats
+    let LEADERBOARD = []; // Array of objects {name: 'ABC', time: 1.23}
     
     // Audio Settings Persistence
     let SETTING_MUSIC_ON = true;
     let SETTING_SFX_ON = true;
     let SETTING_MUSIC_VOL = 0.5;
     let SETTING_SFX_VOL = 0.5;
+    let SETTING_MENU_VOL = 0.5;
+    let SETTING_RANDOM_PL = false;
+    
+    // Stats
+    let STATS = { target:0, decoy:0, civ:0, abort:0 };
+
+    // Audio Globals
+    const MUSIC_TRACKS = ['music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 'music5.mp3'];
+    let currentMusicIdx = 0;
+    let activeMusicAudio = null;
+    let fadeInterval = null;
+    let menuFadeInterval = null;
+    let menuMusicStarted = false;
+    
+    // Start timers
+    let sfxStartTimeout = null;
+    let musicStartTimeout = null;
 
     // Results
     let resultIsWin = false;
@@ -401,16 +578,29 @@
         if(localStorage.getItem('sm_pkg')) SETTING_PACKAGES = parseInt(localStorage.getItem('sm_pkg'));
         if(localStorage.getItem('sm_streak')) KILL_STREAK = parseInt(localStorage.getItem('sm_streak'));
         
-        // Load Leaderboard
+        // Load Leaderboard (handle legacy array of numbers if exists)
         if(localStorage.getItem('sm_leaderboard')) {
-            try { LEADERBOARD = JSON.parse(localStorage.getItem('sm_leaderboard')); } catch(e){ LEADERBOARD=[]; }
+            try { 
+                let raw = JSON.parse(localStorage.getItem('sm_leaderboard'));
+                if(raw.length > 0 && typeof raw[0] === 'number') {
+                    LEADERBOARD = raw.map(t => ({name: 'AGT', time: t}));
+                } else {
+                    LEADERBOARD = raw;
+                }
+            } catch(e){ LEADERBOARD=[]; }
+        }
+        // Load Stats
+        if(localStorage.getItem('sm_stats')) {
+            try { STATS = JSON.parse(localStorage.getItem('sm_stats')); } catch(e){ STATS={target:0, decoy:0, civ:0, abort:0}; }
         }
         
         // Load Audio Settings
         if(localStorage.getItem('sm_music_on') !== null) SETTING_MUSIC_ON = (localStorage.getItem('sm_music_on') === 'true');
         if(localStorage.getItem('sm_sfx_on') !== null) SETTING_SFX_ON = (localStorage.getItem('sm_sfx_on') === 'true');
+        if(localStorage.getItem('sm_random_pl') !== null) SETTING_RANDOM_PL = (localStorage.getItem('sm_random_pl') === 'true');
         if(localStorage.getItem('sm_music_vol')) SETTING_MUSIC_VOL = parseFloat(localStorage.getItem('sm_music_vol'));
         if(localStorage.getItem('sm_sfx_vol')) SETTING_SFX_VOL = parseFloat(localStorage.getItem('sm_sfx_vol'));
+        if(localStorage.getItem('sm_menu_vol')) SETTING_MENU_VOL = parseFloat(localStorage.getItem('sm_menu_vol'));
 
         // Apply to Menu UI
         document.getElementById('slide-crowd').value = SETTING_CROWD;
@@ -421,26 +611,38 @@
         
         document.getElementById('chk-music').checked = SETTING_MUSIC_ON;
         document.getElementById('chk-sfx').checked = SETTING_SFX_ON;
+        document.getElementById('chk-random-pl').checked = SETTING_RANDOM_PL;
 
         // Apply to In-Game UI Sliders
         document.getElementById('vol-music-slider').value = SETTING_MUSIC_VOL;
         document.getElementById('vol-sfx-slider').value = SETTING_SFX_VOL;
+        document.getElementById('slide-menu-vol').value = SETTING_MENU_VOL;
 
         updateMenuVisuals();
         renderLeaderboard();
+        renderStats();
     }
 
     function renderLeaderboard() {
         const lbDiv = document.getElementById('lb-content');
         lbDiv.innerHTML = '';
-        const sorted = LEADERBOARD.sort((a,b) => a - b).slice(0, 5);
+        const sorted = LEADERBOARD.sort((a,b) => a.time - b.time).slice(0, 5);
         for(let i=0; i<5; i++) {
-            const timeStr = sorted[i] ? sorted[i].toFixed(3) + "s" : "---";
+            const entry = sorted[i];
+            const timeStr = entry ? entry.time.toFixed(3) + "s" : "---";
+            const nameStr = entry ? entry.name : "---";
             const row = document.createElement('div');
             row.className = 'lb-row';
-            row.innerHTML = `<span class="lb-rank">${i+1}.</span> <span class="lb-time">${timeStr}</span>`;
+            row.innerHTML = `<span class="lb-rank">${i+1}.</span> <span class="lb-name">${nameStr}</span> <span class="lb-time">${timeStr}</span>`;
             lbDiv.appendChild(row);
         }
+    }
+
+    function renderStats() {
+        document.getElementById('stat-target').innerText = STATS.target;
+        document.getElementById('stat-decoy').innerText = STATS.decoy;
+        document.getElementById('stat-civ').innerText = STATS.civ;
+        document.getElementById('stat-abort').innerText = STATS.abort;
     }
 
     function updateMenuVisuals() {
@@ -462,11 +664,36 @@
         localStorage.setItem('sm_pkg', SETTING_PACKAGES);
         localStorage.setItem('sm_streak', KILL_STREAK);
         localStorage.setItem('sm_leaderboard', JSON.stringify(LEADERBOARD));
+        localStorage.setItem('sm_stats', JSON.stringify(STATS));
         
         localStorage.setItem('sm_music_on', SETTING_MUSIC_ON);
         localStorage.setItem('sm_sfx_on', SETTING_SFX_ON);
+        localStorage.setItem('sm_random_pl', SETTING_RANDOM_PL);
         localStorage.setItem('sm_music_vol', SETTING_MUSIC_VOL);
         localStorage.setItem('sm_sfx_vol', SETTING_SFX_VOL);
+        localStorage.setItem('sm_menu_vol', SETTING_MENU_VOL);
+    }
+
+    function resetAllData() {
+        if(confirm("Wipe all Field Reports and Leaderboard data?")) {
+            LEADERBOARD = [];
+            STATS = { target:0, decoy:0, civ:0, abort:0 };
+            KILL_STREAK = 0;
+            saveSettings();
+            loadSettings();
+        }
+    }
+
+    function setDifficulty(level) {
+        if(level === 'EASY') { SETTING_CROWD = 134; SETTING_PACKAGES = 2; }
+        else if(level === 'MEDIUM') { SETTING_CROWD = 227; SETTING_PACKAGES = 17; }
+        else if(level === 'HARD') { SETTING_CROWD = 420; SETTING_PACKAGES = 70; }
+        
+        document.getElementById('slide-crowd').value = SETTING_CROWD;
+        document.getElementById('slide-pkg').value = SETTING_PACKAGES;
+        document.getElementById('val-crowd').innerText = SETTING_CROWD;
+        document.getElementById('val-pkg').innerText = SETTING_PACKAGES;
+        saveSettings();
     }
 
     function updateUI() {
@@ -474,11 +701,19 @@
         SETTING_PACKAGES = document.getElementById('slide-pkg').value;
         SETTING_MUSIC_ON = document.getElementById('chk-music').checked;
         SETTING_SFX_ON = document.getElementById('chk-sfx').checked;
+        SETTING_RANDOM_PL = document.getElementById('chk-random-pl').checked;
         
         document.getElementById('val-crowd').innerText = SETTING_CROWD;
         document.getElementById('val-pkg').innerText = SETTING_PACKAGES;
         
         saveSettings(); 
+    }
+
+    function updateMenuVol() {
+        SETTING_MENU_VOL = parseFloat(document.getElementById('slide-menu-vol').value);
+        const menuBgm = document.getElementById('menu-bgm');
+        if(menuBgm && !menuBgm.paused) menuBgm.volume = SETTING_MENU_VOL;
+        saveSettings();
     }
 
     function generateCodeName() {
@@ -487,8 +722,219 @@
         return `"${adj} ${noun}"`;
     }
 
+    function toggleTopUI() {
+        const ui = document.getElementById('top-ui-container');
+        const icon = document.getElementById('toggle-icon');
+        const text = document.getElementById('toggle-text');
+        ui.classList.toggle('minimized');
+        const isMin = ui.classList.contains('minimized');
+        icon.innerText = isMin ? '^' : 'v';
+        text.innerText = isMin ? 'OPEN MENU' : 'HIDE MENU';
+    }
+
+    // --- AUDIO SYSTEM ---
+
+    function startMenuMusicTimer() {
+        setTimeout(() => {
+            if(gameState === 'MENU' && !menuMusicStarted) {
+                const menuBgm = document.getElementById('menu-bgm');
+                // Randomize start time
+                menuBgm.currentTime = Math.random() * 60; 
+                menuBgm.volume = 0;
+                menuBgm.play().then(() => {
+                    menuMusicStarted = true;
+                    fadeInAudio(menuBgm, SETTING_MENU_VOL, 3000);
+                }).catch(e=>console.log("Menu music fail",e));
+            }
+        }, 4400);
+    }
+
+    function initiateGame(mode, btn) {
+        // Button Feedback: Add clicked class and inject spinner
+        if(btn) {
+            btn.classList.add('clicked');
+            // Save text? Not needed as we reload
+            btn.innerHTML = '<div class="spinner"></div>';
+        }
+        
+        // Fade out menu music over 2.8s
+        const menuBgm = document.getElementById('menu-bgm');
+        if(menuBgm && !menuBgm.paused) {
+            fadeOutAudio(menuBgm, 2800, () => {
+                menuBgm.pause();
+                menuMusicStarted = false;
+            });
+        }
+        
+        // Wait 2.8s fade + 0.4s silence = 3.2s total
+        setTimeout(() => {
+            startGame(mode);
+        }, 3200);
+    }
+
+    function reloadWithFade() {
+        // Fade out any active music or menu music
+        if(activeMusicAudio && !activeMusicAudio.paused) {
+            fadeOutAudio(activeMusicAudio, 1700, null);
+        }
+        const menuBgm = document.getElementById('menu-bgm');
+        if(menuBgm && !menuBgm.paused) {
+            fadeOutAudio(menuBgm, 1700, null);
+        }
+        setTimeout(() => {
+            location.reload();
+        }, 1700);
+    }
+
+    function playMusic() {
+        if(!SETTING_MUSIC_ON) return;
+        
+        if(activeMusicAudio) {
+            activeMusicAudio.pause();
+            activeMusicAudio = null;
+        }
+
+        let idx = 0;
+        if(SETTING_RANDOM_PL) {
+            idx = Math.floor(Math.random() * MUSIC_TRACKS.length);
+        } else {
+            idx = currentMusicIdx % MUSIC_TRACKS.length;
+        }
+        currentMusicIdx = idx;
+
+        const trackName = MUSIC_TRACKS[idx];
+        activeMusicAudio = new Audio(trackName);
+        activeMusicAudio.loop = true;
+        
+        // Random start time
+        activeMusicAudio.addEventListener('loadedmetadata', () => {
+             const dur = activeMusicAudio.duration || 100;
+             activeMusicAudio.currentTime = Math.random() * (Math.min(dur, 60)); 
+        });
+        
+        // Start volume at 0 for fade in
+        activeMusicAudio.volume = 0; 
+        
+        activeMusicAudio.play().then(() => {
+            fadeInAudio(activeMusicAudio, SETTING_MUSIC_VOL, 4000); // 4 sec fade in
+        }).catch(e => console.log("Music failed to play", e));
+    }
+
+    function nextTrack() {
+        if(!activeMusicAudio) return;
+        currentMusicIdx++;
+        playMusic();
+    }
+
+    function fadeInAudio(audioEl, targetVol, duration) {
+        if(fadeInterval) clearInterval(fadeInterval);
+        const stepTime = 100;
+        const stepVol = targetVol / (duration / stepTime);
+        
+        const fInt = setInterval(() => {
+            if(!audioEl || audioEl.paused) { clearInterval(fInt); return; }
+            let newVol = audioEl.volume + stepVol;
+            if(newVol >= targetVol) {
+                newVol = targetVol;
+                clearInterval(fInt);
+            }
+            audioEl.volume = newVol;
+        }, stepTime);
+    }
+
+    function fadeOutAudio(audioEl, duration, callback) {
+        const stepTime = 50;
+        const startVol = audioEl.volume;
+        const stepVol = startVol / (duration / stepTime);
+
+        const fInt = setInterval(() => {
+            if(!audioEl) { clearInterval(fInt); return; }
+            let newVol = audioEl.volume - stepVol;
+            if(newVol <= 0) {
+                newVol = 0;
+                audioEl.volume = 0;
+                clearInterval(fInt);
+                if(callback) callback();
+            } else {
+                audioEl.volume = newVol;
+            }
+        }, stepTime);
+    }
+
+    // --- ADVANCED MATRIX EFFECT ---
+    const matCanvas = document.getElementById('matrix-canvas');
+    const matCtx = matCanvas.getContext('2d');
+    
+    // Words to drop
+    const matrixWords = [
+        "SNIPER", "YELLOW", "PACKAGE", "COURIER", "FLOWERS", "PLATFORM", "HASTINGS", "DISAVOW", 
+        "TERMINUS", "WATCHMAN", "TARGET", "DECOY", "BYSTANDER", "MISSION", "INTEL", "BOARD", 
+        "TRAIN", "DEPARTURE", "STATION", "PROTOCOL", "SILENCER", "SCOPE", "ZOOM", "VELOCITY", 
+        "AGENT", "SUSPECT", "IDENTIFY", "ELIMINATE", "CLEARED", "FAILED", "ABORT", "TIME", 
+        "SPEED", "RECORD", "NORTHERN", "SOUTHERN", "RAIL", "TICKET", "GATE", "LUGGAGE", "BRIEFCASE"
+    ];
+
+    let matColumns = [];
+    const matFontSize = 12; // Slightly smaller for more density
+
+    function initMatrix() {
+        matCanvas.width = window.innerWidth;
+        matCanvas.height = window.innerHeight;
+        const colCount = Math.floor(matCanvas.width / matFontSize);
+        
+        matColumns = [];
+        for(let x=0; x<colCount; x++) {
+            matColumns.push({
+                y: Math.random() * matCanvas.height,
+                word: matrixWords[Math.floor(Math.random() * matrixWords.length)],
+                wordIdx: 0,
+                speed: 1 + Math.random() * 2 // Slow speed
+            });
+        }
+    }
+
+    function drawMatrix() {
+        if(gameState !== 'MENU') return;
+        
+        // Slow fade for trail
+        matCtx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+        matCtx.fillRect(0, 0, matCanvas.width, matCanvas.height);
+        
+        matCtx.font = matFontSize + 'px monospace';
+        
+        for(let i=0; i<matColumns.length; i++) {
+            const col = matColumns[i];
+            
+            // Random Greyscale color
+            const shade = Math.floor(50 + Math.random() * 200);
+            matCtx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
+            
+            // Get current character from assigned word
+            const char = col.word[col.wordIdx % col.word.length];
+            
+            matCtx.fillText(char, i * matFontSize, col.y);
+            
+            // Move down
+            col.y += col.speed;
+            
+            // Next char in word every few frames (simulated by distance)
+            if(Math.floor(col.y) % 20 < 2) col.wordIdx++;
+
+            // Reset loop
+            if(col.y > matCanvas.height && Math.random() > 0.98) {
+                col.y = 0;
+                col.wordIdx = 0;
+                col.word = matrixWords[Math.floor(Math.random() * matrixWords.length)];
+            }
+        }
+    }
+
+    // --- THREE JS INIT ---
+
     function init() {
         loadSettings();
+        startMenuMusicTimer();
+        initMatrix();
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x050505);
@@ -515,9 +961,30 @@
         stripeTexture = createStripeTexture();
         buildStation();
 
+        // High Score Input Listener
+        document.getElementById('hs-input').addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') submitScore();
+        });
+
         window.addEventListener('keydown', e => handleKey(e, true));
         window.addEventListener('keyup', e => handleKey(e, false));
         window.addEventListener('resize', onResize);
+
+        // Volume slider listeners
+        const sliderMusic = document.getElementById('vol-music-slider');
+        sliderMusic.addEventListener('input', function() { 
+            SETTING_MUSIC_VOL = parseFloat(this.value); 
+            if(activeMusicAudio) activeMusicAudio.volume = SETTING_MUSIC_VOL;
+            saveSettings(); 
+        });
+
+        const sliderSFX = document.getElementById('vol-sfx-slider');
+        const sfx = document.getElementById('sfx-ambience');
+        sliderSFX.addEventListener('input', function() { 
+            SETTING_SFX_VOL = parseFloat(this.value);
+            sfx.volume = SETTING_SFX_VOL;
+            saveSettings(); 
+        });
 
         animate();
     }
@@ -637,16 +1104,12 @@
             createTrain(x - 16, -1.0, -60, trainGroup);
             scene.add(trainGroup);
             
-            // SIGNS: Moved to Z = -25 (Directly on edge)
-            // Fix: Pole moved slightly BACK (-25.5) so it doesn't clip number
             const sCanvas = document.createElement('canvas'); sCanvas.width=128; sCanvas.height=128;
             const sCtx = sCanvas.getContext('2d'); sCtx.fillStyle='#222'; sCtx.fillRect(0,0,128,128);
             sCtx.strokeStyle='#FFD700'; sCtx.lineWidth=6; sCtx.strokeRect(5,5,118,118);
             sCtx.fillStyle='#FFF'; sCtx.font='bold 80px "Courier Prime"'; sCtx.textAlign='center'; sCtx.textBaseline='middle'; sCtx.fillText(i+1,64,68);
-            // Sign Face: -24.8 (Closer to cam)
             const sign = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(sCanvas)}));
             sign.position.set(x, 8, -24.8); scene.add(sign); 
-            // Sign Pole: -25.5 (Further from cam)
             createBlock(0.5, 8, 0.5, 0x111111, x, 4, -25.5);
 
             for(let zP = -100; zP > -250; zP -= 60) {
@@ -764,30 +1227,45 @@
         gameMode = mode;
         timerRunning = false;
         timerStartTime = 0;
-        document.getElementById('timer-ui').style.display = (gameMode === 'TIMED') ? 'block' : 'none';
+        
+        // Ensure menu music is OFF
+        const menuBgm = document.getElementById('menu-bgm');
+        if(menuBgm) { menuBgm.pause(); menuBgm.currentTime = 0; }
+        
+        // Show/Hide Fixed Timer
+        document.getElementById('fixed-timer-container').style.display = (gameMode === 'TIMED') ? 'block' : 'none';
         document.getElementById('timer-ui').innerText = "00.000";
         document.getElementById('menu-streak-box').style.display = (gameMode === 'STREAK') ? 'block' : 'none';
 
         document.getElementById('vol-music-container').style.display = SETTING_MUSIC_ON ? 'flex' : 'none';
         document.getElementById('vol-sfx-container').style.display = SETTING_SFX_ON ? 'flex' : 'none';
 
-        const bgm = document.getElementById('bgm');
-        const sfx = document.getElementById('sfx-ambience');
-        const sliderMusic = document.getElementById('vol-music-slider');
-        const sliderSFX = document.getElementById('vol-sfx-slider');
-        
-        if(bgm && sliderMusic) {
-            bgm.volume = sliderMusic.value;
-            if(SETTING_MUSIC_ON) { bgm.play().catch(e => console.log("Music play failed:", e)); } 
-            else { bgm.pause(); bgm.currentTime = 0; }
-            sliderMusic.addEventListener('input', function() { bgm.volume = this.value; SETTING_MUSIC_VOL = parseFloat(this.value); saveSettings(); });
+        // Clear timeouts
+        if(musicStartTimeout) clearTimeout(musicStartTimeout);
+        if(sfxStartTimeout) clearTimeout(sfxStartTimeout);
+
+        // Schedule Game Music: Starts at 7.3s
+        if(SETTING_MUSIC_ON) {
+            musicStartTimeout = setTimeout(() => {
+                playMusic();
+            }, 7300);
+        } else if(activeMusicAudio) { 
+            activeMusicAudio.pause(); activeMusicAudio = null; 
         }
 
-        if(sfx && sliderSFX) {
-            sfx.volume = sliderSFX.value;
-            if(SETTING_SFX_ON) { sfx.play().catch(e => console.log("SFX play failed:", e)); } 
-            else { sfx.pause(); sfx.currentTime = 0; }
-            sliderSFX.addEventListener('input', function() { sfx.volume = this.value; SETTING_SFX_VOL = parseFloat(this.value); saveSettings(); });
+        // Schedule SFX: Starts at 2.7s
+        const sfx = document.getElementById('sfx-ambience');
+        if(sfx) {
+            sfx.volume = 0;
+            sfx.pause(); // Reset
+            if(SETTING_SFX_ON) { 
+                sfxStartTimeout = setTimeout(() => {
+                    sfx.currentTime = Math.random() * 58; 
+                    sfx.play().then(() => {
+                        fadeInAudio(sfx, SETTING_SFX_VOL, 4000);
+                    }).catch(e => console.log("SFX play failed:", e)); 
+                }, 2700);
+            }
         }
 
         document.getElementById('menu').style.display = 'none';
@@ -826,6 +1304,12 @@
         nextPigeonTime = 5 + Math.random() * 5;
     }
 
+    function abortMission() {
+        STATS.abort++;
+        saveSettings();
+        reloadWithFade();
+    }
+
     function spawnCrowd() {
         for(let i=0; i<5; i++) {
             const mesh = createPerson('WORKER', (Math.random()-0.5)*200, -30 + Math.random()*10);
@@ -843,7 +1327,7 @@
                 createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
                 lug.position.set(0.8, 0, 0.5); sm.add(lug);
             }
-            civilians.push({mesh:sm, role:'STATIC', state:'STATIC', waypoints:[], speed:0, sway:Math.random()*100});
+            civilians.push({mesh:sm, role:'STATIC', state:'STATIC', waypoints:[], speed:0, sway:Math.random()*100, origin: sm.position.clone() });
         }
 
         const civCount = parseInt(SETTING_CROWD);
@@ -1044,6 +1528,11 @@
         requestAnimationFrame(animate);
         const dt = clock.getDelta();
 
+        if(gameState === 'MENU') {
+            drawMatrix();
+            return;
+        }
+
         // TIMER UPDATE
         if(timerRunning) {
             const now = performance.now();
@@ -1053,20 +1542,56 @@
 
         if(gameState === 'BLEEDING') {
             bleedTimer += dt;
-            if(victimRef && victimRef.mesh && victimRef.mesh.rotation.x > -Math.PI/2) {
-                victimRef.mesh.rotation.x -= dt * 5.0; 
-                victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); 
+            if(victimRef && victimRef.mesh) {
+                if(victimRef.role === 'TARGET' || victimRef.role === 'COURIER') {
+                    // TARGET ANIMATION: FALL FLAT, THEN FLOAT UP STRAIGHT (NO SPIN)
+                    if(victimRef.mesh.rotation.x > -Math.PI/2) {
+                        // Fall first
+                        victimRef.mesh.rotation.x -= dt * 5.0;
+                        victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); 
+                    } else if(bleedTimer > 1.0) {
+                        // Then Float
+                        if(victimRef.mesh.position.y < 15) {
+                            victimRef.mesh.position.y += dt * 2.0; 
+                            // Ensure rotation is flat (no spin)
+                            victimRef.mesh.rotation.y = 0; 
+                        }
+                    }
+                } else {
+                    // OTHERS: JUST FALL
+                    if(victimRef.mesh.rotation.x > -Math.PI/2) {
+                        victimRef.mesh.rotation.x -= dt * 5.0;
+                        victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); 
+                    }
+                }
             }
+
             updateLooseItems(dt);
             if(bleedTimer > 0.3 && !bloodSpawned) { spawnBlood(victimRef); bloodSpawned = true; }
             if(bloodPuddles.length > 0) {
                 const p = bloodPuddles[bloodPuddles.length-1];
                 if(p.scale < 1.5) { p.scale += dt * 2; p.mesh.scale.setScalar(p.scale); }
             }
-            if(bleedTimer > 3.0) {
-                if(resultIsWin) showEndScreen();
+            if(bleedTimer > 4.5) {
+                if(resultIsWin) {
+                    if(gameMode === 'TIMED' && isHighscore(finalTime)) {
+                        gameState = 'INPUT_SCORE';
+                        document.getElementById('high-score-modal').style.display = 'flex';
+                        document.getElementById('new-record-time').innerText = finalTime.toFixed(3) + "s";
+                        document.getElementById('hs-input').value = "";
+                        document.getElementById('hs-input').focus();
+                    } else {
+                        showEndScreen();
+                    }
+                }
                 else { gameState = 'SCREEN_EFFECT'; bleedTimer = 0; triggerScreenBlood(); }
             }
+            renderer.render(scene, camera);
+            return;
+        }
+        
+        if(gameState === 'INPUT_SCORE') {
+            // Just render scene, waiting for input
             renderer.render(scene, camera);
             return;
         }
@@ -1077,8 +1602,6 @@
             renderer.render(scene, camera);
             return;
         }
-
-        if(gameState === 'MENU') return;
 
         for(let i=particles.length-1; i>=0; i--) {
             const p = particles[i];
@@ -1102,16 +1625,34 @@
         camera.rotation.x = pitch; camera.rotation.y = yaw;
 
         civilians.forEach(c => {
+            // Static Wander AI
             if(c.role === 'STATIC') {
                 c.mesh.rotation.y = Math.sin(gameTime + c.sway) * 0.5;
-                return;
+                if(c.state === 'STATIC') {
+                    if(Math.random() < 0.005) { // 0.5% chance per frame to wander
+                         c.state = 'WANDERING';
+                         // Wander 5-10 units away from origin
+                         const angle = Math.random() * Math.PI * 2;
+                         const dist = 5 + Math.random()*5;
+                         const tx = c.origin.x + Math.cos(angle)*dist;
+                         const tz = c.origin.z + Math.sin(angle)*dist;
+                         c.waypoints = [new THREE.Vector3(tx, 0, tz)];
+                         c.speed = 0.02;
+                    }
+                }
+                else if(c.state === 'WANDERING') {
+                    // Logic handled in movement block below
+                }
+                else return; // Don't move if not wandering
             }
 
             if(c.state === 'IDLE' && c.role !== 'WORKER' && Math.random() < 0.01) {
                  c.state = 'WALKING'; 
                  c.waypoints = [new THREE.Vector3((Math.random()-0.5)*250, 0, 20 + Math.random()*80)];
             }
-            if(c.state === 'WALKING' && c.waypoints.length > 0) {
+            
+            // Movement Logic
+            if((c.state === 'WALKING' || c.state === 'WANDERING') && c.waypoints.length > 0) {
                 const target = c.waypoints[0];
                 const dir = new THREE.Vector3().subVectors(target, c.mesh.position);
                 
@@ -1127,7 +1668,8 @@
                     c.waypoints.shift();
                     if(c.waypoints.length === 0) {
                         if(c.role === 'GUARD') c.waypoints = [new THREE.Vector3(c.mesh.position.x > 0 ? -100 : 100, 0, -50)];
-                        else if(gameState === 'RUSH' && c.role !== 'WORKER') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
+                        else if(gameState === 'RUSH' && c.role !== 'WORKER' && c.role !== 'STATIC') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
+                        else if(c.role === 'STATIC') { c.state = 'STATIC'; }
                         else c.state = 'IDLE';
                     }
                 } else {
@@ -1184,16 +1726,15 @@
         
         if(civ === targetObj) {
             resultIsWin = true; KILL_STREAK++;
-            if(gameMode === 'TIMED') {
-                LEADERBOARD.push(finalTime);
-            }
+            STATS.target++;
         } else {
             resultIsWin = false; KILL_STREAK = 0; victimRef = civ;
-            if(civ.role === 'DECOY') resultReason = "YOU SHOT A DECOY (WRONG TRAIN/SHOP).";
-            else if(civ.role === 'STRIPED') resultReason = "DISTRACTION TARGET. CIVILIAN CASUALTY.";
-            else if(civ.role === 'STATIC') resultReason = "BYSTANDER CASUALTY.";
-            else if(civ.role === 'GUARD') resultReason = "OFFICER DOWN. MISSION COMPROMISED.";
-            else resultReason = "CIVILIAN CASUALTY.";
+            
+            if(civ.role === 'DECOY') { resultReason = "YOU SHOT A DECOY (WRONG TRAIN/SHOP)."; STATS.decoy++; }
+            else if(civ.role === 'STRIPED') { resultReason = "DISTRACTION TARGET. CIVILIAN CASUALTY."; STATS.civ++; }
+            else if(civ.role === 'STATIC') { resultReason = "BYSTANDER CASUALTY."; STATS.civ++; }
+            else if(civ.role === 'GUARD') { resultReason = "OFFICER DOWN. MISSION COMPROMISED."; STATS.civ++; }
+            else { resultReason = "CIVILIAN CASUALTY."; STATS.civ++; }
         }
         saveSettings();
 
@@ -1204,12 +1745,14 @@
                 const worldQuat = new THREE.Quaternion(); luggage.getWorldQuaternion(worldQuat);
                 civ.mesh.remove(luggage); scene.add(luggage);
                 luggage.position.copy(worldPos); luggage.quaternion.copy(worldQuat);
+                
                 const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(civ.mesh.quaternion).normalize();
-                const speed = (civ.speed || 0.04) * 80; 
+                const speed = (civ.speed || 0.04) * 5.0; 
+                
                 looseItems.push({
                     mesh: luggage,
-                    vel: forward.multiplyScalar(speed).add(new THREE.Vector3((Math.random()-0.5)*0.5, 0, (Math.random()-0.5)*0.5)),
-                    rotVel: new THREE.Vector3((Math.random()-0.5)*0.2, 0, (Math.random()-0.5)*0.2), 
+                    vel: forward.multiplyScalar(speed).add(new THREE.Vector3((Math.random()-0.5)*0.2, 0, (Math.random()-0.5)*0.2)),
+                    rotVel: new THREE.Vector3((Math.random()-0.5)*0.1, 0, (Math.random()-0.5)*0.1), 
                     life: 3.0 
                 });
             }
@@ -1219,6 +1762,27 @@
         gameState = 'BLEEDING';
         bleedTimer = 0;
         bloodSpawned = false;
+    }
+
+    function isHighscore(time) {
+        // Simple check if time is better than the 5th place
+        if(LEADERBOARD.length < 5) return true;
+        const worst = Math.max(...LEADERBOARD.map(e => e.time));
+        return time < worst;
+    }
+
+    function submitScore() {
+        const input = document.getElementById('hs-input');
+        const initials = input.value.toUpperCase().substring(0,3) || "UNK";
+        
+        LEADERBOARD.push({name: initials, time: finalTime});
+        // Sort and Keep Top 5
+        LEADERBOARD.sort((a,b) => a.time - b.time);
+        if(LEADERBOARD.length > 5) LEADERBOARD = LEADERBOARD.slice(0,5);
+        
+        saveSettings();
+        document.getElementById('high-score-modal').style.display = 'none';
+        reloadWithFade(); // Return to menu as requested
     }
 
     function spawnBlood(civ) {
@@ -1276,6 +1840,7 @@
             award.innerText = "";
         }
         document.getElementById('streak-display').innerText = KILL_STREAK;
+        renderStats();
     }
 
     function toggleZoom(forceOff) {
@@ -1289,6 +1854,13 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        // Resize matrix canvas
+        if(matCanvas) {
+            matCanvas.width = window.innerWidth;
+            matCanvas.height = window.innerHeight;
+            initMatrix();
+        }
     }
 
     init();
