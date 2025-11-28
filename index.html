@@ -6,7 +6,7 @@
     <title>Station Master: Terminal Velocity VIII</title>
     <style>
         /* FONTS */
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Montserrat:wght@800&family=Russo+One&family=Satisfy&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Montserrat:wght@800&family=Russo+One&family=Satisfy&family=Roboto+Mono:wght@400;500&display=swap');
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier Prime', monospace; user-select: none; }
 
         /* --- INTRO SPLASH (FIRST LOAD) --- */
@@ -145,6 +145,17 @@
             font-family: 'Montserrat', sans-serif; letter-spacing: 1px;
         }
         #ui-toggle-btn:hover { background: #002200; }
+        
+        /* SKIP MUSIC BUTTON (Mirror Style) */
+        #skip-music-btn {
+            position: absolute; bottom: -24px; right: 0;
+            background: rgba(0,0,0,0.8); color: #00FF00; border: 1px solid #005500; border-top: none; border-right: none;
+            padding: 4px 15px; cursor: pointer; font-size: 10px; border-radius: 0 0 0 10px;
+            text-shadow: 0 0 5px #00FF00; pointer-events: auto; display: flex; align-items: center; gap: 5px;
+            font-family: 'Montserrat', sans-serif; letter-spacing: 1px;
+        }
+        #skip-music-btn:hover { background: #002200; }
+
         .arrow-icon { font-size: 14px; font-weight: bold; }
 
         /* TIMER FIXED */
@@ -207,20 +218,21 @@
             box-shadow: 0 0 100px rgba(0,0,0,1); transform: rotate(-0.5deg); position: relative;
             border: 1px solid #999; z-index: 5;
         }
+        /* STAMP - Higher Z-Index than Bio */
         .stamp {
             position: absolute; top: 30px; right: 30px;
             border: 5px solid #C00; color: #C00; font-family: 'Montserrat', sans-serif;
             font-size: 40px; font-weight: 900; padding: 5px 20px;
-            transform: rotate(12deg) scale(3); opacity: 0; mix-blend-mode: multiply;
+            transform: rotate(12deg) scale(3); opacity: 0; mix-blend-mode: normal; /* Removed multiply to sit on top clearly */
             /* Default state hidden for animation */
-            pointer-events: none;
+            pointer-events: none; z-index: 25; /* Ensure on top of bio */
         }
 
         /* STAMP ANIMATION */
         @keyframes stamp-slam {
             0% { opacity: 0; transform: rotate(12deg) scale(3); }
-            70% { opacity: 0.8; transform: rotate(12deg) scale(0.9); }
-            100% { opacity: 0.8; transform: rotate(12deg) scale(1.0); }
+            70% { opacity: 0.95; transform: rotate(12deg) scale(0.9); }
+            100% { opacity: 1; transform: rotate(12deg) scale(1.0); }
         }
         .stamp.slammed {
             animation: stamp-slam 0.4s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -265,7 +277,8 @@
         .stats-title { text-align: center; border-bottom: 1px dashed #fff; margin-bottom: 10px; font-weight: bold; letter-spacing: 2px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
         .stats-val { font-weight: bold; color: #FFCC00; }
-        .reset-btn-small { margin-top:10px; width: 100%; background: #222; border: 1px solid #555; color: #777; font-size: 10px; padding: 5px; cursor: pointer; }
+        
+        .reset-btn-small { margin-top:5px; width: 100%; background: #222; border: 1px solid #555; color: #777; font-size: 10px; padding: 5px; cursor: pointer; text-transform: uppercase; }
         .reset-btn-small:hover { background: #500; color: #fff; border-color: #f00; }
 
         .lb-title { border-bottom: 2px solid #00FF00; font-size: 14px; letter-spacing: 2px; margin-bottom: 10px; padding-bottom: 5px; }
@@ -341,6 +354,11 @@
 
         button.sec-btn { background: #222; border: 1px solid #444; color: #aaa; animation: none; }
         button.sec-btn:hover { background: #004400; color: #fff; border-color: #00FF00; }
+
+        /* End game button container for stacking */
+        .end-btn-container {
+            display: flex; flex-direction: column; gap: 15px; margin-top: 30px; width: 100%;
+        }
         
         #restart-ui { position: absolute; bottom: 20px; left: 20px; z-index: 60; }
         #restart-btn { background: #333; color: #aaa; border: 1px solid #555; padding: 10px; font-family: sans-serif; font-size: 10px; cursor: pointer; text-transform: uppercase; }
@@ -412,6 +430,79 @@
             -webkit-appearance: none; margin-top: -4px; border-radius: 50%;
         }
 
+        /* BIO / TOP TRUMPS CARD - REDESIGNED */
+        #bio-overlay {
+            width: 100%; 
+            background: #e6e2d3; /* Textured Sand/Beige */
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzjwqonyABJILoIi4Hw9ZQAz9wz/T6+R/wAAAABJRU5ErkJggg=='); /* Noise texture */
+            border: 1px solid #999;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2), 0 0 15px rgba(0,0,0,0.1) inset;
+            margin-top: 15px; 
+            margin-bottom: 20px; 
+            padding: 20px; 
+            display: none;
+            font-family: 'Courier Prime', monospace;
+            text-align: left;
+            position: relative;
+            z-index: 5; /* Lower than stamp */
+            color: #333;
+            transform: rotate(-0.5deg);
+        }
+        
+        /* Rough paper edges effect */
+        #bio-overlay::before {
+            content: ''; position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px;
+            border: 1px dashed #bbb; pointer-events: none;
+        }
+
+        .bio-header {
+            display: flex; justify-content: space-between; border-bottom: 2px solid #555;
+            padding-bottom: 5px; margin-bottom: 15px; color: #555; font-size: 11px; font-weight: bold;
+        }
+        .bio-row {
+            display: flex; margin-bottom: 8px; font-size: 13px; align-items: baseline;
+        }
+        .bio-label { width: 130px; color: #777; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; font-family: 'Montserrat', sans-serif; font-weight: bold; }
+        .bio-val { color: #222; font-weight: bold; font-family: 'Courier Prime', monospace; }
+        
+        .italic-val { font-style: italic; color: #444; }
+
+        .bio-photo {
+            position: absolute; top: 50px; right: 20px; width: 80px; height: 100px;
+            background: #ddd; border: 4px solid #fff; box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; transform: rotate(2deg); z-index: 10;
+        }
+        .bio-photo svg { width: 100%; height: 100%; fill: #555; background: #ccc; }
+        
+        .bio-stamp {
+            position: absolute; top: 80px; left: 0px; 
+            border: 3px solid #C00;
+            color: #C00; font-weight: bold; font-size: 18px; padding: 2px 8px; 
+            transform: rotate(-15deg); opacity: 0.6; font-family: 'Montserrat', sans-serif;
+            z-index: 5;
+        }
+        
+        /* Read More Animation Logic */
+        .bio-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s ease-in-out, opacity 0.6s ease-in-out;
+            opacity: 0;
+        }
+        .bio-details.open {
+            max-height: 300px; /* Enough to show all */
+            opacity: 1;
+        }
+
+        .read-more-btn {
+            background: transparent; color: #555; border: 1px solid #888;
+            font-size: 10px; width: 100%; padding: 6px; cursor: pointer; margin-top: 15px;
+            font-family: 'Montserrat', sans-serif; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.2s;
+        }
+        .read-more-btn:hover { background: #555; color: #fff; }
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -446,7 +537,7 @@
             <div class="warning-stripe">IRREVERSIBLE</div>
             <div class="confirm-title">SYSTEM PURGE</div>
             <div class="confirm-msg">
-                Are you sure you want to wipe all field reports and leaderboard data?
+                Are you sure you want to wipe all data?
                 <br><br>
                 <span style="color:#f55;">THIS ACTION CANNOT BE UNDONE.</span>
             </div>
@@ -485,6 +576,11 @@
             <button id="ui-toggle-btn" onclick="toggleTopUI()">
                 <span class="arrow-icon" id="toggle-icon">^</span>
                 <span id="toggle-text">OPEN MENU</span>
+            </button>
+            
+            <button id="skip-music-btn" onclick="nextTrack()">
+                <span style="font-size:10px;">SKIP MUSIC</span>
+                <span class="arrow-icon">>></span>
             </button>
         </div>
     </div>
@@ -534,7 +630,10 @@
                 <div class="stats-row"><span>DECOYS HIT</span> <span class="stats-val" id="stat-decoy">0</span></div>
                 <div class="stats-row"><span>BYSTANDERS HIT</span> <span class="stats-val" id="stat-civ">0</span></div>
                 <div class="stats-row"><span>ABORTS</span> <span class="stats-val" id="stat-abort">0</span></div>
-                <button class="reset-btn-small" onclick="resetAllData()">[ RESET DATA / LEADERBOARD ]</button>
+                <div style="display:flex; gap:10px; width:100%; margin-top:10px;">
+                    <button class="reset-btn-small" onclick="triggerReset('LEADERBOARD')">[ RESET TIMES ]</button>
+                    <button class="reset-btn-small" onclick="triggerReset('STATS')">[ RESET STATS ]</button>
+                </div>
             </div>
 
             <div class="streak-box" id="menu-streak-box">STREAK: <span id="streak-display">0</span></div>
@@ -591,11 +690,43 @@
 
         <div class="dossier" id="end-dossier" style="display:none; text-align:center;">
             <div class="stamp" id="end-stamp">CLEARED</div>
-            <h1 id="outcome-title">REPORT</h1>
-            <div id="award-text"></div>
-            <p id="outcome-desc" style="font-size:18px; font-weight:bold;">...</p>
-            <div style="margin-top:30px; text-align:right;">
-                <button class="action-btn" style="width:auto; padding:15px 40px;" onclick="reloadWithFade()">NEW ASSIGNMENT >></button>
+            
+            <!-- Result Headers -->
+            <div id="result-headers" style="margin-bottom:20px;">
+                <h1 id="outcome-title" style="margin-bottom:10px;">REPORT</h1>
+                <p id="outcome-desc" style="font-size:18px; font-weight:bold; color: #ccc;">...</p>
+                <div id="award-text"></div>
+            </div>
+            
+            <!-- BIO OVERLAY (GUILT TRIP) -->
+            <div id="bio-overlay">
+                <div class="bio-photo" id="bio-pic"></div>
+                <div class="bio-header">
+                    <span>BIO-ID: <span id="bio-id-num">4492-X</span></span>
+                    <span>CITIZEN RECORD</span>
+                </div>
+                
+                <!-- Always Visible -->
+                <div class="bio-row"><span class="bio-label">FULL NAME</span><span class="bio-val" id="bio-name">JANE DOE</span></div>
+                
+                <!-- Hidden by Default -->
+                <div id="bio-masked-area" class="bio-details">
+                    <div class="bio-row"><span class="bio-label">DOB</span><span class="bio-val" id="bio-dob">12 MAY 1984</span></div>
+                    <div class="bio-row"><span class="bio-label">SOCIAL SEC. ID</span><span class="bio-val" id="bio-ssn">QQ-12-34-56-A</span></div>
+                    <div class="bio-row"><span class="bio-label">BLOOD TYPE</span><span class="bio-val" id="bio-blood">O+</span></div>
+                    <div class="bio-row"><span class="bio-label">NATIONALITY</span><span class="bio-val" id="bio-nation">BRITISH</span></div>
+                    <div style="border-top:1px dashed #777; margin:8px 0;"></div>
+                    <div class="bio-row"><span class="bio-label">FAV MOVIE</span><span class="bio-val italic-val" id="bio-movie">SHREK 2</span></div>
+                    <div class="bio-row"><span class="bio-label">FAV ALBUM</span><span class="bio-val italic-val" id="bio-music">UNKNOWN PLEASURES</span></div>
+                </div>
+
+                <button id="bio-read-more" class="read-more-btn" onclick="revealBio()">READ MORE ABOUT THIS PERSON...</button>
+                <div class="bio-stamp">DECEASED</div>
+            </div>
+
+            <div class="end-btn-container">
+                <button class="action-btn" onclick="reloadWithFade()">NEW ASSIGNMENT >></button>
+                <button id="replay-btn" class="action-btn sec-btn" onclick="replaySameSettings()">REPLAY WITH SAME SETTINGS</button>
             </div>
         </div>
     </div>
@@ -605,6 +736,115 @@
     </div>
 
 <script>
+    // --- DATABASE GENERATORS ---
+    const BIO_DATA = {
+        // Updated with diverse names for British nationality spread
+        maleNames: [
+            // Traditional
+            "James", "David", "Robert", "Mohammed", "Thomas", "William", "Daniel", "Jack", "Lucas", "Ethan", "Alexander", "Benjamin", "Jacob", "Michael", "Joshua", "Harry", "Samuel", "Matthew", "Joseph", "Callum", "George", "Oscar", "Charlie", "Leo", "Connor", "Adam", "Liam", "Noah", "Mason", "Kieran", "Ryan", "Nathan", "Aaron", "Luke", "Henry", "Isaac", "Oliver", "Teddy", "Finley", "Max", "Harrison", "Edward", "Sebastian", "Arthur", "Freddie", "Theo", "Toby", "Jude", "Rory", "Louis", "Elijah", "Hugo", "Bobby", "Albert", "Reuben", "Frankie", "Albie", "Stanley", "Luca", "Jaxon", "Gabriel", "Blake", "Carter", "Caleb", "Hunter", "Elliot", "Austin", "Ronnie", "Ezra", "Ellis", "Kai", "Reggie", "Alex", "Jasper", "Rowan", "Jesse", "Finn", "Riley", "Seth", 
+            // Diverse Additions (Muslim, Sikh, European, etc.)
+            "Ibrahim", "Sonny", "Oakley", "Piotr", "Dmitri", "Hassan", "Wei", "Arjun", "Tariq", "Santiago", "Diego", "Muhammad", "Omar", "Ali", "Yusuf", "Zain", "Hamza", "Bilal", "Mustafa", "Abdullah", "Ishaan", "Rohan", "Aarav", "Vihaan", "Aditya", "Sai", "Reyansh", "Mateo", "Jakub", "Lukas", "Sven", "Lars", "Giovanni", "Antonio", "Carlos", "Javier", "Hiroshi", "Kenji", "Min-Ho", "Wei-Jie", "Ahmed", "Mahmoud", "Sultan", "Kabir", "Aryan", "Gurdeep", "Manpreet", "Raj", "Amit", "Vikram", "Kacper", "Jan", "Stefan", "Marek"
+        ],
+        femaleNames: [
+            // Traditional
+            "Sarah", "Priya", "Aisha", "Emma", "Julie", "Olivia", "Sophie", "Chloe", "Amara", "Zara", "Mia", "Grace", "Lily", "Ava", "Emily", "Isla", "Ella", "Charlotte", "Harper", "Evelyn", "Aaliyah", "Ruby", "Sienna", "Alice", "Freya", "Niamh", "Eva", "Sofia", "Elena", "Maya", "Layla", "Scarlett", "Aria", "Mila", "Eliza", "Lola", "Jasmine", "Daisy", "Violet", "Bella", "Rose", "Imogen", "Florence", "Matilda", "Phoebe", "Elizabeth", "Lucy", "Hannah", "Eleanor", "Holly", "Lilly", "Georgia", "Amber", "Megan", "Bethany", "Abigail", "Gracie", "Harriet", "Iris", "Erin", "Annabelle", "Lottie", "Amelia", "Felicity", "Heidi", "Martha", "Penelope", "Lara", "Sara", "Robyn", "Nancy", "Darcie", "Clara", "Orla", "Summer", "Edith", "Molly", "Bonnie", "Maria", 
+            // Diverse Additions
+            "Maryam", "Lacey", "Hollie", "Esme", "Lena", "Elena", "Fatima", "Mei", "Ananya", "Yasmin", "Camila", "Valentina", "Zainab", "Zoya", "Amira", "Noor", "Khadija", "Hana", "Sana", "Iqra", "Diya", "Anjali", "Simran", "Kavita", "Riya", "Saanvi", "Aditi", "Ishita", "Sneha", "Katarzyna", "Ana", "Isabella", "Marta", "Agnieszka", "Yuki", "Sakura", "Ji-Woo", "Hui", "Ling", "Farida", "Salma", "Rania", "Nadia", "Parveen", "Sunita", "Gurpreet", "Rajni", "Meera"
+        ],
+        lastNames: [
+            // Traditional
+            "Smith", "Jones", "Taylor", "Williams", "Brown", "Davies", "Evans", "Wilson", "Thomas", "Roberts", "Johnson", "Lewis", "Robinson", "Walker", "Wright", "Thompson", "White", "Hughes", "Edwards", "Green", "Hall", "Wood", "Harris", "Clark", "Jackson", "Clarke", "Scott", "Turner", "Hill", "Phillips", "Cooper", "Mason", "Ward", "Morris", "Martin", "Baker", "Harrison", "Morgan", "King", "Allen", "James", "Moore", "Parker", "Lee", "Davis", "Bennett", "Mitchell", "Bailey", "Adams", "Richardson", "Carter", "Watson", "Cook", "Collins", "Bell", "Shaw", "Murphy", "Miller", "Cox", "Kelly", "Simpson", "Marshall", "Griffiths", "Anderson", "Ellis", "Rogers", "Stevens", "Murray", "Reynolds", "Gray", "Price", "Hunt", "Fox", "Mills", "Owen", "Palmer", "Lloyd", "Barnes", "Booth", "Barker", "Graham", "Jenkins", "Powell", "Butler", "Foster", "Russell", "Saunders", "Fisher", "Harvey", "Chapman", "Pearson", "Walsh", "Lawrence", "Webb", "Gibson", "Yates", "Brooks", "West", "Gardner", "Stone", "Andrews", "Gill", "Dawson", 
+            // Diverse Additions
+            "Patel", "Khan", "Ali", "Ahmed", "Hussain", "Begum", "Kaur", "Singh", "Shah", "Miah", "Rahman", "Uddin", "Akhtar", "Chowdhury", "Malik", "Bi", "Mahmood", "Iqbal", "Khatun", "Fernandes", "Silva", "Santos", "Oliveira", "Pereira", "Costa", "Rodrigues", "Martins", "Nowak", "Kowalski", "Wisniewski", "Wojcik", "Kamiński", "Lewandowski", "Zieliński", "Szymański", "Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov", "Sharma", "Gupta", "Kumar", "Verma", "Mehta", "Reddy", "Nair", "Iyer", "Nguyen", "Tran", "Le", "Pham", "Hoang", "Kim", "Lee", "Park", "Choi", "Jeong", "Chen", "Wang", "Li", "Zhang", "Liu", "Yang", "Huang", "Wu"
+        ],
+        nationalities: ["BRITISH", "BRITISH", "BRITISH", "BRITISH", "BRITISH", "BRITISH", "BRITISH", "IRISH", "SCOTTISH", "WELSH", "FRENCH", "GERMAN", "POLISH", "AMERICAN", "CANADIAN", "AUSTRALIAN", "INDIAN", "PAKISTANI", "BANGLADESHI", "CHINESE", "JAPANESE", "SPANISH", "ITALIAN", "BRAZILIAN", "NIGERIAN", "SOUTH AFRICAN", "JAMAICAN", "SWEDISH", "NORWEGIAN", "DUTCH", "ROMANIAN", "BULGARIAN", "UKRAINIAN", "RUSSIAN", "TURKISH", "GREEK"],
+        wildcardNations: ["SEALAND", "VATICAN CITY", "ANTARCTICA", "ISLE OF MAN", "GUERNSEY", "JERSEY", "GIBRALTAR", "FALKLAND ISLANDS", "UNKNOWN", "STATELESS", "GALACTIC FED", "NARNIA"],
+        movies: [
+            "The Godfather (Dir. Coppola)", "Shrek 2 (Dir. Adamson)", "Paddington 2 (Dir. King)", "Pulp Fiction (Dir. Tarantino)", "The Dark Knight (Dir. Nolan)", "Spirited Away (Dir. Miyazaki)", "Parasite (Dir. Bong)", "Trainspotting (Dir. Boyle)", "Hot Fuzz (Dir. Wright)", "Shaun of the Dead (Dir. Wright)", "Mean Girls (Dir. Waters)", "Legally Blonde (Dir. Luketic)", "Inception (Dir. Nolan)", "Interstellar (Dir. Nolan)", "Titanic (Dir. Cameron)", "The Matrix (Dir. Wachowskis)", "Goodfellas (Dir. Scorsese)", "Fight Club (Dir. Fincher)", "Forrest Gump (Dir. Zemeckis)", "The Lion King (Dir. Allers)", "Back to the Future (Dir. Zemeckis)", "Blade Runner 2049 (Dir. Villeneuve)", "1917 (Dir. Mendes)", "Dunkirk (Dir. Nolan)", "Skyfall (Dir. Mendes)", "Casino Royale (Dir. Campbell)", "No Time To Die (Dir. Fukunaga)", "Pride & Prejudice (Dir. Wright)", "Atonement (Dir. Wright)", "The Grand Budapest Hotel (Dir. Anderson)", "Moonlight (Dir. Jenkins)", "La La Land (Dir. Chazelle)", "Get Out (Dir. Peele)", "Everything Everywhere (Dir. Daniels)", "Aftersun (Dir. Wells)", "Banshees of Inisherin (Dir. McDonagh)", "Top Gun: Maverick (Dir. Kosinski)", "Avatar (Dir. Cameron)", "Avengers: Endgame (Dir. Russos)", "Spider-Man 2 (Dir. Raimi)", "The Incredibles (Dir. Bird)", "Ratatouille (Dir. Bird)", "Wall-E (Dir. Stanton)", "Up (Dir. Docter)", "Toy Story 3 (Dir. Unkrich)", "Finding Nemo (Dir. Stanton)", "Monsters Inc (Dir. Docter)", "Frozen (Dir. Buck)", "Moana (Dir. Clements)", "Tangled (Dir. Greno)", "The Princess Diaries (Dir. Marshall)", "The Devil Wears Prada (Dir. Frankel)", "Mamma Mia! (Dir. Lloyd)", "Les Misérables (Dir. Hooper)", "The Greatest Showman (Dir. Gracey)", "Bohemian Rhapsody (Dir. Singer)", "Rocketman (Dir. Fletcher)", "Elvis (Dir. Luhrmann)", "Oppenheimer (Dir. Nolan)", "Barbie (Dir. Gerwig)", "Dune (Dir. Villeneuve)", "Arrival (Dir. Villeneuve)", "Her (Dir. Jonze)", "Ex Machina (Dir. Garland)", "Mad Max: Fury Road (Dir. Miller)", "Joker (Dir. Phillips)", "Taxi Driver (Dir. Scorsese)", "Apocalypse Now (Dir. Coppola)", "The Shining (Dir. Kubrick)", "2001: A Space Odyssey (Dir. Kubrick)", "A Clockwork Orange (Dir. Kubrick)", "Full Metal Jacket (Dir. Kubrick)", "Reservoir Dogs (Dir. Tarantino)", "Kill Bill (Dir. Tarantino)", "Inglourious Basterds (Dir. Tarantino)", "Django Unchained (Dir. Tarantino)", "The Hateful Eight (Dir. Tarantino)", "Once Upon a Time in Hollywood (Dir. Tarantino)", "Eternal Sunshine (Dir. Gondry)", "Lost in Translation (Dir. Coppola)", "Amélie (Dir. Jeunet)", "Pan's Labyrinth (Dir. del Toro)", "Roma (Dir. Cuarón)", "Gravity (Dir. Cuarón)", "Birdman (Dir. Iñárritu)", "The Revenant (Dir. Iñárritu)", "Whiplash (Dir. Chazelle)", "Black Swan (Dir. Aronofsky)", "The Wrestler (Dir. Aronofsky)", "Requiem for a Dream (Dir. Aronofsky)", "Donnie Darko (Dir. Kelly)", "American Psycho (Dir. Harron)", "The Social Network (Dir. Fincher)", "Zodiac (Dir. Fincher)", "Se7en (Dir. Fincher)", "Gone Girl (Dir. Fincher)", "Knives Out (Dir. Johnson)", "Glass Onion (Dir. Johnson)", "Lady Bird (Dir. Gerwig)", "Little Women (Dir. Gerwig)", "Frances Ha (Dir. Baumbach)", "Marriage Story (Dir. Baumbach)", "The Meyerowitz Stories (Dir. Baumbach)", "Uncut Gems (Dir. Safdies)", "Good Time (Dir. Safdies)", "The Lighthouse (Dir. Eggers)", "The Witch (Dir. Eggers)", "Midsommar (Dir. Aster)", "Hereditary (Dir. Aster)", "Us (Dir. Peele)", "Nope (Dir. Peele)", "Call Me by Your Name (Dir. Guadagnino)", "Suspiria (Dir. Guadagnino)", "Challengers (Dir. Guadagnino)", "Past Lives (Dir. Song)", "Minari (Dir. Chung)", "The Farewell (Dir. Wang)", "Crazy Rich Asians (Dir. Chu)", "Memories of Murder (Dir. Bong)", "Oldboy (Dir. Park)", "The Handmaiden (Dir. Park)", "Burning (Dir. Lee)", "Drive My Car (Dir. Hamaguchi)", "Shoplifters (Dir. Kore-eda)", "My Neighbor Totoro (Dir. Miyazaki)", "Princess Mononoke (Dir. Miyazaki)", "Howl's Moving Castle (Dir. Miyazaki)", "Kiki's Delivery Service (Dir. Miyazaki)", "Ponyo (Dir. Miyazaki)", "The Wind Rises (Dir. Miyazaki)", "The Boy and the Heron (Dir. Miyazaki)", "Akira (Dir. Otomo)", "Ghost in the Shell (Dir. Oshii)", "Perfect Blue (Dir. Kon)", "Paprika (Dir. Kon)", "Your Name (Dir. Shinkai)", "Weathering With You (Dir. Shinkai)", "Suzume (Dir. Shinkai)", "Godzilla Minus One (Dir. Yamazaki)", "Shin Godzilla (Dir. Anno)", "Stalker (Dir. Tarkovsky)", "Solaris (Dir. Tarkovsky)", "Mirror (Dir. Tarkovsky)", "Come and See (Dir. Klimov)", "Battleship Potemkin (Dir. Eisenstein)", "The Seventh Seal (Dir. Bergman)", "Persona (Dir. Bergman)", "Wild Strawberries (Dir. Bergman)", "8½ (Dir. Fellini)", "La Dolce Vita (Dir. Fellini)", "Bicycle Thieves (Dir. De Sica)", "Breathless (Dir. Godard)", "The 400 Blows (Dir. Truffaut)", "Seven Samurai (Dir. Kurosawa)", "Rashomon (Dir. Kurosawa)", "Tokyo Story (Dir. Ozu)", "Chungking Express (Dir. Wong)", "In the Mood for Love (Dir. Wong)", "Fallen Angels (Dir. Wong)", "Happy Together (Dir. Wong)", "Beau Travail (Dir. Denis)", "La Haine (Dir. Kassovitz)", "City of God (Dir. Meirelles)", "Y Tu Mamá También (Dir. Cuarón)", "Amores Perros (Dir. Iñárritu)"
+        ],
+        globalAlbums: [
+             "Clube da Esquina - Milton Nascimento", "Construção - Chico Buarque", "Getz/Gilberto - Stan Getz & João Gilberto", "Os Mutantes - Os Mutantes", "Tropicalia: Ou Panis et Circencis", "Solid State Survivor - YMO", "Merry Christmas Mr. Lawrence - Ryuichi Sakamoto", "First Love - Utada Hikaru", "Fantasma - Cornelius", "Modal Soul - Nujabes", "Coke Studio Season 12 - Rohail Hyatt", "Night Song - Nusrat Fateh Ali Khan", "Mustt Mustt - Nusrat Fateh Ali Khan", "Laila - Junoon", "Sangam (Soundtrack) - Shankar Jaikishan", "Dil Se (Soundtrack) - A.R. Rahman", "Rockstar (Soundtrack) - A.R. Rahman", "Call Me Dil - Sajjad Ali", "The Moon Represents My Heart - Teresa Teng", "Nothing to My Name - Cui Jian", "Map of the Soul: 7 - BTS", "The Most Beautiful Moment in Life - BTS", "Canto-Pop Classics - Faye Wong", "Buena Vista Social Club - Buena Vista Social Club", "Clandestino - Manu Chao", "Siembra - Rubén Blades", "Bachata Rosa - Juan Luis Guerra", "Donde Estan los Ladrones - Shakira", "Amor Prohibido - Selena", "Artaal - Various", "Tinariwen - Amassakoul", "Zombie - Fela Kuti", "Juju Music - King Sunny Ade", "Talking Timbuktu - Ali Farka Toure", "Geeta Dutt Classics", "R.D. Burman Hits", "Greatest Hits - Jay Chou", "Blue Blood - X Japan", "Long Season - Fishmans", "Gal Costa - Gal Costa", "A Tábua de Esmeralda - Jorge Ben", "Racional - Tim Maia", "Cartola - Cartola", "Elis & Tom - Elis Regina", "Azadi - Junoon", "Crumbling - Mid-Air Thief", "Homogenic - Björk", "Agaetis Byrjun - Sigur Rós", "Kala - M.I.A.", "Arular - M.I.A."
+        ],
+        albums: [
+            "Unknown Pleasures - Joy Division", "Rumours - Fleetwood Mac", "OK Computer - Radiohead", "In Rainbows - Radiohead", "Kid A - Radiohead", "The Bends - Radiohead", "Abbey Road - The Beatles", "Revolver - The Beatles", "Sgt. Pepper - The Beatles", "White Album - The Beatles", "Rubber Soul - The Beatles", "Dark Side of the Moon - Pink Floyd", "The Wall - Pink Floyd", "Wish You Were Here - Pink Floyd", "Animals - Pink Floyd", "Led Zeppelin IV - Led Zeppelin", "Physical Graffiti - Led Zeppelin", "Back in Black - AC/DC", "Highway to Hell - AC/DC", "Nevermind - Nirvana", "In Utero - Nirvana", "Ten - Pearl Jam", "Superunknown - Soundgarden", "Dirt - Alice in Chains", "Hybrid Theory - Linkin Park", "Meteora - Linkin Park", "Toxicity - System of a Down", "White Pony - Deftones", "Is This It - The Strokes", "Room on Fire - The Strokes", "Turn on the Bright Lights - Interpol", "Antics - Interpol", "Silent Alarm - Bloc Party", "Whatever People Say I Am - Arctic Monkeys", "Favourite Worst Nightmare - Arctic Monkeys", "AM - Arctic Monkeys", "The Queen Is Dead - The Smiths", "Meat Is Murder - The Smiths", "The Stone Roses - The Stone Roses", "Definitely Maybe - Oasis", "(What's the Story) Morning Glory? - Oasis", "Parklife - Blur", "Modern Life Is Rubbish - Blur", "Different Class - Pulp", "Urban Hymns - The Verve", "Dummy - Portishead", "Mezzanine - Massive Attack", "Blue Lines - Massive Attack", "Maxinquaye - Tricky", "Untrue - Burial", "Original Pirate Material - The Streets", "A Grand Don't Come for Free - The Streets", "Boy in da Corner - Dizzee Rascal", "Home - Fred again..", "Actual Life - Fred again..", "Brat - Charli XCX", "Crash - Charli XCX", "How I'm Feeling Now - Charli XCX", "Future Nostalgia - Dua Lipa", "Radical Optimism - Dua Lipa", "Renaissance - Beyoncé", "Lemonade - Beyoncé", "Cowboy Carter - Beyoncé", "Midnights - Taylor Swift", "Folklore - Taylor Swift", "Evermore - Taylor Swift", "1989 - Taylor Swift", "Red - Taylor Swift", "Fearless - Taylor Swift", "Speak Now - Taylor Swift", "Reputation - Taylor Swift", "Lover - Taylor Swift", "Norman Fucking Rockwell! - Lana Del Rey", "Born to Die - Lana Del Rey", "Ultraviolence - Lana Del Rey", "Melodrama - Lorde", "Pure Heroine - Lorde", "Solar Power - Lorde", "Ctrl - SZA", "SOS - SZA", "Blonde - Frank Ocean", "Channel Orange - Frank Ocean", "Igor - Tyler, the Creator", "Flower Boy - Tyler, the Creator", "Call Me If You Get Lost - Tyler, the Creator", "To Pimp a Butterfly - Kendrick Lamar", "Good Kid, M.A.A.D City - Kendrick Lamar", "DAMN. - Kendrick Lamar", "Mr. Morale & The Big Steppers - Kendrick Lamar", "My Beautiful Dark Twisted Fantasy - Kanye West", "Yeezus - Kanye West", "The College Dropout - Kanye West", "Late Registration - Kanye West", "Graduation - Kanye West", "808s & Heartbreak - Kanye West", "The Life of Pablo - Kanye West", "Discovery - Daft Punk", "Random Access Memories - Daft Punk", "Homework - Daft Punk", "Cross - Justice", "Woman - Justice", "Audio, Video, Disco - Justice", "Immunity - Jon Hopkins", "Singularity - Jon Hopkins", "Music for Psychedelic Therapy - Jon Hopkins", "Selected Ambient Works 85-92 - Aphex Twin", "Windowlicker - Aphex Twin", "Druqs - Aphex Twin", "Syro - Aphex Twin", "Music Has the Right to Children - Boards of Canada", "Geogaddi - Boards of Canada", "The Campfire Headphase - Boards of Canada", "Tomorrow's Harvest - Boards of Canada", "Untrue - Burial", "Kind of Blue - Miles Davis", "A Love Supreme - John Coltrane", "Time Out - Dave Brubeck", "Blue Train - John Coltrane", "Mingus Ah Um - Charles Mingus", "Head Hunters - Herbie Hancock", "Bitches Brew - Miles Davis", "In a Silent Way - Miles Davis", "Oil of Every Pearl's Un-Insides - SOPHIE", "Product - SOPHIE", "Tunes 2011-2019 - Burial", "Kindred - Burial", "Rival Dealer - Burial", "Street Halo - Burial", "Antidawn - Burial", "Experience - The Prodigy", "Music for the Jilted Generation - The Prodigy", "The Fat of the Land - The Prodigy", "Leftism - Leftfield", "Exit Planet Dust - The Chemical Brothers", "Dig Your Own Hole - The Chemical Brothers", "Surrender - The Chemical Brothers", "Better Living Through Chemistry - Fatboy Slim", "You've Come a Long Way, Baby - Fatboy Slim", "Homework - Daft Punk", "Discovery - Daft Punk", "Human After All - Daft Punk", "Remedy - Basement Jaxx", "Rooty - Basement Jaxx", "Kish Kash - Basement Jaxx", "Boy in da Corner - Dizzee Rascal", "Showtime - Dizzee Rascal", "Maths + English - Dizzee Rascal", "Original Pirate Material - The Streets", "A Grand Don't Come for Free - The Streets", "The Hardest Way to Make an Easy Living - The Streets", "Arular - M.I.A.", "Kala - M.I.A.", "Maya - M.I.A.", "Dummy - Portishead", "Portishead - Portishead", "Third - Portishead", "Blue Lines - Massive Attack", "Protection - Massive Attack", "Mezzanine - Massive Attack", "100th Window - Massive Attack", "Heligoland - Massive Attack", "Maxinquaye - Tricky", "Pre-Millennium Tension - Tricky", "Angels with Dirty Faces - Tricky", "Endtroducing..... - DJ Shadow", "The Private Press - DJ Shadow", "Since I Left You - The Avalanches", "Wildflower - The Avalanches", "We Will Always Love You - The Avalanches", "Donuts - J Dilla", "Madvillainy - Madvillain", "Mm.. Food - MF DOOM", "Operation: Doomsday - MF DOOM", "Take Me to Your Leader - King Geedorah", "Vaudeville Villain - Viktor Vaughn"
+        ],
+        fakeMovies: ["The Onion Knight Rises", "Grange Hill: The Movie", "Toast of London 2", "Coronation Street: 2049", "Attack of the 50ft Badger", "Carry On Coding", "James Bond: Tax Return", "Harry Potter and the Infinite Spreadsheet", "Doctor Who? No Seriously Who?", "EastEnders: The Musical", "Strictly Come Dancing: Battle Royale", "The Great British Bake Off: Hunger Games Edition", "Sherlock Holmes and the Case of the Missing Biscuit", "Paddington 3: Hard Time in Belmarsh", "Wallace and Gromit: The Were-Rabbit's Revenge", "Mr. Bean Goes to Mars", "The Inbetweeners 3: Funeral Crashers", "Peep Show: The Movie", "Black Mirror: A Happy Ending", "Fawlty Towers: Re-Open for Business"],
+        fakeAlbums: ["Songs for Dustbins - The Wombles", "Heavy Metal Bagpipes - The Scotsman", "Techno Tea Party - The Queen", "Garage Grime Hymns - The Vicar", "Dubstep Morris Dancing - The Village Idiots", "Ambient Traffic Noises - The Commuter", "Screamo lullabies - The Nanny", "Jazz Flute for Beginners - Ron Burgundy", "Polka Punk - The Accordions", "Operatic Rap - The Tenors", "Country & Western & Eastern - The Globalist", "Reggae Christmas Carols - The Rastafarians", "Disco Dirges - The Goths", "Hip Hop Harpsichord - The Baroque Boyz", "Drum & Bass & Bassoon - The Orchestra", "Synthpop Sea Shanties - The Sailors", "Acoustic Acid House - The Busker", "Funk Folk Fusion - The Hipsters", "Soulful Screeching - The Banshee", "Blues for Blue Bottles - The Fly"]
+    };
+
+    // SVG HEADS
+    const SVG_MALE = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="25" fill="#555"/><path d="M20 100 Q50 60 80 100" fill="#555"/></svg>`;
+    const SVG_FEMALE = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 15 Q50 -5 70 15 L75 50 L85 90 L15 90 L25 50 Z" fill="#555"/><circle cx="50" cy="40" r="23" fill="#555"/><path d="M20 100 Q50 70 80 100" fill="#555"/></svg>`;
+
+    function generateBio() {
+        const isFemale = Math.random() > 0.5;
+        const nameList = isFemale ? BIO_DATA.femaleNames : BIO_DATA.maleNames;
+        const first = nameList[Math.floor(Math.random() * nameList.length)];
+        const last = BIO_DATA.lastNames[Math.floor(Math.random() * BIO_DATA.lastNames.length)];
+        
+        const day = 1 + Math.floor(Math.random() * 28);
+        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const mon = months[Math.floor(Math.random() * 12)];
+        const year = 1968 + Math.floor(Math.random() * 30); // Ages approx 27-56
+        const dob = `${day} ${mon} ${year}`;
+        
+        // Generate Fake SSN / NINO
+        const chars = "ABCEGHJKLMNOPRSTWXYZ";
+        const l1 = chars[Math.floor(Math.random() * chars.length)];
+        const l2 = chars[Math.floor(Math.random() * chars.length)];
+        const n1 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+        const n2 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+        const n3 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+        const l3 = "ABCD"[Math.floor(Math.random() * 4)];
+        const ssn = `${l1}${l2}-${n1}-${n2}-${n3}-${l3}`;
+
+        const bloods = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+        const blood = bloods[Math.floor(Math.random() * bloods.length)];
+
+        // Movies & Music (5% Fake)
+        const isFake = Math.random() < 0.05;
+        const movie = isFake ? BIO_DATA.fakeMovies[Math.floor(Math.random()*BIO_DATA.fakeMovies.length)] : BIO_DATA.movies[Math.floor(Math.random() * BIO_DATA.movies.length)];
+        
+        // Album Selection: 30% chance for Global Music, 70% Western, unless Fake
+        let album = "";
+        if (isFake) {
+            album = BIO_DATA.fakeAlbums[Math.floor(Math.random()*BIO_DATA.fakeAlbums.length)];
+        } else {
+            if (Math.random() < 0.30) {
+                // 30% chance for Global / Non-Western
+                album = BIO_DATA.globalAlbums[Math.floor(Math.random() * BIO_DATA.globalAlbums.length)];
+            } else {
+                // 70% chance for Standard List
+                album = BIO_DATA.albums[Math.floor(Math.random() * BIO_DATA.albums.length)];
+            }
+        }
+
+        // Nationality
+        let nat = "BRITISH";
+        const rNat = Math.random();
+        if(rNat < 0.65) nat = "BRITISH";
+        else if (rNat < 0.95) nat = BIO_DATA.nationalities[Math.floor(Math.random()*BIO_DATA.nationalities.length)];
+        else nat = BIO_DATA.wildcardNations[Math.floor(Math.random()*BIO_DATA.wildcardNations.length)];
+
+        return { 
+            name: `${first} ${last}`, 
+            dob: dob, 
+            ssn: ssn, 
+            blood: blood, 
+            movie: movie, 
+            album: album, 
+            isFemale: isFemale,
+            nationality: nat 
+        };
+    }
+    
+    function revealBio() {
+        const details = document.getElementById('bio-masked-area');
+        const btn = document.getElementById('bio-read-more');
+        details.classList.add('open');
+        btn.style.display = 'none';
+    }
+
     // --- GITHUB PAGES FIX: Use lowercase filenames for compatibility ---
     const MUSIC_TRACKS = ['music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 'music5.mp3'];
 
@@ -772,6 +1012,8 @@
     let newsTickerActive = false;
     let trainsDeparted = false; // State flag
     let tickerContent = ""; // Dynamic content
+    let firstTrainMoveTime = -1;
+    let newsDelay = 0;
 
     // Settings & Persistence
     let SETTING_CROWD = 80;
@@ -801,6 +1043,7 @@
     let resultIsWin = false;
     let resultReason = "";
     let victimRef = null;
+    let victimSurvivalStatus = "DECEASED";
 
     let isZoomed = false;
     let pitch = -0.4, yaw = 0;
@@ -910,21 +1153,38 @@
         localStorage.setItem('sm_menu_vol', SETTING_MENU_VOL);
     }
 
-    function resetAllData() {
-        // Show Custom Modal instead of window.confirm
+    // UPDATED RESET LOGIC
+    let pendingResetType = null;
+    function triggerReset(type) {
+        pendingResetType = type;
+        const title = document.querySelector('.confirm-title');
+        const msg = document.querySelector('.confirm-msg');
         document.getElementById('confirm-modal').style.display = 'flex';
+
+        if(type === 'STATS') {
+            title.innerText = "PURGE FIELD REPORT";
+            msg.innerHTML = "Are you sure you want to wipe all cumulative stats (Targets, Decoys, etc)?<br><br><span style='color:#f55;'>THIS ACTION CANNOT BE UNDONE.</span>";
+        } else {
+            title.innerText = "PURGE LEADERBOARD";
+            msg.innerHTML = "Are you sure you want to wipe the Speed Run Leaderboard?<br><br><span style='color:#f55;'>THIS ACTION CANNOT BE UNDONE.</span>";
+        }
     }
     
     function closeConfirm() {
         document.getElementById('confirm-modal').style.display = 'none';
+        pendingResetType = null;
     }
     
     function performReset() {
-        LEADERBOARD = [];
-        STATS = { target:0, decoy:0, civ:0, abort:0 };
-        KILL_STREAK = 0;
-        saveSettings();
-        loadSettings();
+        if(pendingResetType === 'STATS') {
+             STATS = { target:0, decoy:0, civ:0, abort:0 };
+             saveSettings();
+             renderStats();
+        } else if (pendingResetType === 'LEADERBOARD') {
+             LEADERBOARD = [];
+             saveSettings();
+             renderLeaderboard();
+        }
         closeConfirm();
     }
 
@@ -947,6 +1207,8 @@
         SETTING_RANDOM_PL = document.getElementById('chk-random-pl').checked;
         document.getElementById('val-crowd').innerText = SETTING_CROWD;
         document.getElementById('val-pkg').innerText = SETTING_PACKAGES;
+        document.getElementById('vol-music-container').style.display = SETTING_MUSIC_ON ? 'flex' : 'none';
+        document.getElementById('vol-sfx-container').style.display = SETTING_SFX_ON ? 'flex' : 'none';
         saveSettings(); 
     }
 
@@ -1034,6 +1296,26 @@
         setTimeout(() => {
             prepareGameEnv(mode);
         }, 3000);
+    }
+    
+    // NEW: Replay with same settings
+    function replaySameSettings() {
+         // UI Button feedback
+         const btn = document.getElementById('replay-btn'); // Use ID for safety
+         if(btn) {
+             btn.classList.add('clicked');
+             btn.innerHTML = '<div class="spinner"></div>';
+         }
+
+         // Fade audio (Match 2.3s logic)
+         if(activeMusicAudio && !activeMusicAudio.paused) fadeOutAudio(activeMusicAudio, 2100, null);
+
+         // Transition delay increased to 2.3s as requested
+         setTimeout(() => {
+             document.getElementById('end-dossier').style.display = 'none';
+             // Re-enter setup
+             prepareGameEnv(gameMode);
+         }, 2300);
     }
 
     function reloadWithFade() {
@@ -1511,6 +1793,7 @@
 
     function createGenericShop(x, z, text, greyCol) {
         const s = new THREE.Group(); s.position.set(x, 0, z);
+        let shopStaffMember = null;
 
         if (text === "VAPES") {
             // Walk-in Marquee Style
@@ -1575,22 +1858,26 @@
             // Add to scene (Group sits at y=0 local, so legs touch y=0)
             s.add(staffGrp);
             
-            shopStaff.push({
+            shopStaffMember = {
                 mesh: staffGrp,
                 basePos: staffGrp.position.clone(),
                 timer: 0,
                 targetRot: Math.random() * Math.PI * 2,
-                interval: 15 + Math.random() * 10, // 15-25 seconds rotation
+                interval: 35 + Math.random() * 40, // 35-75 seconds random
                 swayTimer: 0,
-                vapeTimer: 0,
-                // Start random 3-8s, then switch to long interval
-                vapeInterval: 3 + Math.random() * 5 
-            });
+                isVapeWorker: true,
+                isRotating: false,
+                rotDuration: 0,
+                rotTarget: 0,
+                rotTimer: 0
+            };
             
         } else {
             // Standard Block Shop 
             createBlock(25, 15, 25, greyCol, 0, 7.5, 0, s); 
         }
+
+        if(shopStaffMember) shopStaff.push(shopStaffMember);
 
         // SIGN GENERATION
         let bgCol = '#444';
@@ -1646,79 +1933,54 @@
         scene.add(s);
     }
 
-    function triggerVape(staff) {
-        if (!staff || !staff.mesh) return;
-        
-        // 1. Calculate Mouth Position in World Space
-        const worldPos = new THREE.Vector3();
-        staff.mesh.getWorldPosition(worldPos);
-        
-        // Height adjustment (Head is at y=3.2 roughly, world scaling is 1)
-        // Group is at 0. Staff y position inside group might vary.
-        // Mesh center is usually 0,0,0 relative to parent.
-        // Let's assume mouth is ~3.0 units high in world space from shop floor
-        worldPos.y += 3.0; 
-
-        // 2. Get Facing Direction
-        const worldQuat = new THREE.Quaternion();
-        staff.mesh.getWorldQuaternion(worldQuat);
-        const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(worldQuat).normalize();
-        
-        // Move start pos slightly forward
-        worldPos.add(fwd.clone().multiplyScalar(0.5));
-
-        // 3. Spawn Particles
-        for(let i=0; i<20; i++) { // More particles
-            const p = createBlock(0.15, 0.15, 0.15, 0xEEEEEE, worldPos.x, worldPos.y, worldPos.z, null);
-            
-            // Random spread
-            p.position.x += (Math.random() - 0.5) * 0.4;
-            p.position.y += (Math.random() - 0.5) * 0.4;
-            p.position.z += (Math.random() - 0.5) * 0.4;
-
-            // Velocity: Slowly forward + Slow Up + Drag
-            const vel = fwd.clone().multiplyScalar(0.05 + Math.random() * 0.05); 
-            vel.y += 0.02 + Math.random() * 0.03; // Slow rise
-            vel.x += (Math.random()-0.5) * 0.02;
-            vel.z += (Math.random()-0.5) * 0.02;
-
-            particles.push({ 
-                mesh: p, 
-                vel: vel, 
-                life: 3.5 + Math.random() * 1.5, // Linger 3.5-5s
-                maxLife: 5.0,
-                isVape: true 
-            });
-        }
-    }
-
     function updateShopStaff(dt) {
         shopStaff.forEach(staff => {
-            // Rotation Logic
             staff.timer += dt;
-            if (staff.timer > staff.interval) {
-                staff.targetRot = Math.random() * Math.PI * 2;
-                staff.timer = 0;
-                staff.interval = 15 + Math.random() * 10; // Reset to 15-25s
+
+            if(staff.isVapeWorker) {
+                // SPECIAL LOGIC FOR VAPE WORKER (INDEPENDENT ROTATION)
+                // Twist every 25-35s to a NEW angle
+                if(staff.isRotating) {
+                    staff.rotTimer += dt;
+                    // Simple LERP rotation
+                    const t = Math.min(1.0, staff.rotTimer / staff.rotDuration);
+                    
+                    // Interpolate shortest path
+                    // Actually simpler here since we just want to look different
+                    // Just set rotation to target * t + start * (1-t)
+                    // But to avoid complex quaternion math for now, linear Y interp is okay if we normalize range
+                    // Or simply: 
+                    const diff = staff.rotTarget - staff.mesh.rotation.y;
+                    staff.mesh.rotation.y += diff * dt * 2.0; // Smooth approach
+
+                    if(Math.abs(diff) < 0.05) {
+                        staff.isRotating = false;
+                        staff.timer = 0; // Reset main interval
+                    }
+                } else {
+                    // Check interval
+                    if(staff.timer > 25 + Math.random() * 10) { // 25-35s
+                        staff.isRotating = true;
+                        staff.rotTimer = 0;
+                        staff.rotDuration = 1.0 + Math.random(); // 1-2s turn
+                        staff.rotTarget = Math.random() * Math.PI * 2; // New random direction
+                    }
+                }
+            } else {
+                // STANDARD LOGIC FOR OTHERS
+                if (staff.timer > staff.interval) {
+                    staff.targetRot = Math.random() * Math.PI * 2;
+                    staff.timer = 0;
+                    staff.interval = 15 + Math.random() * 10; 
+                }
+                const diff = staff.targetRot - staff.mesh.rotation.y;
+                staff.mesh.rotation.y += diff * dt * 0.5; 
             }
-            const diff = staff.targetRot - staff.mesh.rotation.y;
-            staff.mesh.rotation.y += diff * dt * 0.5; 
             
             // Sway Logic
             if(staff.basePos) {
                  staff.swayTimer += dt;
                  staff.mesh.position.x = staff.basePos.x + Math.sin(staff.swayTimer * 0.5) * 0.3;
-            }
-
-            // VAPE LOGIC
-            if (staff.vapeInterval) { 
-                staff.vapeTimer += dt;
-                if(staff.vapeTimer > staff.vapeInterval) {
-                    triggerVape(staff);
-                    staff.vapeTimer = 0;
-                    // Reset to regular 27-46s interval
-                    staff.vapeInterval = 27 + Math.random() * 19; 
-                }
             }
         });
     }
@@ -1763,7 +2025,7 @@
         const mesh = new THREE.Group(); mesh.position.set(x, 0, z);
         mesh.name = "PERSON_ROOT"; // Tag for raycaster
 
-        const isWorker = role === 'WORKER' || role === 'GUARD';
+        const isWorker = role === 'WORKER' || role === 'GUARD' || role === 'ROMANCE_WORKER';
         let shirtCol = 0x333333; let shirtTex = null;
         if(isWorker) shirtCol = C.workerColor;
         else if(role === 'STRIPED') { shirtCol = 0xffffff; shirtTex = stripeTexture; }
@@ -1776,7 +2038,7 @@
         createBlock(0.5, 0.6, 0.5, getRandomSkinColor(), 0, 3.2, 0, mesh); 
         
         // LUGGAGE LOGIC (Applied to approx 30% of all people, unless they are specific roles that might look weird, but let's keep it broad)
-        if(Math.random() < 0.30 && role !== 'WORKER') {
+        if(Math.random() < 0.30 && !isWorker) {
             const lug = new THREE.Group(); lug.name = "LUGGAGE"; 
             createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
             // Position slightly to the side
@@ -1928,34 +2190,38 @@
     
     // NEW TRAIN SPAWNER FUNCTION to reset trains correctly
     function spawnTrains() {
-    // Clear old trains
-    trains.forEach(t => scene.remove(t.mesh));
-    trains = [];
+        // Clear old trains
+        trains.forEach(t => scene.remove(t.mesh));
+        trains = [];
 
-    // choose a slow train index (one per spawn)
-    const slowIdx = Math.floor(Math.random() * 6);
+        // Reset Ticker Logic
+        firstTrainMoveTime = -1;
+        newsDelay = 4.5 + Math.random() * 9.5; // Random delay between 4.5s and 14s
 
-    for (let i = 0; i < 6; i++) {
-        const x = -100 + (i * 40);
-        const trainGroup = new THREE.Group();
-        // Create default train
-        createTrain(x - 16, -1.0, -60, trainGroup, C.trainColors[Math.floor(Math.random() * C.trainColors.length)]);
-        scene.add(trainGroup);
+        // choose a slow train index (one per spawn)
+        const slowIdx = Math.floor(Math.random() * 6);
 
-        // Initialize random departure time (was 63-87s). Add +4.5s to delay first departures slightly.
-        // New range: 67.5 - 91.5
-        const depTime = 67.5 + Math.random() * 24;
+        for (let i = 0; i < 6; i++) {
+            const x = -100 + (i * 40);
+            const trainGroup = new THREE.Group();
+            // Create default train
+            createTrain(x - 16, -1.0, -60, trainGroup, C.trainColors[Math.floor(Math.random() * C.trainColors.length)]);
+            scene.add(trainGroup);
 
-        trains.push({
-            mesh: trainGroup,
-            departTime: depTime,
-            speed: 0,
-            hasDeparted: false,
-            // mark one train as the particularly slow-departing train
-            isSlow: (i === slowIdx)
-        });
+            // Initialize random departure time (was 63-87s). Add +4.5s to delay first departures slightly.
+            // New range: 67.5 - 91.5
+            const depTime = 67.5 + Math.random() * 24;
+
+            trains.push({
+                mesh: trainGroup,
+                departTime: depTime,
+                speed: 0,
+                hasDeparted: false,
+                // mark one train as the particularly slow-departing train
+                isSlow: (i === slowIdx)
+            });
+        }
     }
-}
 
     
     function createFeather(pos) {
@@ -1979,6 +2245,17 @@
         timerStartTime = 0;
         isInitializing = false; // Reset lock
         
+        // RESET CAMERA & VIEW FOR REPLAY
+        let camY = 50; 
+        if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
+        camera.position.set(0, camY, 130); 
+        camera.lookAt(0,0,0); 
+        pitch = -0.4; 
+        yaw = 0;
+        
+        // Ensure zoom is OFF
+        toggleZoom(true); 
+
         // Setup UI for pause state
         document.getElementById('menu').style.display = 'none';
         document.getElementById('ready-overlay').style.display = 'flex'; // SHOW OVERLAY
@@ -2019,8 +2296,6 @@
         newsTickerActive = false;
         tickerContent = "";
 
-        let camY = 50; if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
-        camera.position.set(0, camY, 130); camera.lookAt(0,0,0); pitch = -0.4; yaw = 0;
         targetTown = DESTINATIONS[Math.floor(Math.random() * DESTINATIONS.length)];
         targetPlatform = Math.floor(Math.random() * 6); 
         spawnCrowd();
@@ -2065,17 +2340,34 @@
     }
 
     function spawnCrowd() {
+        // Workers
         for(let i=0; i<5; i++) {
             const mesh = createPerson('WORKER', (Math.random()-0.5)*200, -30 + Math.random()*10);
             civilians.push({mesh:mesh, role:'WORKER', state:'IDLE', waypoints:[]});
         }
+        
+        // Romance Decoy (The Special Hi-Vis)
+        const romanceMesh = createPerson('ROMANCE_WORKER', (Math.random()-0.5)*180, -30);
+        civilians.push({mesh:romanceMesh, role:'ROMANCE_WORKER', state:'IDLE', waypoints:[], romanceTimer: 0, romanceStage: 'WAIT', romanceLoops: 0, originalPos: romanceMesh.position.clone()});
+
         const guardMesh = createPerson('GUARD', (Math.random()-0.5)*200, -50);
         civilians.push({mesh:guardMesh, role:'GUARD', state:'WALKING', waypoints:[new THREE.Vector3(100,0,-50), new THREE.Vector3(-100,0,-50)], speed:0.02});
-        const staticCount = 5 + Math.floor(Math.random() * 22); 
+        
+        // Increased Static Count by 4% (approx +1 or +2)
+        const staticCount = Math.floor((5 + Math.random() * 22) * 1.04); 
         for(let i=0; i<staticCount; i++) {
             const sm = createPerson('CIV', (Math.random()-0.5)*250, 20 + Math.random()*60);
             civilians.push({mesh:sm, role:'STATIC', state:'STATIC', waypoints:[], speed:0, sway:Math.random()*100, origin: sm.position.clone() });
         }
+
+        // NEW GROUP: Platform Edge Wanderers (1-4)
+        const edgeCount = 1 + Math.floor(Math.random() * 4);
+        for(let i=0; i<edgeCount; i++) {
+             // Position Z around -40 to -50 (close to rails), X spread
+             const em = createPerson('CIV', (Math.random()-0.5)*280, -35 - Math.random()*15);
+             civilians.push({mesh:em, role:'STATIC', state:'STATIC', waypoints:[], speed:0, sway:Math.random()*100, origin: em.position.clone() });
+        }
+
         const civCount = parseInt(SETTING_CROWD);
         const packageCount = parseInt(SETTING_PACKAGES);
         const flowerCount = Math.floor(Math.random() * 4) + 1;
@@ -2118,6 +2410,16 @@
                 if(c.role === 'WORKER') { c.state = 'WALKING'; c.speed = 0.02; c.waypoints = [new THREE.Vector3((Math.random()-0.5)*200, 0, -40 - Math.random()*40)]; }
                 return;
             }
+            
+            // ROMANCE DECOY TRIGGER
+            if(c.role === 'ROMANCE_WORKER') {
+                c.state = 'ROMANCE_SEQUENCE';
+                c.romanceStage = 'DELAY';
+                c.romanceTimer = 0;
+                c.delayDuration = 1.8 + Math.random() * 1.6; // 1.8 - 3.4s
+                return;
+            }
+
             c.state = 'WALKING'; c.speed *= 2.0;
             let pid = -1; let isShop = false;
             if(c.role === 'TARGET') { pid = targetPlatform; } 
@@ -2163,68 +2465,50 @@
         if(gameTime > 24 && gameState === 'MINGLE') triggerRush();
 
         // TRAIN DEPARTURE EVENT - CHECK EVERY FRAME
-        // If any train is due to depart
-        if(!trainsDeparted) {
-            // Check if we should start the sequence? No, they depart individually
-            // But we need to switch the board at some point.
-            // Let's switch board when the FIRST train starts moving.
-        }
         
         trains.forEach(t => {
             if(gameTime > t.departTime && !t.hasDeparted) {
-                // If this is the first train to move, activate ticker
-                if (!newsTickerActive) {
-                    newsTickerActive = true;
-                    trainsDeparted = true; 
+                
+                // When FIRST train moves, mark time
+                if(firstTrainMoveTime === -1) {
+                    firstTrainMoveTime = gameTime;
+                    trainsDeparted = true;
                 }
                 
                 // Train movement + acceleration (respect slow train flag)
-if (!t.hasDeparted) {
-    // acceleration strength: slow trains accelerate much more slowly
-    const accel = t.isSlow ? 0.6 : 5.0; // slow train gets tiny acceleration
-    t.speed += dt * accel;
+                if (!t.hasDeparted) {
+                    // SLOWER ACCELERATION (-20%)
+                    const accel = t.isSlow ? 0.45 : 3.8; 
+                    t.speed += dt * accel;
+                    
+                    // SLOWER MAX SPEED (-20%)
+                    const moveMul = t.isSlow ? 1.6 : 8.0;
+                    t.mesh.position.z -= t.speed * dt * moveMul; 
 
-    // movement multiplier: slow trains move away much slower
-    const moveMul = t.isSlow ? 2.0 : 10.0;
-    t.mesh.position.z -= t.speed * dt * moveMul; // Move away (-Z)
+                    if (t.mesh.position.z < -250) {
+                        t.mesh.traverse(child => {
+                            if (child.isMesh && child.material) {
+                                child.material.transparent = true;
+                                let opacity = 1.0 - (Math.abs(t.mesh.position.z + 250) / 150);
+                                child.material.opacity = Math.max(0, opacity);
+                            }
+                        });
+                    }
 
-    // Fade out logic (unchanged)
-    if (t.mesh.position.z < -250) {
-        t.mesh.traverse(child => {
-            if (child.isMesh && child.material) {
-                child.material.transparent = true;
-                // Simple linear fade
-                let opacity = 1.0 - (Math.abs(t.mesh.position.z + 250) / 150);
-                child.material.opacity = Math.max(0, opacity);
-            }
-        });
-    }
-
-    if (t.mesh.position.z < -500) {
-        t.hasDeparted = true;
-        scene.remove(t.mesh);
-    }
-}
-
-                
-                // Fade out logic
-                if(t.mesh.position.z < -250) { 
-                    t.mesh.traverse(child => {
-                        if(child.isMesh && child.material) {
-                            child.material.transparent = true;
-                            // Simple linear fade
-                            let opacity = 1.0 - (Math.abs(t.mesh.position.z + 250) / 150);
-                            child.material.opacity = Math.max(0, opacity);
-                        }
-                    });
-                }
-                
-                if(t.mesh.position.z < -500) {
-                    t.hasDeparted = true;
-                    scene.remove(t.mesh);
+                    if (t.mesh.position.z < -500) {
+                        t.hasDeparted = true;
+                        scene.remove(t.mesh);
+                    }
                 }
             }
         });
+
+        // NEWS TICKER LOGIC: Only activate AFTER first train has moved + random delay
+        if (firstTrainMoveTime > 0 && !newsTickerActive) {
+            if (gameTime > (firstTrainMoveTime + newsDelay)) {
+                newsTickerActive = true;
+            }
+        }
     }
 
     function createParticle(x, y, z, col, speed) {
@@ -2255,7 +2539,15 @@ if (!t.hasDeparted) {
             item.vel.multiplyScalar(0.96);
             item.vel.y -= 9.8 * dt * 0.02; // slight gravity so it drops a little faster
 
-            if (item.mesh.position.y < 0) { item.mesh.position.y = 0; item.vel.y = 0; }
+            // Physics Fix: Keep on floor (adjusted for better visibility)
+            if (item.mesh.position.y < 0.25) { 
+                item.mesh.position.y = 0.25; 
+                item.vel.y = 0; 
+                // Increased friction on ground to prevent skating/spin glitches
+                item.vel.x *= 0.8;
+                item.vel.z *= 0.8;
+                item.rotVel.multiplyScalar(0.5);
+            }
 
             // COLLISION: luggage hits a single civilian
             if (!item.hasHit) {
@@ -2287,14 +2579,11 @@ if (!t.hasDeparted) {
                         } catch (e) {
                             console.warn("Luggage hit handling error:", e);
                         }
-
-                        // Remove / expire the luggage quickly so it doesn't keep colliding
-                        item.life = Math.min(item.life, 0.2);
-                        break; // break out of civilians loop; luggage only hits one
                     }
                 }
             }
-
+            
+            // NOTE: life decrements, but we set it very high initially now
             item.life -= dt;
         } else {
             // Clean up expired item
@@ -2411,6 +2700,83 @@ if (!t.hasDeparted) {
         pitch = Math.max(-1.2, Math.min(0.2, pitch)); camera.rotation.x = pitch; camera.rotation.y = yaw;
 
         civilians.forEach(c => {
+            // ROMANCE DECOY STATE MACHINE
+            if (c.role === 'ROMANCE_WORKER' && c.state === 'ROMANCE_SEQUENCE') {
+                c.romanceTimer += dt;
+                
+                if (c.romanceStage === 'DELAY') {
+                    // Milled about for 1.8-3.4s before moving
+                    if (c.romanceTimer > c.delayDuration) {
+                        c.romanceStage = 'WALK_TO_SHOP';
+                        // Vape shop at x=100, z=80. Desk is inside. Stand in front.
+                        c.waypoints = [new THREE.Vector3(100, 0, 70)];
+                        c.speed = 0.04 + (Math.random() - 0.5) * 0.01; // Vary speed slightly
+                    }
+                } else if (c.romanceStage === 'WALK_TO_SHOP') {
+                    // Movement handled by generic logic below
+                    if (c.waypoints.length === 0) {
+                        // Arrived
+                        c.romanceStage = 'FLIRTING';
+                        c.romanceTimer = 0;
+                        c.romanceAction = 'TWIST';
+                        c.romanceActionTimer = 0;
+                        c.romanceLoops = 0;
+                    }
+                } else if (c.romanceStage === 'FLIRTING') {
+                    c.romanceActionTimer += dt;
+                    
+                    if (c.romanceAction === 'TWIST') {
+                        // Twisting side to side for 3-5s
+                        c.mesh.rotation.y = Math.sin(c.romanceActionTimer * 3.0) * 0.5 + Math.PI; // Face shop (Z+)
+                        
+                        const dur = 3 + Math.random() * 2;
+                        if (c.romanceActionTimer > dur) {
+                            c.romanceAction = 'STILL';
+                            c.romanceActionTimer = 0;
+                            c.mesh.rotation.y = Math.PI; // Face shop
+                        }
+                    } else if (c.romanceAction === 'STILL') {
+                        // Standing still for 12s
+                        if (c.romanceActionTimer > 12.0) {
+                            c.romanceAction = 'TWIST';
+                            c.romanceActionTimer = 0;
+                            c.romanceLoops++;
+                            if (c.romanceLoops >= 3) {
+                                // Done flirting, return halfway back
+                                c.romanceStage = 'RETURNING';
+                                
+                                // Calculate halfway point
+                                const current = c.mesh.position.clone();
+                                const origin = c.originalPos;
+                                const halfway = new THREE.Vector3().lerpVectors(current, origin, 0.5);
+                                c.waypoints = [halfway];
+                            }
+                        }
+                    }
+                } else if (c.romanceStage === 'RETURNING') {
+                    if (c.waypoints.length === 0) {
+                        c.romanceStage = 'IDLE_TWIST';
+                        c.romanceTimer = 0;
+                        // Angle towards shop (approx)
+                        const dir = new THREE.Vector3(100, 0, 70).sub(c.mesh.position).normalize();
+                        c.mesh.lookAt(c.mesh.position.clone().add(dir));
+                        c.idleTwistInterval = 20 + Math.random() * 20; // 20-40s
+                    }
+                } else if (c.romanceStage === 'IDLE_TWIST') {
+                    // Twist every 20-40s
+                    c.romanceTimer += dt;
+                    if (c.romanceTimer > c.idleTwistInterval) {
+                        c.mesh.rotation.y += Math.sin(dt * 2.0) * 0.05; // Gentle twitch
+                        // Reset timer after small duration
+                        if (c.romanceTimer > c.idleTwistInterval + 2.0) {
+                            c.romanceTimer = 0;
+                            c.idleTwistInterval = 20 + Math.random() * 20;
+                        }
+                    }
+                }
+            }
+
+
             if(c.role === 'STATIC') {
                 c.mesh.rotation.y = Math.sin(gameTime + c.sway) * 0.5;
                 if(c.state === 'STATIC' && Math.random() < 0.005) {
@@ -2418,10 +2784,15 @@ if (!t.hasDeparted) {
                      c.waypoints = [new THREE.Vector3(c.origin.x + Math.cos(angle)*dist, 0, c.origin.z + Math.sin(angle)*dist)]; c.speed = 0.02;
                 }
             }
-            if(c.state === 'IDLE' && c.role !== 'WORKER' && Math.random() < 0.01) {
+            if(c.state === 'IDLE' && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && Math.random() < 0.01) {
                  c.state = 'WALKING'; c.waypoints = [new THREE.Vector3((Math.random()-0.5)*250, 0, 20 + Math.random()*80)];
             }
-            if((c.state === 'WALKING' || c.state === 'WANDERING') && c.waypoints.length > 0) {
+            
+            // GENERAL MOVEMENT LOGIC (Applies to all walking states including ROMANCE logic)
+            if((c.state === 'WALKING' || c.state === 'WANDERING' || c.state === 'ROMANCE_SEQUENCE') && c.waypoints.length > 0) {
+                // If in romance sequence but waiting/flirting/pining, skip movement
+                if (c.role === 'ROMANCE_WORKER' && (c.romanceStage === 'DELAY' || c.romanceStage === 'FLIRTING' || c.romanceStage === 'IDLE_TWIST')) return;
+
                 const target = c.waypoints[0];
                 const dir = new THREE.Vector3().subVectors(target, c.mesh.position);
                 if(statuePos && c.mesh.position.distanceTo(statuePos) < 8) dir.add(c.mesh.position.clone().sub(statuePos).normalize().multiplyScalar(0.5));
@@ -2447,8 +2818,8 @@ if (!t.hasDeparted) {
                     c.waypoints.shift();
                     if(c.waypoints.length === 0) {
                         if(c.role === 'GUARD') c.waypoints = [new THREE.Vector3(c.mesh.position.x > 0 ? -100 : 100, 0, -50)];
-                        else if(gameState === 'RUSH' && c.role !== 'WORKER' && c.role !== 'STATIC') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
-                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } else c.state = 'IDLE';
+                        else if(gameState === 'RUSH' && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && c.role !== 'STATIC') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
+                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } else if (c.role !== 'ROMANCE_WORKER') c.state = 'IDLE';
                     }
                 } else {
                     dir.normalize(); 
@@ -2568,11 +2939,33 @@ if (!t.hasDeparted) {
         if(timerRunning) { timerRunning = false; finalTime = (performance.now() - timerStartTime) / 1000; }
         if(civ === targetObj) { resultIsWin = true; KILL_STREAK++; STATS.target++; } else {
             resultIsWin = false; KILL_STREAK = 0; victimRef = civ;
-            if(civ.role === 'DECOY') { resultReason = "YOU SHOT A DECOY (WRONG TRAIN/SHOP)."; STATS.decoy++; }
-            else if(civ.role === 'STRIPED') { resultReason = "DISTRACTION TARGET. CIVILIAN CASUALTY."; STATS.civ++; }
+            if(civ.role === 'DECOY') { resultReason = "WRONG TARGET. DECOY."; STATS.decoy++; }
+            else if(civ.role === 'STRIPED') { resultReason = "CIVILIAN KILLED. INNOCENT."; STATS.civ++; }
             else if(civ.role === 'STATIC') { resultReason = "BYSTANDER CASUALTY."; STATS.civ++; }
-            else if(civ.role === 'GUARD') { resultReason = "OFFICER DOWN. MISSION COMPROMISED."; STATS.civ++; }
-            else { resultReason = "CIVILIAN CASUALTY."; STATS.civ++; }
+            else if(civ.role === 'GUARD') { resultReason = "OFFICER DOWN. DISASTER."; STATS.civ++; }
+            else if(civ.role === 'ROMANCE_WORKER') { resultReason = "WORKER KILLED. INNOCENT."; STATS.civ++; }
+            else { resultReason = "COLLATERAL DAMAGE."; STATS.civ++; }
+            
+            // HOSPITALISED LOGIC
+            if (Math.random() < 0.22) {
+                victimSurvivalStatus = "HOSPITALISED";
+            } else {
+                victimSurvivalStatus = "DECEASED";
+            }
+
+            // GENERATE BIO FOR FAILURE
+            const bio = generateBio();
+            document.getElementById('bio-name').innerText = bio.name;
+            document.getElementById('bio-dob').innerText = bio.dob;
+            document.getElementById('bio-ssn').innerText = bio.ssn;
+            document.getElementById('bio-blood').innerText = bio.blood;
+            document.getElementById('bio-nation').innerText = bio.nationality;
+            document.getElementById('bio-movie').innerText = bio.movie;
+            document.getElementById('bio-music').innerText = bio.album;
+            document.getElementById('bio-id-num').innerText = Math.floor(1000 + Math.random()*9000) + "-X";
+            
+            // ALWAYS USE MALE SVG (AS PER REQUEST)
+            document.getElementById('bio-pic').innerHTML = SVG_MALE;
         }
         saveSettings();
         if(civ && civ.mesh) {
@@ -2583,8 +2976,15 @@ if (!t.hasDeparted) {
                 civ.mesh.remove(luggage); scene.add(luggage);
                 luggage.position.copy(worldPos); luggage.quaternion.copy(worldQuat);
                 const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(civ.mesh.quaternion).normalize();
-                const speed = (civ.speed || 0.04) * 5.0; 
-                looseItems.push({ mesh: luggage, vel: forward.multiplyScalar(speed).add(new THREE.Vector3((Math.random()-0.5)*0.2, 0, (Math.random()-0.5)*0.2)), rotVel: new THREE.Vector3((Math.random()-0.5)*0.1, 0, (Math.random()-0.5)*0.1), life: 3.0 });
+                
+                // INCREASED VELOCITY (by ~8% -> 5.0 * 1.08 = 5.4)
+                const speed = (civ.speed || 0.04) * 5.4; 
+                looseItems.push({ 
+                    mesh: luggage, 
+                    vel: forward.multiplyScalar(speed).add(new THREE.Vector3((Math.random()-0.5)*0.2, 0, (Math.random()-0.5)*0.2)), 
+                    rotVel: new THREE.Vector3((Math.random()-0.5)*0.1, 0, (Math.random()-0.5)*0.1), 
+                    life: 20.0 // Long life so it survives killcam
+                });
             }
             civ.mesh.rotation.x = 0; 
         }
@@ -2636,10 +3036,25 @@ if (!t.hasDeparted) {
         const title = document.getElementById('outcome-title');
         const desc = document.getElementById('outcome-desc');
         const award = document.getElementById('award-text');
+        const bioOverlay = document.getElementById('bio-overlay');
+        const resHeaders = document.getElementById('result-headers');
 
         // ANIMATION RESET
         stamp.classList.remove('slammed'); // Reset animation
         stamp.style.opacity = '0'; // Ensure hidden initially
+        
+        // Reset Read More
+        const masked = document.getElementById('bio-masked-area');
+        const btn = document.getElementById('bio-read-more');
+        masked.classList.remove('open');
+        btn.style.display = 'block';
+        
+        // --- RESET REPLAY BUTTON STATE ---
+        const replayBtn = document.getElementById('replay-btn');
+        if(replayBtn) {
+            replayBtn.innerHTML = "REPLAY WITH SAME SETTINGS";
+            replayBtn.classList.remove('clicked');
+        }
         
         // Trigger Stamp Slam after slight delay
         setTimeout(() => {
@@ -2647,6 +3062,8 @@ if (!t.hasDeparted) {
         }, 800);
 
         if(resultIsWin) {
+            bioOverlay.style.display = 'none';
+            resHeaders.style.marginBottom = '20px';
             for(let i=0; i<100; i++) {
                 const c = createBlock(0.5, 0.5, 0, [0xff0000,0x00ff00,0xffff00][Math.floor(Math.random()*3)], (Math.random()-0.5)*50, 40+Math.random()*20, -50);
                 confetti.push({mesh:c, speed:Math.random()*0.5});
@@ -2665,11 +3082,26 @@ if (!t.hasDeparted) {
                 award.innerText = generateCodeName();
             }
         } else {
+            // SHOW GUILT TRIP
+            bioOverlay.style.display = 'block';
+            resHeaders.style.marginBottom = '5px';
             stamp.innerText = "FAILED"; 
             stamp.style.color = "#C00"; stamp.style.borderColor = "#C00";
             title.innerText = "DISAVOWED"; 
-            desc.innerText = resultReason + " CATASTROPHIC FAILURE.";
+            desc.innerText = resultReason;
             award.innerText = "";
+
+            // UPDATE BIO STAMP STATUS (HOSPITALISED VS DECEASED)
+            const bioStamp = document.querySelector('.bio-stamp');
+            bioStamp.innerText = victimSurvivalStatus;
+            
+            if (victimSurvivalStatus === "HOSPITALISED") {
+                bioStamp.style.color = "#C00";         // Now Red
+                bioStamp.style.borderColor = "#C00";    // Now Red
+            } else {
+                bioStamp.style.color = "#C00";
+                bioStamp.style.borderColor = "#C00";
+            }
         }
         document.getElementById('streak-display').innerText = KILL_STREAK;
         renderStats();
