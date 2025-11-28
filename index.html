@@ -1928,28 +1928,35 @@
     
     // NEW TRAIN SPAWNER FUNCTION to reset trains correctly
     function spawnTrains() {
-        // Clear old trains
-        trains.forEach(t => scene.remove(t.mesh)); 
-        trains = [];
-        
-        for(let i=0; i<6; i++) {
-            const x = -100 + (i * 40);
-            const trainGroup = new THREE.Group();
-            // Create default train
-            createTrain(x - 16, -1.0, -60, trainGroup, C.trainColors[Math.floor(Math.random() * C.trainColors.length)]); 
-            scene.add(trainGroup);
-            
-            // Initialize random departure time (63-87s)
-            const depTime = 63 + Math.random() * 24;
-            
-            trains.push({
-                mesh: trainGroup,
-                departTime: depTime,
-                speed: 0,
-                hasDeparted: false
-            });
-        }
+    // Clear old trains
+    trains.forEach(t => scene.remove(t.mesh));
+    trains = [];
+
+    // choose a slow train index (one per spawn)
+    const slowIdx = Math.floor(Math.random() * 6);
+
+    for (let i = 0; i < 6; i++) {
+        const x = -100 + (i * 40);
+        const trainGroup = new THREE.Group();
+        // Create default train
+        createTrain(x - 16, -1.0, -60, trainGroup, C.trainColors[Math.floor(Math.random() * C.trainColors.length)]);
+        scene.add(trainGroup);
+
+        // Initialize random departure time (was 63-87s). Add +4.5s to delay first departures slightly.
+        // New range: 67.5 - 91.5
+        const depTime = 67.5 + Math.random() * 24;
+
+        trains.push({
+            mesh: trainGroup,
+            departTime: depTime,
+            speed: 0,
+            hasDeparted: false,
+            // mark one train as the particularly slow-departing train
+            isSlow: (i === slowIdx)
+        });
     }
+}
+
     
     function createFeather(pos) {
         const f = createBlock(0.1, 0.01, 0.1, 0xFFFFFF, pos.x, pos.y, pos.z, null);
@@ -2171,8 +2178,34 @@
                     trainsDeparted = true; 
                 }
                 
-                t.speed += dt * 5.0; // Accelerate
-                t.mesh.position.z -= t.speed * dt * 10; // Move away (-Z)
+                // Train movement + acceleration (respect slow train flag)
+if (!t.hasDeparted) {
+    // acceleration strength: slow trains accelerate much more slowly
+    const accel = t.isSlow ? 0.6 : 5.0; // slow train gets tiny acceleration
+    t.speed += dt * accel;
+
+    // movement multiplier: slow trains move away much slower
+    const moveMul = t.isSlow ? 2.0 : 10.0;
+    t.mesh.position.z -= t.speed * dt * moveMul; // Move away (-Z)
+
+    // Fade out logic (unchanged)
+    if (t.mesh.position.z < -250) {
+        t.mesh.traverse(child => {
+            if (child.isMesh && child.material) {
+                child.material.transparent = true;
+                // Simple linear fade
+                let opacity = 1.0 - (Math.abs(t.mesh.position.z + 250) / 150);
+                child.material.opacity = Math.max(0, opacity);
+            }
+        });
+    }
+
+    if (t.mesh.position.z < -500) {
+        t.hasDeparted = true;
+        scene.remove(t.mesh);
+    }
+}
+
                 
                 // Fade out logic
                 if(t.mesh.position.z < -250) { 
@@ -2210,15 +2243,70 @@
     }
 
     function updateLooseItems(dt) {
-        for(let i=looseItems.length-1; i>=0; i--) {
-            const item = looseItems[i];
-            if(item.life > 0) {
-                item.mesh.position.add(item.vel); item.mesh.rotation.x += item.rotVel.x; item.mesh.rotation.z += item.rotVel.z;
-                item.vel.multiplyScalar(0.96); if(item.mesh.rotation.x > -Math.PI/2) item.mesh.rotation.x -= dt * 2.0; 
-                if(item.mesh.position.y < 0) { item.mesh.position.y = 0; item.vel.y = 0; } item.life -= dt;
+    for (let i = looseItems.length - 1; i >= 0; i--) {
+        const item = looseItems[i];
+        if (item.life > 0) {
+            // Move the item
+            item.mesh.position.add(item.vel.clone().multiplyScalar(dt * 60)); // scale by dt*60 to match other movement
+            item.mesh.rotation.x += item.rotVel.x;
+            item.mesh.rotation.z += item.rotVel.z;
+
+            // Basic drag & gravity imitation
+            item.vel.multiplyScalar(0.96);
+            item.vel.y -= 9.8 * dt * 0.02; // slight gravity so it drops a little faster
+
+            if (item.mesh.position.y < 0) { item.mesh.position.y = 0; item.vel.y = 0; }
+
+            // COLLISION: luggage hits a single civilian
+            if (!item.hasHit) {
+                for (let c = 0; c < civilians.length; c++) {
+                    const civ = civilians[c];
+                    if (!civ || !civ.mesh) continue;
+                    // ignore the original owner falling etc — we only check for OTHER civilians
+                    // distance threshold tuned to match visual scale (approx 1.0 units)
+                    const dist = item.mesh.position.distanceTo(civ.mesh.position);
+                    if (dist < 1.0) {
+                        // Mark this item as having hit someone, so it won't hit multiple
+                        item.hasHit = true;
+
+                        // Knock the civilian over (one-time)
+                        try {
+                            // Give the victim a 'down' rotation & small upward pop so it's visually distinct
+                            civ.mesh.rotation.x = -Math.PI / 2;
+                            // Slight lift/jerk if still above ground
+                            civ.mesh.position.y = Math.max(0.02, civ.mesh.position.y - 0.05);
+
+                            // Spawn a blood puddle under them (reuse spawnBlood logic)
+                            spawnBlood(civ);
+
+                            // If there is a victimRef used elsewhere, set it for bleed animation path if appropriate
+                            victimRef = civ;
+
+                            // Make the civ state explicit to avoid further AI movement
+                            civ.state = 'DOWN';
+                        } catch (e) {
+                            console.warn("Luggage hit handling error:", e);
+                        }
+
+                        // Remove / expire the luggage quickly so it doesn't keep colliding
+                        item.life = Math.min(item.life, 0.2);
+                        break; // break out of civilians loop; luggage only hits one
+                    }
+                }
             }
+
+            item.life -= dt;
+        } else {
+            // Clean up expired item
+            if (item.mesh) {
+                scene.remove(item.mesh);
+                try { if (item.mesh.geometry) item.mesh.geometry.dispose(); if (item.mesh.material) item.mesh.material.dispose(); } catch (e) {}
+            }
+            looseItems.splice(i, 1);
         }
     }
+}
+
 
     function animate() {
         requestAnimationFrame(animate);
