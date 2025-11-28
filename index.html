@@ -153,8 +153,35 @@
             padding: 4px 15px; cursor: pointer; font-size: 10px; border-radius: 0 0 0 10px;
             text-shadow: 0 0 5px #00FF00; pointer-events: auto; display: flex; align-items: center; gap: 5px;
             font-family: 'Montserrat', sans-serif; letter-spacing: 1px;
+            width: 80px; justify-content: center; box-sizing: border-box;
+            height: 24px;
         }
         #skip-music-btn:hover { background: #002200; }
+        
+        /* RADIO TOGGLE BUTTON (Tab Style) */
+        #radio-toggle-btn {
+            position: absolute; bottom: -24px; right: 81px; /* Attached to left of Skip */
+            background: rgba(0,0,0,0.8); color: #00FF00; border: 1px solid #005500; border-top: none; border-right: none;
+            padding: 4px 10px; cursor: pointer; font-size: 10px; border-radius: 0 0 0 10px;
+            text-shadow: 0 0 5px #00FF00; pointer-events: auto; display: flex; align-items: center; gap: 4px;
+            font-family: 'Montserrat', sans-serif; letter-spacing: 1px; height: 24px; box-sizing: border-box;
+        }
+        #radio-toggle-btn:hover { background: #002200; }
+
+        /* Small Toggle Switch inside Radio Tab */
+        .bar-toggle-switch {
+            width: 24px; height: 12px; background: #222; border: 1px solid #555; 
+            border-radius: 6px; position: relative; 
+            box-shadow: inset 0 0 3px #000;
+        }
+        .bar-toggle-knob {
+            width: 8px; height: 8px; background: #888; border-radius: 50%;
+            position: absolute; top: 1px; left: 1px; transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        /* States */
+        .bar-toggle-switch.fm .bar-toggle-knob { left: 2px; background: #00FF00; box-shadow: 0 0 4px #00FF00; }
+        .bar-toggle-switch.am .bar-toggle-knob { left: 13px; background: #FFCC00; box-shadow: 0 0 4px #FFCC00; }
+
 
         .arrow-icon { font-size: 14px; font-weight: bold; }
 
@@ -329,9 +356,9 @@
         .btn-row { display: flex; gap: 15px; margin-top: 15px; }
         
         @keyframes pulse-btn {
-            0% { box-shadow: 0 0 0 0 rgba(200, 0, 0, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(200, 0, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(200, 0, 0, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(123, 44, 191, 0.4); } /* Purple Pulse */
+            70% { box-shadow: 0 0 0 10px rgba(123, 44, 191, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(123, 44, 191, 0); }
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -347,7 +374,7 @@
             text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.3s;
             animation: pulse-btn 2s infinite; height: 50px;
         }
-        button.action-btn:hover { background: #C00; transform: scale(1.02); animation: none; }
+        button.action-btn:hover { background: #7b2cbf; transform: scale(1.02); animation: none; }
         button.action-btn.clicked {
             animation: none; transform: scale(0.95); background: #333; box-shadow: inset 0 0 10px #000; border: 1px solid #555;
         }
@@ -557,6 +584,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:20px;">
                 <div style="display:flex; flex-direction: column; align-items: flex-end;">
+
                     <div class="vol-control" id="vol-music-container">
                         <span class="vol-label">&#9834;</span>
                         <span class="vol-btn" onclick="nextTrack()">[>>]</span>
@@ -565,7 +593,7 @@
                         <span class="vol-btn">[+]</span>
                     </div>
                     <div class="vol-control" id="vol-sfx-container">
-                        <span class="vol-label">SFX</span>
+                        <span class="vol-label" style="margin-right:20px;">SFX</span>
                         <span class="vol-btn">[-]</span>
                         <input type="range" id="vol-sfx-slider" class="tech-slider" min="0" max="1" step="0.02" value="0.8">
                         <span class="vol-btn">[+]</span>
@@ -578,8 +606,17 @@
                 <span id="toggle-text">OPEN MENU</span>
             </button>
             
+            <button id="radio-toggle-btn" onclick="toggleRadioMode()">
+                <span style="font-size:10px; margin-right:5px;">RADIO</span>
+                <span id="label-fm" style="font-size:9px; color:#00FF00; margin-right:4px;">FM</span>
+                <div class="bar-toggle-switch fm" id="bar-radio-switch">
+                    <div class="bar-toggle-knob"></div>
+                </div>
+                <span id="label-am" style="font-size:9px; color:#444; margin-left:4px;">AM</span>
+            </button>
+
             <button id="skip-music-btn" onclick="nextTrack()">
-                <span style="font-size:10px;">SKIP MUSIC</span>
+                <span style="font-size:10px;">SKIP</span>
                 <span class="arrow-icon">>></span>
             </button>
         </div>
@@ -593,7 +630,7 @@
     <div id="crosshair"></div>
     <div id="blood-screen-container"></div>
     
-    <div id="phone-overlay">
+    <div id="phone-overlay" data-phase="0">
         <div class="intel-header">INCOMING TRANSMISSION</div>
         <div class="intel-body" id="phone-text">CONNECTING...</div>
     </div>
@@ -845,8 +882,14 @@
         btn.style.display = 'none';
     }
 
-    // --- GITHUB PAGES FIX: Use lowercase filenames for compatibility ---
-    const MUSIC_TRACKS = ['music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 'music5.mp3'];
+    // --- EXPANDED MUSIC LIBRARY ---
+    const MUSIC_TRACKS = [
+        'music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 
+        'music5.mp3', 'music6.mp3', 'music7.mp3', 'music8.mp3'
+    ];
+    
+    // --- DOCUMENTARY TRACKS ---
+    const DOCU_TRACKS = ['docu1.mp3', 'docu2.mp3'];
 
     // DESTINATIONS
     const DESTINATIONS = [
@@ -1028,14 +1071,17 @@
     let SETTING_SFX_VOL = 0.8;
     let SETTING_MENU_VOL = 0.5;
     let SETTING_RANDOM_PL = false;
-    
+    let SETTING_RADIO_MODE = 'FM'; // 'FM' or 'AM'
+
     let STATS = { target:0, decoy:0, civ:0, abort:0 };
 
     // Audio Globals
     let currentMusicIdx = 0;
+    let currentDocuIdx = 0;
     let activeMusicAudio = null;
     let fadeInterval = null;
     let menuMusicStarted = false;
+    let isAudioPersisting = false; // Flag for AM persistence
     
     let sfxStartTimeout = null;
     let musicStartTimeout = null;
@@ -1085,6 +1131,8 @@
         }
 
         if(localStorage.getItem('sm_menu_vol')) SETTING_MENU_VOL = parseFloat(localStorage.getItem('sm_menu_vol'));
+        
+        if(localStorage.getItem('sm_radio_mode')) SETTING_RADIO_MODE = localStorage.getItem('sm_radio_mode');
 
         document.getElementById('slide-crowd').value = SETTING_CROWD;
         document.getElementById('slide-pkg').value = SETTING_PACKAGES;
@@ -1098,6 +1146,7 @@
         document.getElementById('vol-sfx-slider').value = SETTING_SFX_VOL;
         document.getElementById('slide-menu-vol').value = SETTING_MENU_VOL;
 
+        updateRadioVisuals();
         updateMenuVisuals();
         renderLeaderboard();
         renderStats();
@@ -1151,6 +1200,7 @@
         localStorage.setItem('sm_music_vol', SETTING_MUSIC_VOL);
         localStorage.setItem('sm_sfx_vol', SETTING_SFX_VOL);
         localStorage.setItem('sm_menu_vol', SETTING_MENU_VOL);
+        localStorage.setItem('sm_radio_mode', SETTING_RADIO_MODE);
     }
 
     // UPDATED RESET LOGIC
@@ -1307,8 +1357,16 @@
              btn.innerHTML = '<div class="spinner"></div>';
          }
 
-         // Fade audio (Match 2.3s logic)
-         if(activeMusicAudio && !activeMusicAudio.paused) fadeOutAudio(activeMusicAudio, 2100, null);
+         // PERSISTENCE CHECK
+         // If we are in AM mode (Docs), we do NOT fade out music. We let it ride.
+         if (SETTING_RADIO_MODE === 'AM' && activeMusicAudio && !activeMusicAudio.paused) {
+             isAudioPersisting = true;
+             // Do not fade out activeMusicAudio
+         } else {
+             // FM Music logic (standard fade out)
+             isAudioPersisting = false;
+             if(activeMusicAudio && !activeMusicAudio.paused) fadeOutAudio(activeMusicAudio, 2100, null);
+         }
 
          // Transition delay increased to 2.3s as requested
          setTimeout(() => {
@@ -1324,41 +1382,98 @@
         if(menuBgm && !menuBgm.paused) fadeOutAudio(menuBgm, 1700, null);
         setTimeout(() => location.reload(), 1700);
     }
+    
+    function toggleRadioMode() {
+        SETTING_RADIO_MODE = SETTING_RADIO_MODE === 'FM' ? 'AM' : 'FM';
+        updateRadioVisuals();
+        saveSettings();
+        
+        // If music is currently playing, switch track immediately
+        if(activeMusicAudio && !activeMusicAudio.paused) {
+            // Stop current with short fade
+            const oldAudio = activeMusicAudio;
+            fadeOutAudio(oldAudio, 500, () => {
+                oldAudio.pause();
+                playMusic(); // Start new mode track
+            });
+        }
+    }
+    
+    function updateRadioVisuals() {
+        const sw = document.getElementById('bar-radio-switch');
+        const lFm = document.getElementById('label-fm');
+        const lAm = document.getElementById('label-am');
+        
+        if(SETTING_RADIO_MODE === 'FM') {
+            sw.classList.remove('am'); sw.classList.add('fm');
+            if(lFm) { lFm.style.color = '#00FF00'; lFm.style.textShadow = '0 0 5px #00FF00'; }
+            if(lAm) { lAm.style.color = '#444'; lAm.style.textShadow = 'none'; }
+        } else {
+            sw.classList.remove('fm'); sw.classList.add('am');
+            if(lFm) { lFm.style.color = '#444'; lFm.style.textShadow = 'none'; }
+            if(lAm) { lAm.style.color = '#FFCC00'; lAm.style.textShadow = '0 0 5px #FFCC00'; }
+        }
+    }
 
     function playMusic() {
         if(!SETTING_MUSIC_ON) return;
         
-        if(activeMusicAudio) {
+        // Ensure no overlapping audio (unless persistence handled it, but this function is called when starting fresh usually)
+        if(activeMusicAudio && !activeMusicAudio.paused) {
             activeMusicAudio.pause();
-            activeMusicAudio.src = ""; // Clean ref
+            activeMusicAudio.src = ""; 
             activeMusicAudio = null;
         }
 
-        let idx = 0;
-        if(SETTING_RANDOM_PL) idx = Math.floor(Math.random() * MUSIC_TRACKS.length);
-        else idx = currentMusicIdx % MUSIC_TRACKS.length;
-        currentMusicIdx = idx;
+        let trackName = "";
+        
+        if (SETTING_RADIO_MODE === 'FM') {
+            // FM MUSIC LOGIC
+            let idx = 0;
+            if(SETTING_RANDOM_PL) idx = Math.floor(Math.random() * MUSIC_TRACKS.length);
+            else idx = currentMusicIdx % MUSIC_TRACKS.length;
+            currentMusicIdx = idx;
+            trackName = MUSIC_TRACKS[idx];
+        } else {
+            // AM DOCS LOGIC
+            let idx = currentDocuIdx % DOCU_TRACKS.length;
+            trackName = DOCU_TRACKS[idx];
+        }
 
-        const trackName = MUSIC_TRACKS[idx];
         activeMusicAudio = new Audio(trackName);
         activeMusicAudio.loop = true;
         
-        // Random start time logic
+        // Random start time logic (0% to 85% of duration)
         activeMusicAudio.addEventListener('loadedmetadata', () => {
              const dur = activeMusicAudio.duration || 100;
-             activeMusicAudio.currentTime = Math.random() * (Math.min(dur, 60)); 
+             // Random point up to 85% to ensure not starting at very end
+             const maxStart = dur * 0.85; 
+             activeMusicAudio.currentTime = Math.random() * maxStart; 
         });
         
         activeMusicAudio.volume = 0; 
         activeMusicAudio.play().then(() => {
+            // 4 second fade in
             fadeInAudio(activeMusicAudio, SETTING_MUSIC_VOL, 4000);
         }).catch(e => console.log("Music failed to play", e));
     }
 
     function nextTrack() {
         if(!activeMusicAudio) return;
-        currentMusicIdx++;
-        playMusic();
+        
+        if (SETTING_RADIO_MODE === 'FM') {
+            currentMusicIdx++;
+        } else {
+            currentDocuIdx++;
+        }
+        
+        // Instant switch with fade out of old is handled by playMusic stopping previous
+        // But let's do a quick crossfade effect manually
+        const oldAudio = activeMusicAudio;
+        fadeOutAudio(oldAudio, 500, () => {
+            oldAudio.pause();
+            playMusic();
+        });
     }
 
     function fadeInAudio(audioEl, targetVol, duration) {
@@ -2266,7 +2381,10 @@
         document.getElementById('vol-sfx-container').style.display = SETTING_SFX_ON ? 'flex' : 'none';
         
         // Reset Logic
-        document.getElementById('phone-overlay').style.bottom = "-200px";
+        const phoneOverlay = document.getElementById('phone-overlay');
+        phoneOverlay.style.bottom = "-200px";
+        phoneOverlay.dataset.phase = "0"; // Reset phase
+        
         document.getElementById('blood-screen-container').innerHTML = '';
         document.getElementById('blood-screen-container').style.display = 'none';
         civilians.forEach(c => scene.remove(c.mesh)); civilians = [];
@@ -2319,12 +2437,18 @@
         }
 
         // Music Starts after 2.7s delay
-        if(SETTING_MUSIC_ON) {
-            setTimeout(() => {
-                playMusic();
-            }, 2700);
-        } else if(activeMusicAudio) { 
-            activeMusicAudio.pause(); activeMusicAudio = null; 
+        // Check for Persistence (AM Mode continuation)
+        if(isAudioPersisting) {
+            isAudioPersisting = false; // Clear flag, music is already running
+            // Do not call playMusic() here, as it stops current track
+        } else {
+            if(SETTING_MUSIC_ON) {
+                setTimeout(() => {
+                    playMusic();
+                }, 2700);
+            } else if(activeMusicAudio) { 
+                activeMusicAudio.pause(); activeMusicAudio = null; 
+            }
         }
         
         // Start Logic
@@ -2439,9 +2563,29 @@
     function updateLogic(dt) {
         gameTime += dt;
         if(gameTime > nextPigeonTime) { spawnPigeon(); nextPigeonTime = gameTime + 10 + Math.random()*15; }
-        if(gameTime > 14 && document.getElementById('phone-overlay').style.bottom === "-200px") {
-            document.getElementById('phone-text').innerText = "TARGET TO: " + targetTown;
-            document.getElementById('phone-overlay').style.bottom = "20px";
+        
+        // --- PHONE OVERLAY LOGIC WITH EASTER EGG ---
+        const overlay = document.getElementById('phone-overlay');
+        const text = document.getElementById('phone-text');
+        const phase = parseInt(overlay.dataset.phase || "0");
+        
+        // Phase 1: Show Target Info (Around 14s)
+        if(phase === 0 && gameTime > 14) {
+            text.innerText = "TARGET TO: " + targetTown;
+            overlay.style.bottom = "20px";
+            overlay.dataset.phase = "1";
+        }
+        
+        // Phase 2: Show Base Query (After 2 minutes / 121s)
+        if(phase === 1 && gameTime > 121) {
+            text.innerText = "REPORT TO BASE - ETA?";
+            overlay.dataset.phase = "2";
+        }
+        
+        // Phase 3: Fade Away (After 2m30s / 151s)
+        if(phase === 2 && gameTime > 151) {
+            overlay.style.bottom = "-200px";
+            overlay.dataset.phase = "3";
         }
         
         // BUG FIX: Ensure board only generates ONCE to prevent freeze/loop
@@ -2947,7 +3091,8 @@
             else { resultReason = "COLLATERAL DAMAGE."; STATS.civ++; }
             
             // HOSPITALISED LOGIC
-            if (Math.random() < 0.22) {
+            // CHANGED: 57% chance of hospitalised, 43% chance deceased
+            if (Math.random() < 0.57) {
                 victimSurvivalStatus = "HOSPITALISED";
             } else {
                 victimSurvivalStatus = "DECEASED";
@@ -3075,10 +3220,13 @@
             title.innerText = rndTitle; 
             if(gameMode === 'TIMED') {
                 desc.innerText = "TARGET DOWN. TIME: " + finalTime.toFixed(3) + "s";
+                desc.style.color = "#ccc"; // Keep grey for Timed mode stats
                 award.innerText = "";
                 renderLeaderboard(); 
             } else {
                 desc.innerText = "TARGET NEUTRALIZED. THE CROWN SLEEPS SAFELY.";
+                // UPDATED COLOR TO DARK GREY/BROWN
+                desc.style.color = "#4b3621"; 
                 award.innerText = generateCodeName();
             }
         } else {
@@ -3089,6 +3237,8 @@
             stamp.style.color = "#C00"; stamp.style.borderColor = "#C00";
             title.innerText = "DISAVOWED"; 
             desc.innerText = resultReason;
+            desc.style.color = "#333"; 
+
             award.innerText = "";
 
             // UPDATE BIO STAMP STATUS (HOSPITALISED VS DECEASED)
