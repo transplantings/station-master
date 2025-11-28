@@ -616,6 +616,104 @@
     ];
     const NORTHERN = ["GLASGOW", "EDINBURGH", "ABERDEEN", "INVERNESS", "NEWCASTLE", "DURHAM", "MANCHESTER", "LIVERPOOL"];
 
+    // COMB FACTS & REVIEWS (TVGoHome Style)
+    const COMB_TRIVIA = [
+        "FACT: The first comb was made of frozen butter.",
+        "REVIEW: 'It combed my soup perfectly.' - G. Ramsey",
+        "FACT: Napoleon used a comb to signal retreat.",
+        "REVIEW: 'Too pointy. 1 star.' - Anon",
+        "FACT: Combs were illegal in Devon until 1984.",
+        "REVIEW: 'My hamster loves the grip.' - P. Daniels",
+        "FACT: A comb cannot float in mercury.",
+        "REVIEW: 'Don't shop at COMBS, terrible service.' - Jeff in Stoke",
+        "FACT: In 1204, a comb was elected Mayor of Norwich.",
+        "REVIEW: 'It smells of old trams.' - B. Johnson",
+        "FACT: The moon is shaped like a very old comb.",
+        "REVIEW: 'Instructions unclear, combed my toaster.'",
+        "FACT: Queen Victoria owned 400 invisible combs.",
+        "REVIEW: 'Does not work on bald eagles.' - USA_Fan",
+        "FACT: Comb technology peaked in the Bronze Age.",
+        "REVIEW: 'Refund refused. Sad.' - Karen1975",
+        "FACT: 'Comb' is short for 'Combustable'.",
+        "REVIEW: 'Perfect for scratching my car.' - D. Clarkson",
+        "FACT: Every 3rd comb sold is haunted.",
+        "REVIEW: 'It whispers to me at night.' - SpookySteve",
+        "FACT: Combs can be used as primitive radios.",
+        "REVIEW: 'Only picks up Radio 4.' - T. May",
+        "FACT: A comb has never killed a swan.",
+        "REVIEW: 'Too many teeth, not enough gum.'",
+        "FACT: The collective noun for combs is a 'Tangle'.",
+        "REVIEW: 'Made of cheese? No. Disappointed.'",
+        "FACT: Julius Caesar invented the parting.",
+        "REVIEW: 'Sticky. Why is it sticky?'",
+        "FACT: Combs are banned in space.",
+        "REVIEW: 'Arrived broken. Fixed with tape. 3/10'",
+        "FACT: The world's largest comb is in Wigan.",
+        "REVIEW: 'Not suitable for heavy gravel.'",
+        "FACT: Ancient Greeks combed their salads.",
+        "REVIEW: 'Expensive for a piece of plastic.'",
+        "FACT: A comb a day keeps the barber away.",
+        "REVIEW: 'My cat ate it.'",
+        "FACT: Combs were once currency in Wales.",
+        "REVIEW: 'Too loud when dropped.'",
+        "FACT: The plastic comb was invented by accident.",
+        "REVIEW: 'Does not comb thoughts. False advertising.'",
+        "FACT: Vikings used combs to navigate.",
+        "REVIEW: 'Slippery when wet.'",
+        "FACT: A comb has 42 teeth on average.",
+        "REVIEW: 'Lost it immediately.'",
+        "FACT: Combs are afraid of heights.",
+        "REVIEW: 'Color did not match my aura.'",
+        "FACT: You can play a comb like a kazoo.",
+        "REVIEW: 'Tastes like purple.'",
+        "FACT: The Titanic had a dedicated comb room.",
+        "REVIEW: 'Too shiny.'",
+        "FACT: Combs were originally square.",
+        "REVIEW: 'Not round enough.'",
+        "FACT: A broken comb signifies rain.",
+        "REVIEW: 'It bit me.'",
+        "FACT: Combs dissolve in vinegar.",
+        "REVIEW: 'Why is it vibrating?'",
+        "FACT: The Queen combs her corgis daily.",
+        "REVIEW: 'Good for scraping toast.'",
+        "FACT: Combs are 90% air.",
+        "REVIEW: 'Heavier than it looks.'",
+        "FACT: Never lend a comb to a ghost.",
+        "REVIEW: 'It glows in the dark. Helpful.'",
+        "FACT: Combs can survive a nuclear blast.",
+        "REVIEW: 'My dog hates it.'",
+        "FACT: The word 'Comb' is 4 letters long.",
+        "REVIEW: 'I ordered a brush. This is a comb.'",
+        "FACT: Combs amplify silence.",
+        "REVIEW: 'Works on llamas.'",
+        "FACT: There is no such thing as a left-handed comb.",
+        "REVIEW: 'I am left handed. It exploded.'",
+        "FACT: Combs are magnetic to socks.",
+        "REVIEW: 'Found in my soup.'",
+        "FACT: A comb is a ladder for fleas.",
+        "REVIEW: 'Too extravagant.'",
+        "FACT: Combs are allergic to jazz.",
+        "REVIEW: 'It sings.'",
+        "FACT: A comb is just a skeleton of a brush.",
+        "REVIEW: 'Too boney.'",
+        "FACT: Combs hate water.",
+        "REVIEW: 'It sank.'",
+        "FACT: Every comb has a name.",
+        "REVIEW: 'Mine is called Steve.'",
+        "FACT: Combs can feel love.",
+        "REVIEW: 'It judged me.'",
+        "FACT: A comb is a mirror for hair.",
+        "REVIEW: 'Too reflective.'",
+        "FACT: Combs are older than time.",
+        "REVIEW: 'Dusty.'",
+        "FACT: A comb is a key to a lock of hair.",
+        "REVIEW: 'Did not unlock my door.'",
+        "FACT: Combs are strictly non-edible.",
+        "REVIEW: 'Crunchy.'",
+        "FACT: A comb is a saw for air.",
+        "REVIEW: 'Too sharp.'"
+    ];
+
     // WIN PHRASES
     const ADJECTIVES = ["Lethal", "Silent", "Phantom", "Shadow", "Iron", "Cold", "Patient", "Surgical", "Ghost", "Vengeful", "Invisible", "Swift", "Precise", "Deadly", "Golden", "Silver", "Ruthless", "Calm"];
     const NOUNS = ["Assassin", "Spirit", "Agent", "Hunter", "Spectre", "Wolf", "Eagle", "Viper", "Operator", "Sniper", "Watchman", "Sentinel", "Wraith", "Reaper", "Soldier", "Professional"];
@@ -667,6 +765,13 @@
     let marbleTexture; // Light grey marble texture
     let bloodSpawned = false;
     let obstacles = []; // Global obstacles for collision
+
+    // New Arrays for Train Sequence
+    let trains = [];
+    let newsTickerOffset = 0;
+    let newsTickerActive = false;
+    let trainsDeparted = false; // State flag
+    let tickerContent = ""; // Dynamic content
 
     // Settings & Persistence
     let SETTING_CROWD = 80;
@@ -1123,6 +1228,42 @@
         return new THREE.CanvasTexture(canvas);
     }
     
+    function createCrossHatchTexture() {
+        const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        
+        // Base: Grey/Metallic
+        ctx.fillStyle = '#99AAAA'; 
+        ctx.fillRect(0,0,256,256);
+        
+        ctx.strokeStyle = '#667788';
+        ctx.lineWidth = 4;
+        
+        // Diagonals 1
+        for(let i=-256; i<512; i+=20) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i+256, 256);
+            ctx.stroke();
+        }
+        
+        // Diagonals 2
+        for(let i=-256; i<512; i+=20) {
+            ctx.beginPath();
+            ctx.moveTo(i, 256);
+            ctx.lineTo(i+256, 0);
+            ctx.stroke();
+        }
+        
+        // Subtle variations
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        for(let i=0; i<10; i++) {
+            ctx.fillRect(Math.random()*200, Math.random()*200, 50, 50);
+        }
+        
+        return new THREE.CanvasTexture(canvas);
+    }
+    
     function createMarbleTexture() {
         const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
         const ctx = canvas.getContext('2d');
@@ -1161,6 +1302,38 @@
         if(parent) parent.add(mesh); else scene.add(mesh);
         return mesh;
     }
+    
+    function createShrub(x, z) {
+        const grp = new THREE.Group();
+        grp.position.set(x, 0, z);
+        
+        // Pot
+        const potGeo = new THREE.CylinderGeometry(2.5, 2, 3, 16);
+        const pot = new THREE.Mesh(potGeo, new THREE.MeshLambertMaterial({color: 0x8B4513})); // Brown
+        pot.position.y = 1.5;
+        grp.add(pot);
+        
+        // Plant
+        const isTree = Math.random() > 0.5;
+        if (isTree) {
+            // Small Tree
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), new THREE.MeshLambertMaterial({color: 0x553311}));
+            trunk.position.y = 4.5;
+            grp.add(trunk);
+            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(3.5), new THREE.MeshLambertMaterial({color: 0x228B22}));
+            leaves.position.y = 8;
+            grp.add(leaves);
+        } else {
+            // Bush
+            const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(3), new THREE.MeshLambertMaterial({color: 0x006400}));
+            bush.position.y = 3.5;
+            grp.add(bush);
+        }
+        
+        // Add obstacle so people walk around it
+        obstacles.push({x: x, z: z, r: 3.5});
+        scene.add(grp);
+    }
 
     function createEnvironment() {
         const grassGeo = new THREE.PlaneGeometry(800, 800);
@@ -1190,14 +1363,46 @@
         
         createBlock(450, 1, 150, null, 0, -0.5, 50, null, floorTex);
         createBlock(450, 1, 300, 0x111111, 0, -2.0, -175);
+        
+        // DECORATIVE WALLS (Half Circles at Ends)
+        const wallTex = createCrossHatchTexture(); // UPDATED TEXTURE
+        const wallMat = new THREE.MeshLambertMaterial({map: wallTex, side: THREE.DoubleSide});
+        const wallGeo = new THREE.CircleGeometry(75, 32, 0, Math.PI); // Top half
+        
+        // Left End (-225)
+        const wallL = new THREE.Mesh(wallGeo, wallMat);
+        wallL.position.set(-225, 0, 50); // Center of floor depth roughly
+        wallL.rotation.y = Math.PI / 2;
+        scene.add(wallL);
+        
+        // Right End (225)
+        const wallR = new THREE.Mesh(wallGeo, wallMat);
+        wallR.position.set(225, 0, 50);
+        wallR.rotation.y = -Math.PI / 2;
+        scene.add(wallR);
+        
+        // SHRUBS (4 Corners)
+        createShrub(-210, -10);
+        createShrub(210, -10);
+        createShrub(-210, 110);
+        createShrub(210, 110);
 
         for(let i=0; i<6; i++) {
             const x = -100 + (i * 40);
+            // PLATFORM
             createBlock(20, 2, 250, C.platform, x, -1.0, -150);
+            // RAILS
             createBlock(1, 0.2, 250, 0x555555, x - 14, -1.9, -150); 
             createBlock(1, 0.2, 250, 0x555555, x - 18, -1.9, -150);
-            const trainGroup = new THREE.Group();
-            createTrain(x - 16, -1.0, -60, trainGroup); scene.add(trainGroup);
+            
+            // LADDER TRACKS (Sleepers)
+            const sleeperGroup = new THREE.Group();
+            for(let j=0; j<100; j++) { // Many sleepers
+                createBlock(6, 0.1, 0.5, 0x221100, x - 16, -2.0, -25 - (j * 2.5), sleeperGroup);
+            }
+            scene.add(sleeperGroup);
+            
+            // TRAINS ARE NOW SPAWNED DYNAMICALLY IN spawnTrains() TO FIX RESET BUG
             
             const sCanvas = document.createElement('canvas'); sCanvas.width=128; sCanvas.height=128;
             const sCtx = sCanvas.getContext('2d'); sCtx.fillStyle='#222'; sCtx.fillRect(0,0,128,128);
@@ -1218,11 +1423,6 @@
         createGenericShop(160, -20, "COMBS", 0x777777);
         
         // --- NEW FENCES LOGIC: PERPENDICULAR BETWEEN PLATFORMS ---
-        // Fences along Z = -25 (Edge of concourse).
-        // Gaps correspond to platform entrances. Platform centers: -100, -60, -20, 20, 60, 100
-        // Width 20 -> Gaps: [-110, -90], [-70, -50], [-30, -10], [10, 30], [50, 70], [90, 110]
-        // Fences go in the VOIDS between these gaps.
-        
         const gaps = [
             {s: -200, e: -110}, // Left of Plat 1
             {s: -90, e: -70},   // Between 1 & 2
@@ -1280,12 +1480,14 @@
         scene.add(group);
     }
 
-    function createTrain(x, y, zStart, parent) {
-        const col = C.trainColors[Math.floor(Math.random() * C.trainColors.length)];
+    function createTrain(x, y, zStart, parent, color) {
+        const col = color || C.trainColors[Math.floor(Math.random() * C.trainColors.length)];
         for(let i=0; i<5; i++) {
             const z = zStart - (i * 24);
             const car = new THREE.Group(); car.position.set(x, y + 2.5, z);
-            createBlock(3.8, 4.5, 22, col, 0, 0, 0, car); 
+            
+            createBlock(3.8, 4.5, 22, col, 0, 0, 0, car);
+            
             createBlock(3.9, 1.5, 20, 0x222222, 0, 0.5, 0, car); 
             createBlock(0.2, 3, 2, 0x000000, 2, -0.5, 5, car); 
             parent.add(car);
@@ -1346,6 +1548,8 @@
             // UPDATED: Full body person logic
             const staffGrp = new THREE.Group();
             staffGrp.position.set(0, 0, 0); 
+            // SPECIAL NAME FOR SHOOTABLE CHECK
+            staffGrp.name = "PERSON_ROOT";
             
             // Random Pink/Purple Shirt
             const shirtCols = [0xFFC0CB, 0xFF69B4, 0x800080, 0x9370DB, 0xDA70D6];
@@ -1519,16 +1723,46 @@
         });
     }
 
-    function drawBoard(lines) {
+    function drawBoard(lines, isScrolling) {
         boardCtx.fillStyle = '#000000'; boardCtx.fillRect(0,0,1024,256);
         boardCtx.font = 'bold 40px Courier New'; boardCtx.fillStyle = '#FF9900'; boardCtx.textAlign = 'left';
-        boardCtx.fillText("DEPARTURES", 20, 50); boardCtx.fillRect(20, 60, 984, 4);
-        for(let i=0; i<lines.length; i++) boardCtx.fillText(lines[i], 20, 110 + (i*50));
+        
+        if(isScrolling) {
+            // SCROLLING NEWS TICKER
+            boardCtx.fillText("NEWS UPDATE:", 20, 50); 
+            boardCtx.fillRect(20, 60, 984, 4);
+            boardCtx.font = 'bold 60px Courier New';
+            
+            // Construct ticker content if empty
+            if (!tickerContent) {
+                const football = "Latest News: Tottenham Hotspur win the Premier League in style with a 7-2 victory over Chelsea ... 50% off your first COMB with discount: I LOVE COMBS ... England Awarded 'Greyest' Country Award ... ";
+                // Add random comb facts
+                let extras = "";
+                for(let k=0; k<5; k++) {
+                    extras += COMB_TRIVIA[Math.floor(Math.random() * COMB_TRIVIA.length)] + " ... ";
+                }
+                tickerContent = football + extras;
+            }
+            
+            // Draw text at offset
+            boardCtx.fillText(tickerContent, 1024 - newsTickerOffset, 150);
+            
+            newsTickerOffset += 2.0; // Speed
+            if(newsTickerOffset > (tickerContent.length * 40) + 1024) newsTickerOffset = 0; 
+            
+        } else {
+            // STANDARD DEPARTURES
+            boardCtx.fillText("DEPARTURES", 20, 50); boardCtx.fillRect(20, 60, 984, 4);
+            for(let i=0; i<lines.length; i++) boardCtx.fillText(lines[i], 20, 110 + (i*50));
+        }
+        
         if(boardTexture) boardTexture.needsUpdate = true;
     }
 
     function createPerson(role, x, z) {
         const mesh = new THREE.Group(); mesh.position.set(x, 0, z);
+        mesh.name = "PERSON_ROOT"; // Tag for raycaster
+
         const isWorker = role === 'WORKER' || role === 'GUARD';
         let shirtCol = 0x333333; let shirtTex = null;
         if(isWorker) shirtCol = C.workerColor;
@@ -1692,6 +1926,31 @@
         });
     }
     
+    // NEW TRAIN SPAWNER FUNCTION to reset trains correctly
+    function spawnTrains() {
+        // Clear old trains
+        trains.forEach(t => scene.remove(t.mesh)); 
+        trains = [];
+        
+        for(let i=0; i<6; i++) {
+            const x = -100 + (i * 40);
+            const trainGroup = new THREE.Group();
+            // Create default train
+            createTrain(x - 16, -1.0, -60, trainGroup, C.trainColors[Math.floor(Math.random() * C.trainColors.length)]); 
+            scene.add(trainGroup);
+            
+            // Initialize random departure time (63-87s)
+            const depTime = 63 + Math.random() * 24;
+            
+            trains.push({
+                mesh: trainGroup,
+                departTime: depTime,
+                speed: 0,
+                hasDeparted: false
+            });
+        }
+    }
+    
     function createFeather(pos) {
         const f = createBlock(0.1, 0.01, 0.1, 0xFFFFFF, pos.x, pos.y, pos.z, null);
         // Special particles for feathers: Slowly falling, drifting
@@ -1734,6 +1993,9 @@
         particles.forEach(p => scene.remove(p.mesh)); particles = [];
         looseItems.forEach(i => scene.remove(i.mesh)); looseItems = [];
         
+        // Reset trains completely
+        spawnTrains();
+        
         obstacles = []; // Clear obstacles (rebuilt in buildStation if static, but shops are static)
         
         shopStaff = []; 
@@ -1746,6 +2008,9 @@
         gameState = 'READY_CHECK'; // Wait here
         targetObj = null;
         boardDataGenerated = false;
+        trainsDeparted = false;
+        newsTickerActive = false;
+        tickerContent = "";
 
         let camY = 50; if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
         camera.position.set(0, camY, 130); camera.lookAt(0,0,0); pitch = -0.4; yaw = 0;
@@ -1887,7 +2152,46 @@
              if(Math.random() < 0.25) { const idx = Math.floor(Math.random() * 6); const northDest = NORTHERN[Math.floor(Math.random()*NORTHERN.length)]; boardRows[idx] = `14:0${idx}  ${northDest.padEnd(10, ' ')} PLAT 9b`; }
              drawBoard(boardRows);
         }
+        
         if(gameTime > 24 && gameState === 'MINGLE') triggerRush();
+
+        // TRAIN DEPARTURE EVENT - CHECK EVERY FRAME
+        // If any train is due to depart
+        if(!trainsDeparted) {
+            // Check if we should start the sequence? No, they depart individually
+            // But we need to switch the board at some point.
+            // Let's switch board when the FIRST train starts moving.
+        }
+        
+        trains.forEach(t => {
+            if(gameTime > t.departTime && !t.hasDeparted) {
+                // If this is the first train to move, activate ticker
+                if (!newsTickerActive) {
+                    newsTickerActive = true;
+                    trainsDeparted = true; 
+                }
+                
+                t.speed += dt * 5.0; // Accelerate
+                t.mesh.position.z -= t.speed * dt * 10; // Move away (-Z)
+                
+                // Fade out logic
+                if(t.mesh.position.z < -250) { 
+                    t.mesh.traverse(child => {
+                        if(child.isMesh && child.material) {
+                            child.material.transparent = true;
+                            // Simple linear fade
+                            let opacity = 1.0 - (Math.abs(t.mesh.position.z + 250) / 150);
+                            child.material.opacity = Math.max(0, opacity);
+                        }
+                    });
+                }
+                
+                if(t.mesh.position.z < -500) {
+                    t.hasDeparted = true;
+                    scene.remove(t.mesh);
+                }
+            }
+        });
     }
 
     function createParticle(x, y, z, col, speed) {
@@ -1930,6 +2234,11 @@
         if(timerRunning) {
             const now = performance.now(); const elapsed = (now - timerStartTime) / 1000;
             document.getElementById('timer-ui').innerText = elapsed.toFixed(3);
+        }
+        
+        // BOARD ANIMATION LOOP
+        if(newsTickerActive) {
+            drawBoard([], true);
         }
 
         if(gameState === 'BLEEDING') {
@@ -2007,7 +2316,7 @@
         updateLogic(dt);
         updateJamboni(dt); // Update the cleaner
         updateShopStaff(dt); // Update shopkeepers
-
+        
         const aimSpeed = isZoomed ? 0.2 * dt : 1.0 * dt;
         if(keyState['w'] || keyState['arrowup']) pitch += aimSpeed; if(keyState['s'] || keyState['arrowdown']) pitch -= aimSpeed;
         if(keyState['a'] || keyState['arrowleft']) yaw += aimSpeed; if(keyState['d'] || keyState['arrowright']) yaw -= aimSpeed;
@@ -2123,39 +2432,42 @@
             tracer.position.copy(start); tracer.lookAt(end); scene.add(tracer); bullets.push({mesh:tracer, age:0});
 
             // SMART TARGETING FIX:
-            // Instead of just taking the first intersection, we gather all civilians hit.
-            // If the Target is hit within a very small distance of the FIRST hit (simulating hitting through a shoulder/clipping), 
-            // we prioritize the Target.
-            
             let firstCivHit = null;
             let targetHitDist = -1;
 
             for(let hit of intersects) {
                 let obj = hit.object; 
-                let safeguard = 0; while(obj.parent && obj.parent.type !== 'Scene' && safeguard < 100) { obj = obj.parent; safeguard++; }
+                // TRAVERSE UP TO ROOT OBJECT
+                // Stop at Scene, or specific roots like "PERSON_ROOT"
+                let safeguard = 0; 
+                while(obj.parent && obj.parent.type !== 'Scene' && obj.name !== 'PERSON_ROOT' && safeguard < 100) { 
+                    obj = obj.parent; 
+                    safeguard++; 
+                }
                 
-                const civ = civilians.find(c => c.mesh === obj); 
+                // CHECK IF OBJECT IS A CIVILIAN OR SHOP STAFF
+                let civ = civilians.find(c => c.mesh === obj); 
+                
+                // IF NOT IN CIVILIAN LIST, CHECK SHOP STAFF
+                if(!civ) {
+                    const staff = shopStaff.find(s => s.mesh === obj);
+                    if(staff) civ = { mesh: staff.mesh, role: 'STATIC' }; // Treat staff as static civ for hit logic
+                }
+
                 if(civ) {
-                    // Record the very first civilian hit
                     if(!firstCivHit) firstCivHit = { civ: civ, dist: hit.distance };
-                    
-                    // If we found the target in the pile of hits, record distance
-                    if(civ === targetObj) {
-                        targetHitDist = hit.distance;
-                    }
+                    if(civ === targetObj) targetHitDist = hit.distance;
                 }
             }
 
             // Decision Logic:
             if(targetHitDist !== -1 && firstCivHit) {
-                // If Target was hit, and is within 2.5 units of the first hit (penetration/clipping tolerance), give the kill.
                 if(targetHitDist <= firstCivHit.dist + 2.5) {
                     processHit(targetObj);
                     return;
                 }
             }
 
-            // Otherwise, hit the first person found
             if(firstCivHit) {
                 processHit(firstCivHit.civ);
             }
