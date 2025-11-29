@@ -2112,11 +2112,19 @@
             
             // Construct ticker content if empty
             if (!tickerContent) {
-                const football = "Latest News: Tottenham Hotspur win the Premier League in style with a 7-2 victory over Chelsea ... 50% off your first COMB with discount: I LOVE COMBS ... England Awarded 'Greyest' Country Award ... ";
+                const headlines = [
+                    "Tottenham Hotspur win the Premier League in style with a 7-2 victory over Chelsea",
+                    "Tottenham celebrate first league win for 66 years",
+                    "Spurs finally lift the trophy in dramatic final day scenes",
+                    "Miracle in North London as Tottenham clinch the title"
+                ];
+                const rndHead = headlines[Math.floor(Math.random() * headlines.length)];
+                
+                const football = `BREAKING NEWS: ${rndHead} *** 50% off your first COMB with discount: I LOVE COMBS *** England Awarded 'Greyest' Country Award *** `;
                 // Add random comb facts
                 let extras = "";
                 for(let k=0; k<5; k++) {
-                    extras += COMB_TRIVIA[Math.floor(Math.random() * COMB_TRIVIA.length)] + " ... ";
+                    extras += COMB_TRIVIA[Math.floor(Math.random() * COMB_TRIVIA.length)] + " *** COMBS! *** ";
                 }
                 tickerContent = football + extras;
             }
