@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -223,7 +224,7 @@
             transition: bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1); z-index: 50;
         }
         .intel-header { font-family: 'Montserrat', sans-serif; font-size: 10px; color: #FFCC00; letter-spacing: 3px; margin-bottom: 5px; }
-        .intel-body { font-size: 22px; font-weight: bold; color: #fff; font-family: 'Courier Prime', monospace; }
+        .intel-body { font-size: 18px; font-weight: bold; color: #fff; font-family: 'Courier Prime', monospace; }
 
         /* --- MENUS --- */
         #menu {
@@ -900,101 +901,102 @@
     const NORTHERN = ["GLASGOW", "EDINBURGH", "ABERDEEN", "INVERNESS", "NEWCASTLE", "DURHAM", "MANCHESTER", "LIVERPOOL"];
 
     // COMB FACTS & REVIEWS (TVGoHome Style)
+    // AMENDMENT: Changed single quotes to double quotes for facts
     const COMB_TRIVIA = [
         "FACT: The first comb was made of frozen butter.",
-        "REVIEW: 'It combed my soup perfectly.' - G. Ramsey",
+        "REVIEW: \"It combed my soup perfectly.\" - G. Ramsey",
         "FACT: Napoleon used a comb to signal retreat.",
-        "REVIEW: 'Too pointy. 1 star.' - Anon",
+        "REVIEW: \"Too pointy. 1 star.\" - Anon",
         "FACT: Combs were illegal in Devon until 1984.",
-        "REVIEW: 'My hamster loves the grip.' - P. Daniels",
+        "REVIEW: \"My hamster loves the grip.\" - P. Daniels",
         "FACT: A comb cannot float in mercury.",
-        "REVIEW: 'Don't shop at COMBS, terrible service.' - Jeff in Stoke",
+        "REVIEW: \"Don't shop at COMBS, terrible service.\" - Jeff in Stoke",
         "FACT: In 1204, a comb was elected Mayor of Norwich.",
-        "REVIEW: 'It smells of old trams.' - B. Johnson",
+        "REVIEW: \"It smells of old trams.\" - B. Johnson",
         "FACT: The moon is shaped like a very old comb.",
-        "REVIEW: 'Instructions unclear, combed my toaster.'",
+        "REVIEW: \"Instructions unclear, combed my toaster.\"",
         "FACT: Queen Victoria owned 400 invisible combs.",
-        "REVIEW: 'Does not work on bald eagles.' - USA_Fan",
+        "REVIEW: \"Does not work on bald eagles.\" - USA_Fan",
         "FACT: Comb technology peaked in the Bronze Age.",
-        "REVIEW: 'Refund refused. Sad.' - Karen1975",
-        "FACT: 'Comb' is short for 'Combustable'.",
-        "REVIEW: 'Perfect for scratching my car.' - D. Clarkson",
+        "REVIEW: \"Refund refused. Sad.\" - Karen1975",
+        "FACT: \"Comb\" is short for \"Combustable\".",
+        "REVIEW: \"Perfect for scratching my car.\" - D. Clarkson",
         "FACT: Every 3rd comb sold is haunted.",
-        "REVIEW: 'It whispers to me at night.' - SpookySteve",
+        "REVIEW: \"It whispers to me at night.\" - SpookySteve",
         "FACT: Combs can be used as primitive radios.",
-        "REVIEW: 'Only picks up Radio 4.' - T. May",
+        "REVIEW: \"Only picks up Radio 4.\" - T. May",
         "FACT: A comb has never killed a swan.",
-        "REVIEW: 'Too many teeth, not enough gum.'",
-        "FACT: The collective noun for combs is a 'Tangle'.",
-        "REVIEW: 'Made of cheese? No. Disappointed.'",
+        "REVIEW: \"Too many teeth, not enough gum.\"",
+        "FACT: The collective noun for combs is a \"Tangle\".",
+        "REVIEW: \"Made of cheese? No. Disappointed.\"",
         "FACT: Julius Caesar invented the parting.",
-        "REVIEW: 'Sticky. Why is it sticky?'",
+        "REVIEW: \"Sticky. Why is it sticky?\"",
         "FACT: Combs are banned in space.",
-        "REVIEW: 'Arrived broken. Fixed with tape. 3/10'",
+        "REVIEW: \"Arrived broken. Fixed with tape. 3/10\"",
         "FACT: The world's largest comb is in Wigan.",
-        "REVIEW: 'Not suitable for heavy gravel.'",
+        "REVIEW: \"Not suitable for heavy gravel.\"",
         "FACT: Ancient Greeks combed their salads.",
-        "REVIEW: 'Expensive for a piece of plastic.'",
+        "REVIEW: \"Expensive for a piece of plastic.\"",
         "FACT: A comb a day keeps the barber away.",
-        "REVIEW: 'My cat ate it.'",
+        "REVIEW: \"My cat ate it.\"",
         "FACT: Combs were once currency in Wales.",
-        "REVIEW: 'Too loud when dropped.'",
+        "REVIEW: \"Too loud when dropped.\"",
         "FACT: The plastic comb was invented by accident.",
-        "REVIEW: 'Does not comb thoughts. False advertising.'",
+        "REVIEW: \"Does not comb thoughts. False advertising.\"",
         "FACT: Vikings used combs to navigate.",
-        "REVIEW: 'Slippery when wet.'",
+        "REVIEW: \"Slippery when wet.\"",
         "FACT: A comb has 42 teeth on average.",
-        "REVIEW: 'Lost it immediately.'",
+        "REVIEW: \"Lost it immediately.\"",
         "FACT: Combs are afraid of heights.",
-        "REVIEW: 'Color did not match my aura.'",
+        "REVIEW: \"Color did not match my aura.\"",
         "FACT: You can play a comb like a kazoo.",
-        "REVIEW: 'Tastes like purple.'",
+        "REVIEW: \"Tastes like purple.\"",
         "FACT: The Titanic had a dedicated comb room.",
-        "REVIEW: 'Too shiny.'",
+        "REVIEW: \"Too shiny.\"",
         "FACT: Combs were originally square.",
-        "REVIEW: 'Not round enough.'",
+        "REVIEW: \"Not round enough.\"",
         "FACT: A broken comb signifies rain.",
-        "REVIEW: 'It bit me.'",
+        "REVIEW: \"It bit me.\"",
         "FACT: Combs dissolve in vinegar.",
-        "REVIEW: 'Why is it vibrating?'",
+        "REVIEW: \"Why is it vibrating?\"",
         "FACT: The Queen combs her corgis daily.",
-        "REVIEW: 'Good for scraping toast.'",
+        "REVIEW: \"Good for scraping toast.\"",
         "FACT: Combs are 90% air.",
-        "REVIEW: 'Heavier than it looks.'",
+        "REVIEW: \"Heavier than it looks.\"",
         "FACT: Never lend a comb to a ghost.",
-        "REVIEW: 'It glows in the dark. Helpful.'",
+        "REVIEW: \"It glows in the dark. Helpful.\"",
         "FACT: Combs can survive a nuclear blast.",
-        "REVIEW: 'My dog hates it.'",
-        "FACT: The word 'Comb' is 4 letters long.",
-        "REVIEW: 'I ordered a brush. This is a comb.'",
+        "REVIEW: \"My dog hates it.\"",
+        "FACT: The word \"Comb\" is 4 letters long.",
+        "REVIEW: \"I ordered a brush. This is a comb.\"",
         "FACT: Combs amplify silence.",
-        "REVIEW: 'Works on llamas.'",
+        "REVIEW: \"Works on llamas.\"",
         "FACT: There is no such thing as a left-handed comb.",
-        "REVIEW: 'I am left handed. It exploded.'",
+        "REVIEW: \"I am left handed. It exploded.\"",
         "FACT: Combs are magnetic to socks.",
-        "REVIEW: 'Found in my soup.'",
+        "REVIEW: \"Found in my soup.\"",
         "FACT: A comb is a ladder for fleas.",
-        "REVIEW: 'Too extravagant.'",
+        "REVIEW: \"Too extravagant.\"",
         "FACT: Combs are allergic to jazz.",
-        "REVIEW: 'It sings.'",
+        "REVIEW: \"It sings.\"",
         "FACT: A comb is just a skeleton of a brush.",
-        "REVIEW: 'Too boney.'",
+        "REVIEW: \"Too boney.\"",
         "FACT: Combs hate water.",
-        "REVIEW: 'It sank.'",
+        "REVIEW: \"It sank.\"",
         "FACT: Every comb has a name.",
-        "REVIEW: 'Mine is called Steve.'",
+        "REVIEW: \"Mine is called Steve.\"",
         "FACT: Combs can feel love.",
-        "REVIEW: 'It judged me.'",
+        "REVIEW: \"It judged me.\"",
         "FACT: A comb is a mirror for hair.",
-        "REVIEW: 'Too reflective.'",
+        "REVIEW: \"Too reflective.\"",
         "FACT: Combs are older than time.",
-        "REVIEW: 'Dusty.'",
+        "REVIEW: \"Dusty.\"",
         "FACT: A comb is a key to a lock of hair.",
-        "REVIEW: 'Did not unlock my door.'",
+        "REVIEW: \"Did not unlock my door.\"",
         "FACT: Combs are strictly non-edible.",
-        "REVIEW: 'Crunchy.'",
+        "REVIEW: \"Crunchy.\"",
         "FACT: A comb is a saw for air.",
-        "REVIEW: 'Too sharp.'"
+        "REVIEW: \"Too sharp.\""
     ];
 
     // WIN PHRASES
@@ -1017,6 +1019,25 @@
     let gameMode = 'STREAK'; 
     let gameTime = 0;
     let bleedTimer = 0;
+    
+    // Arrival Logic Variables
+    let arrivalPhase = 'WAITING'; // WAITING, ARRIVING, BOARDING_OFF, COMPLETE
+    let arrivalStartTime = 0;
+    let arrivalTrainData = [];
+    let arrivingTrains = [];
+    let greenTargetAssigned = false;
+    let greenTargetSpawned = false;
+    let lateDepartureTriggered = false;
+    let lateDepartureTime = 0;
+    
+    // Dynamic Package Color
+    const PACKAGE_COLORS = {
+        NEON_GREEN: 0x39FF14,
+        WHITE: 0xFFFFFF,
+        LIGHT_BLUE: 0xADD8E6
+    };
+    let currentPackageType = 'NEON_GREEN'; 
+    let currentPackageColor = 0x39FF14;
     
     // Timed Mode Logic
     let timerRunning = false;
@@ -1731,6 +1752,33 @@
         obstacles.push({x: x, z: z, r: 3.5});
         scene.add(grp);
     }
+    
+    function createSignpost() {
+        const grp = new THREE.Group();
+        // Slightly off centre by random 4% (5-15 units)
+        const xOff = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 10);
+        // Between centre (Z=0) and sniper (Z=130), around Z=60
+        grp.position.set(xOff, 0, 60);
+
+        // Pole: White column, ~6.5 high
+        createBlock(0.6, 6.5, 0.6, 0xEEEEEE, 0, 3.25, 0, grp);
+        // Base: Metal
+        createBlock(1.2, 0.5, 1.2, 0x555555, 0, 0.25, 0, grp);
+        
+        // Signs: 4 way
+        const yTop = 6.0;
+        // Sign 1 (Z+)
+        createBlock(3.0, 0.8, 0.2, 0xFFFFFF, 0, yTop, 0.5, grp);
+        // Sign 2 (Z-)
+        createBlock(3.0, 0.8, 0.2, 0xFFFFFF, 0, yTop, -0.5, grp);
+        // Sign 3 (X+)
+        createBlock(0.2, 0.8, 3.0, 0xFFFFFF, 0.5, yTop, 0, grp);
+        // Sign 4 (X-)
+        createBlock(0.2, 0.8, 3.0, 0xFFFFFF, -0.5, yTop, 0, grp);
+        
+        obstacles.push({x: xOff, z: 60, r: 2.0});
+        scene.add(grp);
+    }
 
     function createEnvironment() {
         const grassGeo = new THREE.PlaneGeometry(800, 800);
@@ -1841,6 +1889,8 @@
         const roofTex = createGratedTexture();
         const roofMat = new THREE.MeshBasicMaterial({ map: roofTex, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
         const roof = new THREE.Mesh(roofGeo, roofMat); roof.rotation.z = Math.PI / 2; roof.position.set(0, 90, -50); scene.add(roof);
+        
+        createSignpost();
 
         const boardGroup = new THREE.Group(); boardGroup.position.set(0, 25, -25);
         createBlock(140, 20, 2, 0x111111, 0, 0, 0, boardGroup);
@@ -1877,18 +1927,48 @@
         scene.add(group);
     }
 
-    function createTrain(x, y, zStart, parent, color) {
+    function createTrain(x, y, zStart, parent, color, options) {
         const col = color || C.trainColors[Math.floor(Math.random() * C.trainColors.length)];
+        const isStripe = options && options.isStripe;
+        const isSiren = options && options.isSiren;
+        
+        // Special Siren Train Mesh to store reference
+        let sirenMesh = null;
+
         for(let i=0; i<5; i++) {
             const z = zStart - (i * 24);
             const car = new THREE.Group(); car.position.set(x, y + 2.5, z);
             
+            // Main Body
             createBlock(3.8, 4.5, 22, col, 0, 0, 0, car);
+            
+            // Purple Stripe Logic
+            if(isStripe) {
+                // Horizontal stripe, dark purple, below center
+                // Body is 4.5 high. Center y=0 relative to car. Below center approx y=-0.5
+                // Full length 22. slightly wider than 3.8 to show
+                createBlock(3.9, 0.4, 22, 0x4B0082, 0, -0.5, 0, car);
+            }
+
+            // Siren Logic (Only on first car i==0, front)
+            if(isSiren && i === 0) {
+                // Front roof. Car y=0 is center. Top is y=2.25.
+                // Front is z=+11.
+                // Siren mesh
+                const siren = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.8, 0.6, 0.8),
+                    new THREE.MeshLambertMaterial({ color: 0xFF0000, emissive: 0x000000 })
+                );
+                siren.position.set(0, 2.6, 8); // Top, near front
+                car.add(siren);
+                sirenMesh = siren; // Keep ref logic
+            }
             
             createBlock(3.9, 1.5, 20, 0x222222, 0, 0.5, 0, car); 
             createBlock(0.2, 3, 2, 0x000000, 2, -0.5, 5, car); 
             parent.add(car);
         }
+        return sirenMesh;
     }
 
     // Helper to get skin color
@@ -2120,10 +2200,14 @@
                 ];
                 const rndHead = headlines[Math.floor(Math.random() * headlines.length)];
                 
-                const football = `BREAKING NEWS: ${rndHead} *** 50% off your first COMB with discount: I LOVE COMBS *** England Awarded 'Greyest' Country Award *** `;
-                // Add random comb facts
+                const football = `BREAKING NEWS: ${rndHead} *** 50% off your first COMB with discount: I LOVE COMBS *** England Awarded "Greyest" Country Award *** `;
+                // Add random comb facts - AMENDED to use 4 loops instead of 5
                 let extras = "";
-                for(let k=0; k<5; k++) {
+                for(let k=0; k<4; k++) {
+                    // Add random chance for Nice:Clothes advert
+                    if(Math.random() < 0.25) {
+                        extras += "Nice:Clothes *All*Ages*4*All*Wages* *** ";
+                    }
                     extras += COMB_TRIVIA[Math.floor(Math.random() * COMB_TRIVIA.length)] + " *** COMBS! *** ";
                 }
                 tickerContent = football + extras;
@@ -2358,6 +2442,135 @@
             isFeather: true
         });
     }
+    
+    // --- ARRIVAL LOGIC HELPERS ---
+    
+    function initArrivalSequence() {
+        // Updated Window: 80s + random (was 110s) - bringing forward by 5s base, but start sooner overall
+        arrivalStartTime = 80 + Math.random() * 20; 
+        arrivalPhase = 'WAITING';
+        arrivalTrainData = [];
+        arrivingTrains = [];
+        greenTargetAssigned = false;
+        greenTargetSpawned = false;
+        lateDepartureTriggered = false;
+        
+        // Pick Random Package Color for Act 2
+        const types = ['NEON_GREEN', 'WHITE', 'LIGHT_BLUE'];
+        currentPackageType = types[Math.floor(Math.random() * types.length)];
+        currentPackageColor = PACKAGE_COLORS[currentPackageType];
+        
+        // Generate train types for 6 platforms
+        // One is Sand/Siren, One is Purple Stripe, Rest random standard
+        let trainTypes = [
+            { type: 'SIREN', color: 0xE6D089 }, 
+            { type: 'STRIPE', color: 0xAAAAAA }, 
+            { type: 'STD', color: null }, { type: 'STD', color: null }, { type: 'STD', color: null }, { type: 'STD', color: null }
+        ];
+        
+        // Shuffle types
+        for(let i=trainTypes.length-1; i>0; i--) {
+            const j = Math.floor(Math.random() * (i+1));
+            [trainTypes[i], trainTypes[j]] = [trainTypes[j], trainTypes[i]];
+        }
+        
+        // Assign delays (0 to 37 seconds)
+        for(let i=0; i<6; i++) {
+            arrivalTrainData.push({
+                platformIdx: i,
+                delay: Math.random() * 37,
+                type: trainTypes[i].type,
+                color: trainTypes[i].color,
+                spawned: false,
+                passengerCount: Math.floor(1 + Math.random() * 89),
+                passengerTimer: 0,
+                passengerTotalTime: 15.0, // Spawn over 15s
+                passengersSpawned: 0,
+                targetZ: -60 + (Math.random() * 25) // Store random stop point per train (-60 to -35)
+            });
+        }
+    }
+    
+    function spawnArrivingPassenger(train, isGreenTarget) {
+        // Spawn passenger at train door location (roughly center Z of train car, X offset)
+        // Train X is -100 + (train.platformIdx * 40) - 13.5 (Updated offset logic)
+        // Platform X is -100 + (train.platformIdx * 40)
+        
+        const platX = -100 + (train.platformIdx * 40);
+        const trainX = platX - 13.5; 
+        
+        // Z random along train length (-60 is front)
+        const z = -60 - (Math.random() * 80); 
+        
+        // Role
+        let role = 'CIV';
+        if(isGreenTarget) role = 'GREEN_TARGET';
+        
+        const mesh = createPerson(role, trainX, z);
+        
+        // Add Package if Target
+        if(role === 'GREEN_TARGET') {
+            const pkg = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.15), new THREE.MeshBasicMaterial({color: currentPackageColor})); 
+            pkg.position.set(0.6, 1.5, 0.3); 
+            mesh.add(pkg);
+        }
+        
+        // Also 10% Luggage chance for arrivals (if not target)
+        else if(Math.random() < 0.10) {
+            const lug = new THREE.Group(); lug.name = "LUGGAGE"; 
+            createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
+            lug.position.set(0.8, 0, 0.5); 
+            mesh.add(lug);
+        }
+        
+        // WAYPOINTS
+        const waypoints = [];
+        
+        // 1. Walk diagonally onto platform (Randomized Width)
+        // Platform X is platX. Add random +/- 8 units width usage.
+        const walkX = platX + (Math.random() - 0.5) * 16;
+        
+        waypoints.push(new THREE.Vector3(walkX, 0, z + 5)); // Step out
+
+        // 2. Walk forward towards Concourse Edge using the randomized lane
+        waypoints.push(new THREE.Vector3(walkX, 0, -30));
+        
+        // 3. Concourse Entry (Randomized "Rough Area" instead of single point)
+        // Concourse entry around Z = -10 to 0
+        // Spread X across width (-100 to 100) to avoid single file
+        const entryX = (Math.random() - 0.5) * 200; 
+        waypoints.push(new THREE.Vector3(entryX, 0, -5));
+        
+        // 4. Center Concourse (Randomized)
+        // Z = 20 to 50
+        const centerX = (Math.random() - 0.5) * 180;
+        const centerZ = 20 + Math.random() * 30;
+        waypoints.push(new THREE.Vector3(centerX, 0, centerZ));
+        
+        // 5. Shop Targets / Exit Points
+        const shops = [
+            {x: -160, z: 10}, {x: 160, z: -20}, {x: -160, z: 40}, {x: 160, z: 40}
+        ];
+        const shop = shops[Math.floor(Math.random() * shops.length)];
+        waypoints.push(new THREE.Vector3(shop.x, 0, shop.z));
+        
+        // 6. Fade Out Point
+        const exitX = shop.x > 0 ? 250 : -250;
+        waypoints.push(new THREE.Vector3(exitX, 0, shop.z));
+
+        const civ = {
+            mesh: mesh,
+            role: role,
+            state: 'EXITING', // Special state for update logic
+            waypoints: waypoints,
+            speed: 0.02 + Math.random() * 0.035, // More varied speeds (was 0.015 variance)
+            sway: Math.random() * 100,
+            opacity: 1.0,
+            hasTriggeredAlert: false // For delayed phone alert
+        };
+        
+        civilians.push(civ);
+    }
 
     // --- LOGIC ---
     
@@ -2402,6 +2615,7 @@
         confetti.forEach(c => scene.remove(c.mesh)); confetti = [];
         particles.forEach(p => scene.remove(p.mesh)); particles = [];
         looseItems.forEach(i => scene.remove(i.mesh)); looseItems = [];
+        arrivingTrains.forEach(t => scene.remove(t.mesh)); arrivingTrains = [];
         
         // Reset trains completely
         spawnTrains();
@@ -2421,6 +2635,9 @@
         trainsDeparted = false;
         newsTickerActive = false;
         tickerContent = "";
+        
+        // Init Arrival Tracking
+        initArrivalSequence();
 
         targetTown = DESTINATIONS[Math.floor(Math.random() * DESTINATIONS.length)];
         targetPlatform = Math.floor(Math.random() * 6); 
@@ -2661,6 +2878,158 @@
                 newsTickerActive = true;
             }
         }
+        
+                // --- SECOND ACT: ARRIVAL SEQUENCE ---
+        if(gameTime > arrivalStartTime) {
+            // Check through scheduled arrivals
+            arrivalTrainData.forEach((data) => {
+                const triggerTime = arrivalStartTime + data.delay;
+                
+                // 1. Spawn Train Object offscreen
+                if(gameTime > triggerTime && !data.spawned) {
+                    data.spawned = true;
+                    const x = -100 + (data.platformIdx * 40);
+                    const trainGrp = new THREE.Group();
+                    
+                    // CLOSER PARKING: 
+                    // Previously offset was -16. Now updated logic uses -13.5 in createTrain and spawnArrivingPassenger
+                    // createTrain expects platform offset.
+                    // IMPORTANT: zStart must be 0 here so that trainGrp.position.z correctly represents the front of the train in world space.
+                    const sirenMesh = createTrain(x - 13.5, -1.0, 0, trainGrp, data.color, {
+                        isStripe: (data.type === 'STRIPE'),
+                        isSiren: (data.type === 'SIREN')
+                    });
+                    
+                    // NEW PHYSICS: Spawn closer.
+                    // If target Z is ~-30, spawn ~-110.
+                    // Store randomized target
+                    trainGrp.position.z = data.targetZ - 80; // Start 80 units away (visible but back)
+                    
+                    scene.add(trainGrp);
+                    arrivingTrains.push({
+                        mesh: trainGrp,
+                        data: data,
+                        atStation: false,
+                        speed: 40.0, // Initial high approach speed
+                        sirenMesh: sirenMesh, // Reference for flashing
+                        stationTimer: 0 // Timer for door delay
+                    });
+                }
+            });
+            
+            // 2. Move Arrival Trains
+            let allArrived = true;
+            let anyArrived = false;
+            arrivingTrains.forEach(t => {
+                // Flash Siren Logic
+                if(t.data.type === 'SIREN' && t.sirenMesh) {
+                    // Flash interval based on gameTime
+                    const val = Math.sin(gameTime * 20); // Fast flash
+                    if(val > 0) t.sirenMesh.material.emissive.setHex(0xFF0000);
+                    else t.sirenMesh.material.emissive.setHex(0x000000);
+                }
+
+                if(!t.atStation) {
+                    allArrived = false;
+                    
+                    // REVERSE DEPARTURE PHYSICS with LATE BRAKING
+                    const dist = t.data.targetZ - t.mesh.position.z;
+                    
+                    if(dist < 0.2) {
+                        t.mesh.position.z = t.data.targetZ;
+                        t.speed = 0;
+                        t.atStation = true;
+                    } else {
+                        // Late Deceleration Logic
+                        // Maintain high speed until dist < 30
+                        let targetSpeed = 0;
+                        if(dist > 30) targetSpeed = 35.0; // Cruise fast
+                        else if (dist > 5) targetSpeed = 15.0; // Hard brake
+                        else targetSpeed = 2.0; // Roll last bit
+
+                        // Lerp actual speed to desired (responsiveness)
+                        t.speed += (targetSpeed - t.speed) * 3.0 * dt;
+                        
+                        t.mesh.position.z += t.speed * dt;
+                        
+                        // Simple Fade In based on dist from start
+                        // If it started at targetZ - 80...
+                        // Just ensure opacity is 1.0 (spawned close enough to be solid or fading quickly)
+                        t.mesh.traverse(child => {
+                             if (child.isMesh && child.material) {
+                                 // Fade in over first 10 units of travel
+                                 const travel = (t.mesh.position.z - (t.data.targetZ - 80));
+                                 let opacity = Math.min(1.0, travel / 20.0);
+                                 // Or just maximize it since user wants them "arriving quickly"
+                                 child.material.transparent = true;
+                                 child.material.opacity = Math.max(opacity, 0.1);
+                             }
+                        });
+                    }
+                } else {
+                    anyArrived = true;
+                    // 3. Spawn Passengers logic
+                    // ADDED DOOR DELAY: Wait 15s after stopping
+                    t.stationTimer += dt;
+                    
+                    if(t.stationTimer > 15.0) {
+                        t.data.passengerTimer += dt;
+                        const expected = Math.floor((t.data.passengerTimer / t.data.passengerTotalTime) * t.data.passengerCount);
+                        const toSpawn = Math.min(expected - t.data.passengersSpawned, t.data.passengerCount - t.data.passengersSpawned);
+                        
+                        if(toSpawn > 0) {
+                            for(let k=0; k<toSpawn; k++) {
+                                // DETERMINE IF THIS IS THE GREEN TARGET
+                                let isGreen = false;
+                                if(!greenTargetAssigned) {
+                                    // Simple chance per spawn to trigger, must ensure it happens eventually though
+                                    // Let's just do random chance, but force it if last passenger
+                                    const remaining = t.data.passengerCount - t.data.passengersSpawned - k;
+                                    if(Math.random() < 0.05 || (arrivalPhase === 'ARRIVING' && remaining === 1)) {
+                                        isGreen = true;
+                                        greenTargetAssigned = true;
+                                        greenTargetSpawned = true;
+                                    }
+                                }
+                                spawnArrivingPassenger(t.data, isGreen);
+                                t.data.passengersSpawned++;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            if(allArrived && arrivingTrains.length === 6) {
+                if(!lateDepartureTriggered) {
+                     lateDepartureTriggered = true;
+                     // Set departure 38-46s from now
+                     lateDepartureTime = gameTime + 38 + Math.random() * 8;
+                }
+            }
+            
+            // 4. Late Departure Logic
+            if(lateDepartureTriggered && gameTime > lateDepartureTime) {
+                // Pick random arrived train to leave
+                // We use a flag inside arrivingTrains to track if it's leaving
+                const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving);
+                if(sitting.length > 0) {
+                     // Pick one and mark it leaving
+                     // But we only want ONE to leave. So check if any are already leaving.
+                     const leaving = arrivingTrains.find(t => t.isLeaving);
+                     if(!leaving) {
+                         const t = sitting[Math.floor(Math.random()*sitting.length)];
+                         t.isLeaving = true;
+                     }
+                }
+                
+                // Move leaving trains
+                arrivingTrains.forEach(t => {
+                    if(t.isLeaving) {
+                        t.mesh.position.z -= 4.0 * dt; // Very slow departure
+                    }
+                });
+            }
+        }
     }
 
     function createParticle(x, y, z, col, speed) {
@@ -2773,7 +3142,7 @@
         if(gameState === 'BLEEDING') {
             bleedTimer += dt;
             if(victimRef && victimRef.mesh) {
-                if(victimRef.role === 'TARGET' || victimRef.role === 'COURIER') {
+                if(victimRef.role === 'TARGET' || victimRef.role === 'COURIER' || victimRef.role === 'GREEN_TARGET') {
                     if(victimRef.mesh.rotation.x > -Math.PI/2) { victimRef.mesh.rotation.x -= dt * 5.0; victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); } 
                     else if(bleedTimer > 1.0 && victimRef.mesh.position.y < 15) { victimRef.mesh.position.y += dt * 2.0; victimRef.mesh.rotation.y = 0; }
                 } else {
@@ -2850,8 +3219,59 @@
         if(keyState['w'] || keyState['arrowup']) pitch += aimSpeed; if(keyState['s'] || keyState['arrowdown']) pitch -= aimSpeed;
         if(keyState['a'] || keyState['arrowleft']) yaw += aimSpeed; if(keyState['d'] || keyState['arrowright']) yaw -= aimSpeed;
         pitch = Math.max(-1.2, Math.min(0.2, pitch)); camera.rotation.x = pitch; camera.rotation.y = yaw;
-
-        civilians.forEach(c => {
+        
+        // --- LOOP CIVILIANS (Modified for Fade Out & Phone Trigger) ---
+        for(let i=civilians.length-1; i>=0; i--) {
+            const c = civilians[i];
+            
+            // FADE OUT LOGIC FOR EXITING PASSENGERS
+            if(c.state === 'EXITING' && c.waypoints.length === 0) {
+                // At final waypoint, fade out
+                c.opacity -= dt * 1.0;
+                if(c.opacity <= 0) {
+                    scene.remove(c.mesh);
+                    civilians.splice(i,1);
+                    continue;
+                } else {
+                    // Traverse children to set opacity
+                    c.mesh.traverse(child => {
+                        if(child.isMesh) {
+                            child.material.transparent = true;
+                            child.material.opacity = c.opacity;
+                        }
+                    });
+                }
+            }
+            
+            // ALERT TRIGGER LOGIC FOR GREEN TARGET
+            if(c.role === 'GREEN_TARGET' && !c.hasTriggeredAlert) {
+                // Check position Z
+                if(c.mesh.position.z > -20) {
+                     c.hasTriggeredAlert = true;
+                     // DELAY ALERT 1.5s
+                     setTimeout(() => {
+                         // Only if game still active
+                         if(gameState !== 'ENDED' && gameState !== 'BLEEDING') {
+                            const overlay = document.getElementById('phone-overlay');
+                            const body = document.getElementById('phone-text');
+                            overlay.style.bottom = "20px";
+                            overlay.dataset.phase = "99"; 
+                            
+                            document.querySelector('.intel-header').innerText = "PRIORITY ALERT";
+                            document.querySelector('.intel-header').style.color = "#FFCC00"; // Revert to standard Amber
+                            
+                            // Human readable package color
+                            let colName = "NEON GREEN";
+                            if(currentPackageType === 'WHITE') colName = "WHITE";
+                            if(currentPackageType === 'LIGHT_BLUE') colName = "LIGHT BLUE";
+                            
+                            body.innerText = "NEW TARGET: "+colName+" PACKAGE HOLDER. SHOOT TO KILL.";
+                            body.style.color = "#fff"; // Revert to white
+                         }
+                     }, 1500);
+                }
+            }
+            
             // ROMANCE DECOY STATE MACHINE
             if (c.role === 'ROMANCE_WORKER' && c.state === 'ROMANCE_SEQUENCE') {
                 c.romanceTimer += dt;
@@ -2941,9 +3361,9 @@
             }
             
             // GENERAL MOVEMENT LOGIC (Applies to all walking states including ROMANCE logic)
-            if((c.state === 'WALKING' || c.state === 'WANDERING' || c.state === 'ROMANCE_SEQUENCE') && c.waypoints.length > 0) {
+            if((c.state === 'WALKING' || c.state === 'WANDERING' || c.state === 'ROMANCE_SEQUENCE' || c.state === 'EXITING') && c.waypoints.length > 0) {
                 // If in romance sequence but waiting/flirting/pining, skip movement
-                if (c.role === 'ROMANCE_WORKER' && (c.romanceStage === 'DELAY' || c.romanceStage === 'FLIRTING' || c.romanceStage === 'IDLE_TWIST')) return;
+                if (c.role === 'ROMANCE_WORKER' && (c.romanceStage === 'DELAY' || c.romanceStage === 'FLIRTING' || c.romanceStage === 'IDLE_TWIST')) continue;
 
                 const target = c.waypoints[0];
                 const dir = new THREE.Vector3().subVectors(target, c.mesh.position);
@@ -2971,7 +3391,7 @@
                     if(c.waypoints.length === 0) {
                         if(c.role === 'GUARD') c.waypoints = [new THREE.Vector3(c.mesh.position.x > 0 ? -100 : 100, 0, -50)];
                         else if(gameState === 'RUSH' && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && c.role !== 'STATIC') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
-                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } else if (c.role !== 'ROMANCE_WORKER') c.state = 'IDLE';
+                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } else if (c.role !== 'ROMANCE_WORKER' && c.state !== 'EXITING') c.state = 'IDLE';
                     }
                 } else {
                     dir.normalize(); 
@@ -2982,7 +3402,7 @@
                     legL.rotation.x = Math.sin(gameTime * 15 + c.sway) * 0.6; legR.rotation.x = -Math.sin(gameTime * 15 + c.sway) * 0.6;
                 }
             }
-        });
+        }
 
         for(let i=pigeons.length-1; i>=0; i--) {
             const p = pigeons[i]; 
@@ -3089,7 +3509,15 @@
     function processHit(civ) {
         document.getElementById('scope-overlay').style.display = 'none';
         if(timerRunning) { timerRunning = false; finalTime = (performance.now() - timerStartTime) / 1000; }
-        if(civ === targetObj) { resultIsWin = true; KILL_STREAK++; STATS.target++; } else {
+        
+        // WIN CONDITIONS: MAIN TARGET OR GREEN TARGET
+        if(civ === targetObj) { 
+            resultIsWin = true; KILL_STREAK++; STATS.target++; 
+        } else if(civ.role === 'GREEN_TARGET') {
+            resultIsWin = true; KILL_STREAK++; STATS.target++;
+            // Specific win flavor for green target
+            resultReason = "SECONDARY TARGET ELIMINATED."; 
+        } else {
             resultIsWin = false; KILL_STREAK = 0; victimRef = civ;
             if(civ.role === 'DECOY') { resultReason = "WRONG TARGET. DECOY."; STATS.decoy++; }
             else if(civ.role === 'STRIPED') { resultReason = "CIVILIAN KILLED. INNOCENT."; STATS.civ++; }
@@ -3232,7 +3660,11 @@
                 award.innerText = "";
                 renderLeaderboard(); 
             } else {
-                desc.innerText = "TARGET NEUTRALIZED. THE CROWN SLEEPS SAFELY.";
+                if(victimRef && victimRef.role === 'GREEN_TARGET') {
+                    desc.innerText = "SECONDARY TARGET ELIMINATED. BONUS SECURED.";
+                } else {
+                    desc.innerText = "TARGET NEUTRALIZED. THE CROWN SLEEPS SAFELY.";
+                }
                 // UPDATED COLOR TO DARK GREY/BROWN
                 desc.style.color = "#4b3621"; 
                 award.innerText = generateCodeName();
