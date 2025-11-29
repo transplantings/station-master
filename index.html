@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1029,6 +1028,7 @@
     let greenTargetSpawned = false;
     let lateDepartureTriggered = false;
     let lateDepartureTime = 0;
+    let chainReactionTriggered = false; // New flag for multiple train departures
     
     // Dynamic Package Color
     const PACKAGE_COLORS = {
@@ -1055,7 +1055,8 @@
     let statuePos = null; 
     let jamboni = null; // The cleaner vehicle
     let shopStaff = []; // The shopkeepers
-    
+    let slidingDoors = []; // Sliding doors array
+
     // Logic
     let targetObj = null; 
     let targetTown = "";
@@ -1693,8 +1694,7 @@
         ctx.lineWidth = 2;
         for(let i=0; i<20; i++) {
             ctx.beginPath(); 
-            ctx.moveTo(Math.random()*256, Math.random()*256);
-            ctx.bezierCurveTo(Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256);
+            ctx.moveTo(Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256);
             ctx.stroke();
         }
         return new THREE.CanvasTexture(canvas);
@@ -1779,6 +1779,90 @@
         obstacles.push({x: xOff, z: 60, r: 2.0});
         scene.add(grp);
     }
+    
+    // --- SLIDING DOORS ---
+    function createSlidingDoors(x, z, rotY) {
+        const grp = new THREE.Group();
+        grp.position.set(x, 0, z);
+        grp.rotation.y = rotY;
+        
+        const frameColor = 0x2C3E50; // Dark Blue Grey
+        const glassColor = 0xADD8E6; // Light Blue
+        
+        // SCALED DOWN DIMENSIONS (~55% smaller than original 24x14)
+        const w = 11; 
+        const h = 6.5; 
+        
+        // THE BLACK VOID (Backing)
+        createBlock(w - 1, h, 0.5, 0x000000, 0, h/2, -0.8, grp);
+
+        // Top Frame
+        createBlock(w + 0.5, 0.8, 0.8, frameColor, 0, h - 0.4, 0, grp);
+        // Side Frames
+        createBlock(0.8, h, 0.8, frameColor, -w/2 + 0.4, h/2, 0, grp);
+        createBlock(0.8, h, 0.8, frameColor, w/2 - 0.4, h/2, 0, grp);
+        
+        // Door Panels
+        const dW = (w / 2) - 0.2;
+        
+        // Left Door
+        const lDoor = new THREE.Group();
+        lDoor.position.set(-dW/2 + 0.2, h/2, 0); 
+        createBlock(dW, h - 1, 0.4, frameColor, 0, 0, 0, lDoor);
+        const gL = new THREE.Mesh(new THREE.PlaneGeometry(dW - 0.4, h - 1.4), new THREE.MeshLambertMaterial({color: glassColor, transparent: true, opacity: 0.3}));
+        gL.position.z = 0.25; 
+        lDoor.add(gL);
+        const gL2 = gL.clone(); gL2.rotation.y = Math.PI; gL2.position.z = -0.25; lDoor.add(gL2);
+        grp.add(lDoor);
+        
+        // Right Door
+        const rDoor = new THREE.Group();
+        rDoor.position.set(dW/2 - 0.2, h/2, 0);
+        createBlock(dW, h - 1, 0.4, frameColor, 0, 0, 0, rDoor);
+        const gR = new THREE.Mesh(new THREE.PlaneGeometry(dW - 0.4, h - 1.4), new THREE.MeshLambertMaterial({color: glassColor, transparent: true, opacity: 0.3}));
+        gR.position.z = 0.25;
+        rDoor.add(gR);
+        const gR2 = gR.clone(); gR2.rotation.y = Math.PI; gR2.position.z = -0.25; rDoor.add(gR2);
+        grp.add(rDoor);
+        
+        slidingDoors.push({
+            grp: grp, lDoor: lDoor, rDoor: rDoor,
+            baseLx: -dW/2 + 0.2, baseRx: dW/2 - 0.2,
+            openLx: -dW/2 + 0.2 - (dW * 0.85), openRx: dW/2 - 0.2 + (dW * 0.85),
+            slideVal: 0 
+        });
+        
+        scene.add(grp);
+    }
+    
+    function updateDoors(dt) {
+        slidingDoors.forEach(d => {
+            // Check proximity to civilians or camera
+            let shouldOpen = false;
+            
+            // Check Camera distance
+            if(camera.position.distanceTo(d.grp.position) < 30) shouldOpen = true;
+            
+            // Check Civilians
+            if(!shouldOpen) {
+                for(let c of civilians) {
+                    if(c.mesh.position.distanceTo(d.grp.position) < 12) {
+                        shouldOpen = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Lerp slideVal
+            const target = shouldOpen ? 1.0 : 0.0;
+            const speed = shouldOpen ? 4.0 : 2.0; // Open fast, close slow
+            d.slideVal += (target - d.slideVal) * speed * dt;
+            
+            // Apply positions
+            d.lDoor.position.x = d.baseLx + (d.openLx - d.baseLx) * d.slideVal;
+            d.rDoor.position.x = d.baseRx + (d.openRx - d.baseRx) * d.slideVal;
+        });
+    }
 
     function createEnvironment() {
         const grassGeo = new THREE.PlaneGeometry(800, 800);
@@ -1825,6 +1909,10 @@
         wallR.position.set(225, 0, 50);
         wallR.rotation.y = -Math.PI / 2;
         scene.add(wallR);
+        
+        // SLIDING DOORS (Embedded in the Walls)
+        createSlidingDoors(-225, 50, Math.PI/2);
+        createSlidingDoors(225, 50, -Math.PI/2);
         
         // SHRUBS (4 Corners)
         createShrub(-210, -10);
@@ -2454,6 +2542,7 @@
         greenTargetAssigned = false;
         greenTargetSpawned = false;
         lateDepartureTriggered = false;
+        chainReactionTriggered = false; // Reset chain reaction
         
         // Pick Random Package Color for Act 2
         const types = ['NEON_GREEN', 'WHITE', 'LIGHT_BLUE'];
@@ -2547,16 +2636,13 @@
         const centerZ = 20 + Math.random() * 30;
         waypoints.push(new THREE.Vector3(centerX, 0, centerZ));
         
-        // 5. Shop Targets / Exit Points
-        const shops = [
-            {x: -160, z: 10}, {x: 160, z: -20}, {x: -160, z: 40}, {x: 160, z: 40}
-        ];
-        const shop = shops[Math.floor(Math.random() * shops.length)];
-        waypoints.push(new THREE.Vector3(shop.x, 0, shop.z));
+        // 5. Exits are now the Sliding Doors at +/- 225 X
+        // Randomly pick left or right exit
+        const exitX = Math.random() > 0.5 ? 230 : -230;
+        waypoints.push(new THREE.Vector3(exitX, 0, 50));
         
-        // 6. Fade Out Point
-        const exitX = shop.x > 0 ? 250 : -250;
-        waypoints.push(new THREE.Vector3(exitX, 0, shop.z));
+        // 6. Final fade point deeper into the "void"
+        waypoints.push(new THREE.Vector3(exitX > 0 ? 250 : -250, 0, 50));
 
         const civ = {
             mesh: mesh,
@@ -2616,6 +2702,7 @@
         particles.forEach(p => scene.remove(p.mesh)); particles = [];
         looseItems.forEach(i => scene.remove(i.mesh)); looseItems = [];
         arrivingTrains.forEach(t => scene.remove(t.mesh)); arrivingTrains = [];
+        slidingDoors.forEach(d => scene.remove(d.grp)); slidingDoors = [];
         
         // Reset trains completely
         spawnTrains();
@@ -2812,6 +2899,8 @@
             overlay.style.bottom = "-200px";
             overlay.dataset.phase = "3";
         }
+
+        updateDoors(dt);
         
         // BUG FIX: Ensure board only generates ONCE to prevent freeze/loop
         if(gameTime > 17 && !boardDataGenerated) {
@@ -3009,21 +3098,42 @@
             
             // 4. Late Departure Logic
             if(lateDepartureTriggered && gameTime > lateDepartureTime) {
-                // Pick random arrived train to leave
-                // We use a flag inside arrivingTrains to track if it's leaving
-                const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving);
+                // Chain Reaction Trigger
+                if (!chainReactionTriggered) {
+                    chainReactionTriggered = true;
+                    // Find 2 more random trains that are sitting there
+                    const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving);
+                    // Shuffle
+                    for (let i = sitting.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [sitting[i], sitting[j]] = [sitting[j], sitting[i]];
+                    }
+                    
+                    // Pick up to 2
+                    const extraDepartures = sitting.slice(0, 2);
+                    extraDepartures.forEach(t => {
+                        const delay = 5 + Math.random() * 42; // 5-47 seconds later
+                        t.scheduledDeparture = gameTime + delay;
+                    });
+                }
+                
+                // Pick random arrived train to leave (The Trigger Train)
+                const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving && !t.scheduledDeparture);
                 if(sitting.length > 0) {
-                     // Pick one and mark it leaving
-                     // But we only want ONE to leave. So check if any are already leaving.
-                     const leaving = arrivingTrains.find(t => t.isLeaving);
+                     // Check if any already leaving to avoid double trigger if desired, but code allows one main trigger
+                     const leaving = arrivingTrains.find(t => t.isLeaving && !t.scheduledDeparture);
                      if(!leaving) {
                          const t = sitting[Math.floor(Math.random()*sitting.length)];
                          t.isLeaving = true;
                      }
                 }
                 
-                // Move leaving trains
+                // Move leaving trains (Main + Scheduled Extras)
                 arrivingTrains.forEach(t => {
+                    if (t.scheduledDeparture && gameTime > t.scheduledDeparture) {
+                        t.isLeaving = true;
+                    }
+                    
                     if(t.isLeaving) {
                         t.mesh.position.z -= 4.0 * dt; // Very slow departure
                     }
@@ -3269,6 +3379,34 @@
                             body.style.color = "#fff"; // Revert to white
                          }
                      }, 1500);
+                }
+            }
+            
+            // TARGET LOST CHECK (GREEN TARGET ESCAPED)
+            if(c.role === 'GREEN_TARGET' && Math.abs(c.mesh.position.x) > 220) {
+                if(gameState !== 'ENDED' && gameState !== 'BLEEDING') {
+                    const overlay = document.getElementById('phone-overlay');
+                    const body = document.getElementById('phone-text');
+                    overlay.style.bottom = "20px";
+                    
+                    document.querySelector('.intel-header').innerText = "MISSION FAILED";
+                    document.querySelector('.intel-header').style.color = "#FF0000"; 
+                    body.innerText = "LOST THEM. GET BACK TO BASE ASAP.";
+                    body.style.color = "#FF0000";
+                    
+                    // Trigger Fail State immediately or allow player to read?
+                    // Let's trigger loss after 3 seconds so they can read it.
+                    if(!c.hasLostTriggered) {
+                        c.hasLostTriggered = true;
+                        setTimeout(() => {
+                            if(gameState !== 'ENDED') {
+                                resultIsWin = false;
+                                resultReason = "TARGET ESCAPED. MISSION COMPROMISED.";
+                                victimSurvivalStatus = "AT LARGE"; 
+                                showEndScreen();
+                            }
+                        }, 3500);
+                    }
                 }
             }
             
