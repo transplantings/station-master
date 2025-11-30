@@ -116,10 +116,16 @@
             transform: translate(-50%, -50%);
             border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%;
             pointer-events: none; z-index: 11; transition: all 0.2s;
+            opacity: 1; /* Default visible */
+            transition: opacity 2s ease-in-out; /* Slow fade for screensaver mode */
         }
         #crosshair.zoomed { 
             border-color: #00FF00; width: 200px; height: 200px; border-width: 1px; border-radius: 0;
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><line x1="100" y1="0" x2="100" y2="200" stroke="%2300FF00" stroke-width="1"/><line x1="0" y1="100" x2="200" y2="100" stroke="%2300FF00" stroke-width="1"/></svg>');
+            opacity: 1 !important; /* Always visible when zoomed */
+        }
+        #crosshair.faded {
+            opacity: 0;
         }
 
         /* --- UI --- */
@@ -354,7 +360,7 @@
         #btn-hard { border-bottom: 2px solid #AA0000; }
         #btn-hard:hover { background: #220000; color: #FF0000; border-color: #FF0000; }
 
-        .btn-row { display: flex; gap: 15px; margin-top: 15px; width: 100%; }
+                .btn-row { display: flex; gap: 15px; margin-top: 15px; width: 100%; }
         
         @keyframes pulse-btn {
             0% { box-shadow: 0 0 0 0 rgba(123, 44, 191, 0.4); } /* Purple Pulse */
@@ -369,35 +375,56 @@
             animation: spin 1s linear infinite; margin: 0 auto;
         }
 
+        /* UNIFIED BUTTON STYLES */
         button.action-btn {
-            width: 100%; background: #111; color: white; border: none; padding: 15px;
-            font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px;
-            text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.3s;
-            animation: pulse-btn 2s infinite; height: 50px;
+            width: 100%; height: 55px; /* Fixed equal height for all */
+            background: #111; color: white; border: none; padding: 0;
+            font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 14px;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer; 
+            transition: all 0.2s ease-out;
             flex: 1; /* Ensure equal width in flex container */
+            display: flex; align-items: center; justify-content: center; /* Center text/spinner */
+            position: relative; overflow: hidden; /* For shine effect */
         }
-        button.action-btn:hover { background: #7b2cbf; transform: scale(1.02); animation: none; }
+
+        /* Classy Shine Effect on Hover */
+        button.action-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-25deg); transition: 0.5s; pointer-events: none;
+        }
+        button.action-btn:hover::before { left: 100%; transition: 0.5s; }
+
+        button.action-btn:hover { transform: translateY(-2px); }
+        button.action-btn:active { transform: translateY(1px); }
+
         button.action-btn.clicked {
             animation: none; transform: scale(0.95); background: #333; box-shadow: inset 0 0 10px #000; border: 1px solid #555;
         }
         
-        /* PLAY FOR FUN BUTTON COLOR OVERRIDE */
+        /* PLAY FOR FUN BUTTON (Primary) */
         #btn-fun {
-            background: #111;
-            /* Dark complementary to the grey/green of #222 */
-            /* A very dark purple/blue */
             background: linear-gradient(180deg, #1a102e 0%, #0d0817 100%);
             border: 1px solid #2d1b4e;
             color: #9d7bd1;
+            animation: pulse-btn 2s infinite;
         }
         #btn-fun:hover {
-            background: #2d1b4e;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(123, 44, 191, 0.5);
+            background: #2d1b4e; color: #fff; border-color: #7b2cbf;
+            box-shadow: 0 0 25px rgba(123, 44, 191, 0.4);
+            animation: none;
         }
 
-        button.sec-btn { background: #222; border: 1px solid #444; color: #aaa; animation: none; font-size: 11px; padding: 5px; height: 40px; }
-        button.sec-btn:hover { background: #004400; color: #fff; border-color: #00FF00; }
+        /* PLAY FOR SPEED BUTTON (Secondary) */
+        /* Inherits size from action-btn, overrides colors only */
+        button.sec-btn { 
+            background: #222; border: 1px solid #444; color: #888; 
+            animation: none; 
+        }
+        button.sec-btn:hover { 
+            background: #003300; color: #00FF00; border-color: #00FF00; 
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.3);
+        }
 
         /* End game button container for stacking */
         .end-btn-container {
@@ -1182,6 +1209,9 @@
     let isZoomed = false;
     let pitch = -0.4, yaw = 0;
     const keyState = {};
+    
+    // Screensaver Logic
+    let crosshairIdleTime = 0;
 
     function loadSettings() {
         if(localStorage.getItem('sm_crowd')) SETTING_CROWD = parseInt(localStorage.getItem('sm_crowd'));
@@ -1659,8 +1689,49 @@
         initMatrix();
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050505);
-        scene.fog = new THREE.FogExp2(0x111111, 0.002);
+        // REMOVED SIMPLE BACKGROUND
+        // scene.background = new THREE.Color(0x050505);
+        
+        // HAZY FOG
+        // Warm/dark reddish grey to match sunset vibe
+        scene.fog = new THREE.FogExp2(0x2a2220, 0.002);
+
+        // CREATE SKY DOME
+        const vertexShader = `
+            varying vec3 vWorldPosition;
+            void main() {
+                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+                vWorldPosition = worldPosition.xyz;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+            }
+        `;
+        const fragmentShader = `
+            uniform vec3 topColor;
+            uniform vec3 bottomColor;
+            uniform float offset;
+            uniform float exponent;
+            varying vec3 vWorldPosition;
+            void main() {
+                float h = normalize( vWorldPosition + offset ).y;
+                gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+            }
+        `;
+        const uniforms = {
+            topColor: { value: new THREE.Color(0x1a1a20) }, // Dark Grey
+            bottomColor: { value: new THREE.Color(0x6d5045) }, // Hazy Warm Orange/Grey
+            offset: { value: 33 },
+            exponent: { value: 0.6 }
+        };
+        const skyGeo = new THREE.SphereGeometry(1500, 32, 15);
+        const skyMat = new THREE.ShaderMaterial({
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            uniforms: uniforms,
+            side: THREE.BackSide
+        });
+        const sky = new THREE.Mesh(skyGeo, skyMat);
+        scene.add(sky);
+
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 2000);
         camera.position.set(0, 50, 130);
@@ -1716,6 +1787,12 @@
         // Prevent default browser actions for game keys to avoid scrolling/interactions
         if(isDown && (e.code === 'Space' || e.code === 'KeyF' || e.code === 'Enter')) {
             // e.preventDefault(); // Optional, but good for Space (scrolling)
+        }
+        
+        // RESET SCREENSAVER TIMER
+        if(isDown) {
+            crosshairIdleTime = 0;
+            document.getElementById('crosshair').classList.remove('faded');
         }
 
         const key = e.key.toLowerCase();
@@ -3777,6 +3854,14 @@
         updateJambonis(dt); // Update the cleaners
         updateShopStaff(dt); // Update shopkeepers
         
+        // SCREENSAVER MODE: Update Crosshair Timer
+        if (!isZoomed && (gameState === 'MINGLE' || gameState === 'RUSH')) {
+            crosshairIdleTime += dt;
+            if (crosshairIdleTime > 6.0) {
+                document.getElementById('crosshair').classList.add('faded');
+            }
+        }
+        
         const aimSpeed = isZoomed ? 0.2 * dt : 1.0 * dt;
         if(keyState['w'] || keyState['arrowup']) pitch += aimSpeed; if(keyState['s'] || keyState['arrowdown']) pitch -= aimSpeed;
         if(keyState['a'] || keyState['arrowleft']) yaw += aimSpeed; if(keyState['d'] || keyState['arrowright']) yaw -= aimSpeed;
@@ -3916,7 +4001,7 @@
                 c.mesh.rotation.y = Math.sin(gameTime + c.sway) * 0.5;
                 if(c.state === 'STATIC' && Math.random() < 0.005) {
                      c.state = 'WANDERING'; const angle = Math.random() * Math.PI * 2; const dist = 5 + Math.random()*5;
-                     c.waypoints = [new THREE.Vector3(c.origin.x + Math.cos(angle)*dist, 0, c.origin.z + Math.sin(angle)*dist)]; c.speed = 0.02;
+                     c.waypoints = [new THREE.Vector3(c.origin.x + Math.cos(angle)*dist, 0, c.origin.z + Math.sin(angle)*dist)]; c.speed = 0.02
                 }
             }
             if(c.state === 'IDLE' && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && Math.random() < 0.01) {
