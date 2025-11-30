@@ -354,7 +354,7 @@
         #btn-hard { border-bottom: 2px solid #AA0000; }
         #btn-hard:hover { background: #220000; color: #FF0000; border-color: #FF0000; }
 
-        .btn-row { display: flex; gap: 15px; margin-top: 15px; }
+        .btn-row { display: flex; gap: 15px; margin-top: 15px; width: 100%; }
         
         @keyframes pulse-btn {
             0% { box-shadow: 0 0 0 0 rgba(123, 44, 191, 0.4); } /* Purple Pulse */
@@ -374,6 +374,7 @@
             font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px;
             text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.3s;
             animation: pulse-btn 2s infinite; height: 50px;
+            flex: 1; /* Ensure equal width in flex container */
         }
         button.action-btn:hover { background: #7b2cbf; transform: scale(1.02); animation: none; }
         button.action-btn.clicked {
@@ -789,8 +790,8 @@
 
             <div class="end-btn-container">
                 <button class="action-btn" onclick="reloadWithFade()">NEW ASSIGNMENT >></button>
-                <button id="replay-btn-pos" class="action-btn sec-btn" onclick="replaySameSettings(true)">REPLAY (MAINTAIN POS)</button>
-                <button id="replay-btn-new" class="action-btn sec-btn" onclick="replaySameSettings(false)">REPLAY (NEW RANDOM POS)</button>
+                <button id="replay-btn-pos" class="action-btn sec-btn" onclick="replaySameSettings(true)">REPLAY - MAINTAIN SNIPER POSITION</button>
+                <button id="replay-btn-new" class="action-btn sec-btn" onclick="replaySameSettings(false)">REPLAY - NEW SNIPER POSITION</button>
             </div>
         </div>
     </div>
@@ -1681,7 +1682,9 @@
 
         stripeTexture = createStripeTexture();
         marbleTexture = createMarbleTexture();
+        
         buildStation();
+        createCityscape(); // Add the new cityscape
 
         document.getElementById('hs-input').addEventListener('keydown', function(e) {
             if(e.key === 'Enter') submitScore();
@@ -1725,6 +1728,115 @@
             if(key === 'f' || e.code === 'KeyF' || e.code === 'Enter') fire();
         }
     }
+    
+    // CITYSCAPE GENERATION
+    function createCityscape() {
+        const buildingColors = [0x333333, 0x222222, 0x444444, 0x555555, 0x2a2a2a, 0x6e6357]; // Grey, Dark Grey, Sand-ish
+        
+        // Window Texture Generator
+        function createWindowTexture() {
+            const canvas = document.createElement('canvas'); 
+            canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            // Background (Building Color)
+            ctx.fillStyle = '#222'; ctx.fillRect(0,0,128,128);
+            // Windows
+            ctx.fillStyle = Math.random() > 0.5 ? '#444' : '#111'; // Some lit, some dark
+            if(Math.random() < 0.2) ctx.fillStyle = '#665544'; // Warm light occasionally
+            
+            const rows = 4 + Math.floor(Math.random() * 4);
+            const cols = 4 + Math.floor(Math.random() * 4);
+            const pad = 4;
+            const w = (128 - (pad * (cols+1))) / cols;
+            const h = (128 - (pad * (rows+1))) / rows;
+            
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    // Randomly turn off lights
+                    if(Math.random() > 0.4) {
+                        ctx.fillRect(pad + c*(w+pad), pad + r*(h+pad), w, h);
+                    }
+                }
+            }
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        // Add 150 buildings
+        for(let i=0; i<150; i++) {
+            // Position Logic: "Behind" camera (Z > 140) and "Sides" (X > 250 or X < -250)
+            let x, z;
+            const r = Math.random();
+            if (r < 0.6) {
+                // Behind Camera (Central-ish)
+                z = 160 + Math.random() * 400; // Deep background
+                x = (Math.random() - 0.5) * 1200; // Wide spread
+            } else {
+                // Short Sides / Flanking
+                z = -200 + Math.random() * 400; // Along the length
+                // Far out
+                x = (Math.random() > 0.5 ? 1 : -1) * (350 + Math.random() * 400);
+            }
+            
+            const w = 20 + Math.random() * 50;
+            const d = 20 + Math.random() * 50;
+            const h = 40 + Math.random() * 300; // Varying heights, some very tall
+            
+            const col = buildingColors[Math.floor(Math.random() * buildingColors.length)];
+            const isSand = (col === 0x6e6357);
+            
+            // Texture
+            const tex = createWindowTexture();
+            tex.repeat.set(1, h/30); // Repeat vertically based on height
+            
+            // Special Canary Wharf logic (Diamond Top) - One instance
+            if (i === 0) {
+                // Fixed position background
+                x = 100; z = 400; 
+                const cwGrp = new THREE.Group();
+                cwGrp.position.set(x, 0, z);
+                // Tower body
+                createBlock(40, 300, 40, 0x555566, 0, 150, 0, cwGrp, tex);
+                // Pyramid Top
+                const pyrGeo = new THREE.ConeGeometry(30, 40, 4);
+                const pyrMat = new THREE.MeshLambertMaterial({color: 0x555566});
+                const pyr = new THREE.Mesh(pyrGeo, pyrMat);
+                pyr.position.y = 320;
+                pyr.rotation.y = Math.PI/4;
+                cwGrp.add(pyr);
+                scene.add(cwGrp);
+                
+                // Add Light on top
+                const light = new THREE.PointLight(0xFF0000, 2, 200);
+                light.position.set(0, 345, 0);
+                cwGrp.add(light);
+            } else {
+                const mat = new THREE.MeshLambertMaterial({
+                    color: col,
+                    map: tex
+                });
+                
+                // Add Red noise to sand buildings
+                if (isSand) {
+                   // Simple way: overlay geometry or just rely on color
+                   mat.color.setHex(0x8B4513); // Darker brown/red
+                }
+                
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+                mesh.position.set(x, h/2 - 20, z); // Sink slightly
+                scene.add(mesh);
+            }
+            
+            // Add drama lights (Orange street lamps behind)
+            if (Math.random() < 0.05) {
+                const lamp = new THREE.PointLight(0xFFAA00, 0.8, 300);
+                lamp.position.set(x, 10, z + 30);
+                scene.add(lamp);
+            }
+        }
+    }
+
 
     function createStripeTexture() {
         const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64;
@@ -2126,6 +2238,15 @@
                 siren.position.set(0, 2.6, 8); // Top, near front
                 car.add(siren);
                 sirenMesh = siren; // Keep ref logic
+            }
+
+            // --- DRIVER'S WINDOW ---
+            if(i === 0) {
+                // Front face is at z = +11 relative to car center
+                // Width 3.8, Height 4.5.
+                // Window dimensions: width 2.8, height 1.2
+                // Position: Y=0.5 (Slightly above center), Z=11.1 (slightly proud of surface)
+                createBlock(2.8, 1.2, 0.1, 0x111111, 0, 0.8, 11.1, car);
             }
             
             createBlock(3.9, 1.5, 20, 0x222222, 0, 0.5, 0, car); 
@@ -3706,7 +3827,8 @@
                             if(currentPackageType === 'WHITE') colName = "WHITE";
                             if(currentPackageType === 'LIGHT_BLUE') colName = "LIGHT BLUE";
                             
-                            body.innerText = "NEW TARGET: "+colName+" PACKAGE HOLDER. SHOOT TO KILL.";
+                            // AMENDED PHRASING AS REQUESTED
+                            body.innerText = "NEW TARGET on concourse: " + colName + " PACKAGE HOLDER. SHOOT TO KILL.";
                             body.style.color = "#fff"; // Revert to white
                          }
                      }, 1500);
