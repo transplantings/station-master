@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -378,13 +379,28 @@
         button.action-btn.clicked {
             animation: none; transform: scale(0.95); background: #333; box-shadow: inset 0 0 10px #000; border: 1px solid #555;
         }
+        
+        /* PLAY FOR FUN BUTTON COLOR OVERRIDE */
+        #btn-fun {
+            background: #111;
+            /* Dark complementary to the grey/green of #222 */
+            /* A very dark purple/blue */
+            background: linear-gradient(180deg, #1a102e 0%, #0d0817 100%);
+            border: 1px solid #2d1b4e;
+            color: #9d7bd1;
+        }
+        #btn-fun:hover {
+            background: #2d1b4e;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(123, 44, 191, 0.5);
+        }
 
-        button.sec-btn { background: #222; border: 1px solid #444; color: #aaa; animation: none; }
+        button.sec-btn { background: #222; border: 1px solid #444; color: #aaa; animation: none; font-size: 11px; padding: 5px; height: 40px; }
         button.sec-btn:hover { background: #004400; color: #fff; border-color: #00FF00; }
 
         /* End game button container for stacking */
         .end-btn-container {
-            display: flex; flex-direction: column; gap: 15px; margin-top: 30px; width: 100%;
+            display: flex; flex-direction: column; gap: 10px; margin-top: 20px; width: 100%;
         }
         
         #restart-ui { position: absolute; bottom: 20px; left: 20px; z-index: 60; }
@@ -699,6 +715,16 @@
                     <input type="range" id="slide-pkg" min="2" max="99" value="4" oninput="updateUI()">
                     <span id="val-pkg">4</span>
                 </div>
+
+                <!-- NEW SNIPER POSITION SETTING -->
+                <div class="slider-row">
+                    <label>SNIPER POSITION</label>
+                    <div class="preset-row" style="flex-grow:1; margin-bottom:0;">
+                        <button id="btn-pos-central" class="preset-btn" onclick="setSniperPos('CENTRAL')">CENTRAL</button>
+                        <button id="btn-pos-random" class="preset-btn" onclick="setSniperPos('RANDOM')">RANDOM</button>
+                    </div>
+                </div>
+
                 <hr style="border-color:#555; margin:15px 0;">
                 <div class="slider-row">
                     <label>AUDIO CONFIG</label>
@@ -763,7 +789,8 @@
 
             <div class="end-btn-container">
                 <button class="action-btn" onclick="reloadWithFade()">NEW ASSIGNMENT >></button>
-                <button id="replay-btn" class="action-btn sec-btn" onclick="replaySameSettings()">REPLAY WITH SAME SETTINGS</button>
+                <button id="replay-btn-pos" class="action-btn sec-btn" onclick="replaySameSettings(true)">REPLAY (MAINTAIN POS)</button>
+                <button id="replay-btn-new" class="action-btn sec-btn" onclick="replaySameSettings(false)">REPLAY (NEW RANDOM POS)</button>
             </div>
         </div>
     </div>
@@ -807,6 +834,14 @@
         ],
         fakeMovies: ["The Onion Knight Rises", "Grange Hill: The Movie", "Toast of London 2", "Coronation Street: 2049", "Attack of the 50ft Badger", "Carry On Coding", "James Bond: Tax Return", "Harry Potter and the Infinite Spreadsheet", "Doctor Who? No Seriously Who?", "EastEnders: The Musical", "Strictly Come Dancing: Battle Royale", "The Great British Bake Off: Hunger Games Edition", "Sherlock Holmes and the Case of the Missing Biscuit", "Paddington 3: Hard Time in Belmarsh", "Wallace and Gromit: The Were-Rabbit's Revenge", "Mr. Bean Goes to Mars", "The Inbetweeners 3: Funeral Crashers", "Peep Show: The Movie", "Black Mirror: A Happy Ending", "Fawlty Towers: Re-Open for Business"],
         fakeAlbums: ["Songs for Dustbins - The Wombles", "Heavy Metal Bagpipes - The Scotsman", "Techno Tea Party - The Queen", "Garage Grime Hymns - The Vicar", "Dubstep Morris Dancing - The Village Idiots", "Ambient Traffic Noises - The Commuter", "Screamo lullabies - The Nanny", "Jazz Flute for Beginners - Ron Burgundy", "Polka Punk - The Accordions", "Operatic Rap - The Tenors", "Country & Western & Eastern - The Globalist", "Reggae Christmas Carols - The Rastafarians", "Disco Dirges - The Goths", "Hip Hop Harpsichord - The Baroque Boyz", "Drum & Bass & Bassoon - The Orchestra", "Synthpop Sea Shanties - The Sailors", "Acoustic Acid House - The Busker", "Funk Folk Fusion - The Hipsters", "Soulful Screeching - The Banshee", "Blues for Blue Bottles - The Fly"]
+    };
+    
+    // GANGSTER DATA FOR ACT 2 TARGET
+    const GANGSTER_DATA = {
+        names: ["Vladimir", "Sergei", "Dmitri", "Ivan", "Boris", "Nikolai", "Alexei", "Piotr", "Igor", "Viktor", "Yuri", "Konstantin", "Oleg", "Maksim", "Anatoly", "Lev", "Artem", "Sasha", "Mikhail", "Roman", "Stanislav", "Kirill", "Andrei", "Vadim", "Zoran", "Dragan", "Goran", "Milos", "Dejan", "Darko"],
+        surnames: ["Volkov", "Ivanov", "Sokolov", "Popov", "Kuznetsov", "Petrov", "Smirnov", "Orlov", "Morozov", "Kozlov", "Lebedev", "Novikov", "Pavlov", "Semenov", "Golubev", "Vinogradov", "Bogdanov", "Vorobyov", "Fyodorov", "Mikhailov", "Belov", "Tarasov", "Romanov", "Vasiliev", "Zaitsev"],
+        movies: ["Brother (Brat)", "Stalker", "Solaris", "The Good, the Bad and the Ugly", "Once Upon a Time in America", "Scarface", "Leviathan", "Hardcore Henry", "Night Watch", "Come and See", "Battleship Potemkin", "Cargo 200", "The Meeting Place Cannot Be Changed", "Brigada", "Dead Man's Bluff", "Unforgiven", "The Wild Bunch", "High Noon", "A Fistful of Dollars", "For a Few Dollars More", "Rio Bravo", "True Grit"],
+        albums: ["Generation of Blood - Aria", "Kino - Gruppa Krovi", "Gorky Park - Gorky Park", "Rammstein - Mutter", "Metallica - Master of Puppets", "Iron Maiden - Number of the Beast", "Scorpions - Blackout", "Judas Priest - British Steel", "Black Sabbath - Paranoid", "Slayer - Reign in Blood", "Megadeth - Rust in Peace", "Britney Spears - ...Baby One More Time", "Madonna - Ray of Light", "Lady Gaga - The Fame", "Katy Perry - Teenage Dream", "Rihanna - Good Girl Gone Bad", "Taylor Swift - 1989", "Christina Aguilera - Stripped", "Mariah Carey - Butterfly", "Whitney Houston - Whitney", "Leningrad - Mat"]
     };
 
     // SVG HEADS
@@ -872,6 +907,33 @@
             album: album, 
             isFemale: isFemale,
             nationality: nat 
+        };
+    }
+    
+    function generateGangsterBio() {
+        const first = GANGSTER_DATA.names[Math.floor(Math.random() * GANGSTER_DATA.names.length)];
+        const last = GANGSTER_DATA.surnames[Math.floor(Math.random() * GANGSTER_DATA.surnames.length)];
+        const movie = GANGSTER_DATA.movies[Math.floor(Math.random() * GANGSTER_DATA.movies.length)];
+        const album = GANGSTER_DATA.albums[Math.floor(Math.random() * GANGSTER_DATA.albums.length)];
+        
+        const day = 1 + Math.floor(Math.random() * 28);
+        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const mon = months[Math.floor(Math.random() * 12)];
+        const year = 1960 + Math.floor(Math.random() * 35);
+        const dob = `${day} ${mon} ${year}`;
+        
+        const bloods = ["O-", "B-", "AB-"];
+        const blood = bloods[Math.floor(Math.random() * bloods.length)];
+        
+        return {
+            name: `${first} ${last}`,
+            dob: dob,
+            ssn: "REDACTED",
+            blood: blood,
+            movie: movie,
+            album: album,
+            nationality: "UNKNOWN",
+            isFemale: false
         };
     }
     
@@ -1028,7 +1090,6 @@
     let greenTargetSpawned = false;
     let lateDepartureTriggered = false;
     let lateDepartureTime = 0;
-    let chainReactionTriggered = false; // New flag for multiple train departures
     
     // Dynamic Package Color
     const PACKAGE_COLORS = {
@@ -1053,10 +1114,9 @@
     let particles = []; 
     let looseItems = [];
     let statuePos = null; 
-    let jamboni = null; // The cleaner vehicle
+    let jambonis = []; // The cleaner vehicles (ARRAY NOW)
     let shopStaff = []; // The shopkeepers
-    let slidingDoors = []; // Sliding doors array
-
+    
     // Logic
     let targetObj = null; 
     let targetTown = "";
@@ -1079,6 +1139,8 @@
     let tickerContent = ""; // Dynamic content
     let firstTrainMoveTime = -1;
     let newsDelay = 0;
+    
+    let vapeSignObject = null; // Spinning V
 
     // Settings & Persistence
     let SETTING_CROWD = 80;
@@ -1094,6 +1156,9 @@
     let SETTING_MENU_VOL = 0.5;
     let SETTING_RANDOM_PL = false;
     let SETTING_RADIO_MODE = 'FM'; // 'FM' or 'AM'
+    
+    // NEW SETTING: SNIPER POSITION
+    let SETTING_SNIPER_POS = 'CENTRAL';
 
     let STATS = { target:0, decoy:0, civ:0, abort:0 };
 
@@ -1155,6 +1220,9 @@
         if(localStorage.getItem('sm_menu_vol')) SETTING_MENU_VOL = parseFloat(localStorage.getItem('sm_menu_vol'));
         
         if(localStorage.getItem('sm_radio_mode')) SETTING_RADIO_MODE = localStorage.getItem('sm_radio_mode');
+        
+        // Load Sniper Pos
+        if(localStorage.getItem('sm_sniper_pos')) SETTING_SNIPER_POS = localStorage.getItem('sm_sniper_pos');
 
         document.getElementById('slide-crowd').value = SETTING_CROWD;
         document.getElementById('slide-pkg').value = SETTING_PACKAGES;
@@ -1169,6 +1237,7 @@
         document.getElementById('slide-menu-vol').value = SETTING_MENU_VOL;
 
         updateRadioVisuals();
+        updateSniperPosVisuals();
         updateMenuVisuals();
         renderLeaderboard();
         renderStats();
@@ -1223,6 +1292,24 @@
         localStorage.setItem('sm_sfx_vol', SETTING_SFX_VOL);
         localStorage.setItem('sm_menu_vol', SETTING_MENU_VOL);
         localStorage.setItem('sm_radio_mode', SETTING_RADIO_MODE);
+        localStorage.setItem('sm_sniper_pos', SETTING_SNIPER_POS);
+    }
+    
+    function setSniperPos(val) {
+        SETTING_SNIPER_POS = val;
+        updateSniperPosVisuals();
+        saveSettings();
+    }
+    
+    function updateSniperPosVisuals() {
+        const btnC = document.getElementById('btn-pos-central');
+        const btnR = document.getElementById('btn-pos-random');
+        if(btnC && btnR) {
+            btnC.style.color = SETTING_SNIPER_POS === 'CENTRAL' ? '#00FF00' : '#888';
+            btnC.style.borderColor = SETTING_SNIPER_POS === 'CENTRAL' ? '#00FF00' : '#444';
+            btnR.style.color = SETTING_SNIPER_POS === 'RANDOM' ? '#00FF00' : '#888';
+            btnR.style.borderColor = SETTING_SNIPER_POS === 'RANDOM' ? '#00FF00' : '#444';
+        }
     }
 
     // UPDATED RESET LOGIC
@@ -1370,10 +1457,11 @@
         }, 3000);
     }
     
-    // NEW: Replay with same settings
-    function replaySameSettings() {
+    // NEW: Replay with same settings (with or without new position)
+    function replaySameSettings(keepPosition) {
          // UI Button feedback
-         const btn = document.getElementById('replay-btn'); // Use ID for safety
+         const btnId = keepPosition ? 'replay-btn-pos' : 'replay-btn-new';
+         const btn = document.getElementById(btnId); 
          if(btn) {
              btn.classList.add('clicked');
              btn.innerHTML = '<div class="spinner"></div>';
@@ -1393,8 +1481,8 @@
          // Transition delay increased to 2.3s as requested
          setTimeout(() => {
              document.getElementById('end-dossier').style.display = 'none';
-             // Re-enter setup
-             prepareGameEnv(gameMode);
+             // Re-enter setup, passing keepPosition flag
+             prepareGameEnv(gameMode, keepPosition);
          }, 2300);
     }
 
@@ -1647,6 +1735,31 @@
         return new THREE.CanvasTexture(canvas);
     }
     
+    // NEW TEXTURE FOR POLICEMAN (Vertical Stripes)
+    function createVerticalStripeTexture(col1, col2) {
+        const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = col1; ctx.fillRect(0,0,64,64);
+        ctx.fillStyle = col2;
+        for(let i=0; i<64; i+=8) ctx.fillRect(i, 0, 4, 64);
+        return new THREE.CanvasTexture(canvas);
+    }
+    
+    // NEW TEXTURE FOR TROPICAL SHIRTS
+    function createTropicalTexture(baseCol) {
+        const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = baseCol; ctx.fillRect(0,0,64,64);
+        // Add random splotches
+        for(let i=0; i<20; i++) {
+            ctx.fillStyle = Math.random() > 0.5 ? '#FF00FF' : '#FFFF00';
+            ctx.beginPath();
+            ctx.arc(Math.random()*64, Math.random()*64, Math.random()*5, 0, Math.PI*2);
+            ctx.fill();
+        }
+        return new THREE.CanvasTexture(canvas);
+    }
+    
     function createCrossHatchTexture() {
         const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
         const ctx = canvas.getContext('2d');
@@ -1694,7 +1807,8 @@
         ctx.lineWidth = 2;
         for(let i=0; i<20; i++) {
             ctx.beginPath(); 
-            ctx.moveTo(Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256);
+            ctx.moveTo(Math.random()*256, Math.random()*256);
+            ctx.bezierCurveTo(Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256, Math.random()*256);
             ctx.stroke();
         }
         return new THREE.CanvasTexture(canvas);
@@ -1711,6 +1825,27 @@
         tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
         tex.repeat.set(10, 4); 
         return tex;
+    }
+    
+    function createShutterTexture() {
+        const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        // Base Silver
+        ctx.fillStyle = '#C0C0C0'; ctx.fillRect(0,0,128,128);
+        
+        // Speckles
+        for(let i=0; i<500; i++) {
+            ctx.fillStyle = Math.random() > 0.5 ? '#E0E0E0' : '#A0A0A0';
+            ctx.fillRect(Math.random()*128, Math.random()*128, 2, 2);
+        }
+        
+        // Horizontal Lines (Rippled Metal)
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        for(let i=0; i<128; i+=4) {
+            ctx.fillRect(0, i, 128, 2);
+        }
+        
+        return new THREE.CanvasTexture(canvas);
     }
 
     function createBlock(w, h, d, col, x, y, z, parent, tex) {
@@ -1779,107 +1914,52 @@
         obstacles.push({x: xOff, z: 60, r: 2.0});
         scene.add(grp);
     }
-    
-    // --- SLIDING DOORS ---
-    function createSlidingDoors(x, z, rotY) {
-        const grp = new THREE.Group();
-        grp.position.set(x, 0, z);
-        grp.rotation.y = rotY;
-        
-        const frameColor = 0x2C3E50; // Dark Blue Grey
-        const glassColor = 0xADD8E6; // Light Blue
-        
-        // SCALED DOWN DIMENSIONS (~55% smaller than original 24x14)
-        const w = 11; 
-        const h = 6.5; 
-        
-        // THE BLACK VOID (Backing)
-        createBlock(w - 1, h, 0.5, 0x000000, 0, h/2, -0.8, grp);
-
-        // Top Frame
-        createBlock(w + 0.5, 0.8, 0.8, frameColor, 0, h - 0.4, 0, grp);
-        // Side Frames
-        createBlock(0.8, h, 0.8, frameColor, -w/2 + 0.4, h/2, 0, grp);
-        createBlock(0.8, h, 0.8, frameColor, w/2 - 0.4, h/2, 0, grp);
-        
-        // Door Panels
-        const dW = (w / 2) - 0.2;
-        
-        // Left Door
-        const lDoor = new THREE.Group();
-        lDoor.position.set(-dW/2 + 0.2, h/2, 0); 
-        createBlock(dW, h - 1, 0.4, frameColor, 0, 0, 0, lDoor);
-        const gL = new THREE.Mesh(new THREE.PlaneGeometry(dW - 0.4, h - 1.4), new THREE.MeshLambertMaterial({color: glassColor, transparent: true, opacity: 0.3}));
-        gL.position.z = 0.25; 
-        lDoor.add(gL);
-        const gL2 = gL.clone(); gL2.rotation.y = Math.PI; gL2.position.z = -0.25; lDoor.add(gL2);
-        grp.add(lDoor);
-        
-        // Right Door
-        const rDoor = new THREE.Group();
-        rDoor.position.set(dW/2 - 0.2, h/2, 0);
-        createBlock(dW, h - 1, 0.4, frameColor, 0, 0, 0, rDoor);
-        const gR = new THREE.Mesh(new THREE.PlaneGeometry(dW - 0.4, h - 1.4), new THREE.MeshLambertMaterial({color: glassColor, transparent: true, opacity: 0.3}));
-        gR.position.z = 0.25;
-        rDoor.add(gR);
-        const gR2 = gR.clone(); gR2.rotation.y = Math.PI; gR2.position.z = -0.25; rDoor.add(gR2);
-        grp.add(rDoor);
-        
-        slidingDoors.push({
-            grp: grp, lDoor: lDoor, rDoor: rDoor,
-            baseLx: -dW/2 + 0.2, baseRx: dW/2 - 0.2,
-            openLx: -dW/2 + 0.2 - (dW * 0.85), openRx: dW/2 - 0.2 + (dW * 0.85),
-            slideVal: 0 
-        });
-        
-        scene.add(grp);
-    }
-    
-    function updateDoors(dt) {
-        slidingDoors.forEach(d => {
-            // Check proximity to civilians or camera
-            let shouldOpen = false;
-            
-            // Check Camera distance
-            if(camera.position.distanceTo(d.grp.position) < 30) shouldOpen = true;
-            
-            // Check Civilians
-            if(!shouldOpen) {
-                for(let c of civilians) {
-                    if(c.mesh.position.distanceTo(d.grp.position) < 12) {
-                        shouldOpen = true;
-                        break;
-                    }
-                }
-            }
-            
-            // Lerp slideVal
-            const target = shouldOpen ? 1.0 : 0.0;
-            const speed = shouldOpen ? 4.0 : 2.0; // Open fast, close slow
-            d.slideVal += (target - d.slideVal) * speed * dt;
-            
-            // Apply positions
-            d.lDoor.position.x = d.baseLx + (d.openLx - d.baseLx) * d.slideVal;
-            d.rDoor.position.x = d.baseRx + (d.openRx - d.baseRx) * d.slideVal;
-        });
-    }
 
     function createEnvironment() {
-        const grassGeo = new THREE.PlaneGeometry(800, 800);
+        const grassGeo = new THREE.PlaneGeometry(1200, 1200);
         const grassMat = new THREE.MeshLambertMaterial({ color: 0x1a2e12 }); 
         const grass = new THREE.Mesh(grassGeo, grassMat);
-        grass.rotation.x = -Math.PI / 2; grass.position.set(0, -3.0, -200); grass.receiveShadow = true; scene.add(grass);
-        for(let i = 0; i < 60; i++) {
+        grass.rotation.x = -Math.PI / 2; grass.position.set(0, -3.0, -400); grass.receiveShadow = true; scene.add(grass);
+        
+        // INCREASED FOREST DENSITY AND VARIETY
+        for(let i = 0; i < 300; i++) {
             const treeGroup = new THREE.Group();
-            const tx = (Math.random() - 0.5) * 600; const tz = -180 - (Math.random() * 300); 
-            const trunkH = 5 + Math.random() * 5;
-            createBlock(1.5, trunkH, 1.5, 0x3d2817, 0, trunkH/2, 0, treeGroup);
-            const leavesH = 10 + Math.random() * 10;
-            const leafGeo = new THREE.ConeGeometry(4 + Math.random()*3, leavesH, 8);
-            const leafMat = new THREE.MeshLambertMaterial({ color: 0x0f2e0f }); 
-            const leaves = new THREE.Mesh(leafGeo, leafMat);
-            leaves.position.set(0, trunkH + (leavesH/2) - 1, 0); leaves.castShadow = true; treeGroup.add(leaves);
-            treeGroup.position.set(tx, -2.5, tz); scene.add(treeGroup);
+            // Spread wide but keep back from foreground (Z < -250)
+            const tx = (Math.random() - 0.5) * 1000; 
+            const tz = -250 - (Math.random() * 650); 
+            
+            const type = Math.random();
+            
+            if (type < 0.6) {
+                // STANDARD PINE
+                const trunkH = 5 + Math.random() * 5;
+                createBlock(1.5, trunkH, 1.5, 0x3d2817, 0, trunkH/2, 0, treeGroup);
+                const leavesH = 10 + Math.random() * 10;
+                const leafGeo = new THREE.ConeGeometry(4 + Math.random()*3, leavesH, 8);
+                const leafMat = new THREE.MeshLambertMaterial({ color: 0x0f2e0f }); 
+                const leaves = new THREE.Mesh(leafGeo, leafMat);
+                leaves.position.set(0, trunkH + (leavesH/2) - 1, 0); 
+                treeGroup.add(leaves);
+            } else if (type < 0.85) {
+                // OAK STYLE (Rounder)
+                const trunkH = 4 + Math.random() * 3;
+                createBlock(2.0, trunkH, 2.0, 0x4a3c31, 0, trunkH/2, 0, treeGroup);
+                const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(5 + Math.random()*2), new THREE.MeshLambertMaterial({ color: 0x228B22 }));
+                leaves.position.set(0, trunkH + 4, 0);
+                treeGroup.add(leaves);
+            } else {
+                // FERN / BUSH (Low)
+                const leaves = new THREE.Mesh(new THREE.ConeGeometry(3, 4, 6), new THREE.MeshLambertMaterial({ color: 0x32CD32 }));
+                leaves.position.set(0, 0, 0);
+                treeGroup.add(leaves);
+                // Clusters
+                const leaves2 = leaves.clone(); leaves2.position.set(2, -1, 0); leaves2.rotation.z = -0.5; treeGroup.add(leaves2);
+                const leaves3 = leaves.clone(); leaves3.position.set(-2, -1, 0); leaves3.rotation.z = 0.5; treeGroup.add(leaves3);
+                treeGroup.position.y = -1.5;
+            }
+
+            treeGroup.position.set(tx, -2.5, tz); 
+            scene.add(treeGroup);
         }
     }
 
@@ -1909,10 +1989,6 @@
         wallR.position.set(225, 0, 50);
         wallR.rotation.y = -Math.PI / 2;
         scene.add(wallR);
-        
-        // SLIDING DOORS (Embedded in the Walls)
-        createSlidingDoors(-225, 50, Math.PI/2);
-        createSlidingDoors(225, 50, -Math.PI/2);
         
         // SHRUBS (4 Corners)
         createShrub(-210, -10);
@@ -2077,6 +2153,34 @@
     function createGenericShop(x, z, text, greyCol) {
         const s = new THREE.Group(); s.position.set(x, 0, z);
         let shopStaffMember = null;
+        
+        // NEW AIR CONDITIONING UNITS
+        if(text === "SHOES") {
+            // White, scuffed, rectangular, off-center, grated side
+            const acGrp = new THREE.Group();
+            acGrp.position.set(6, 16.5, -5); // Off center on roof
+            // Main body
+            createBlock(4, 3, 6, 0xDDDDDD, 0, 0, 0, acGrp);
+            // Grated side (Right side X+)
+            const grateTex = createGratedTexture();
+            const grate = new THREE.Mesh(new THREE.PlaneGeometry(6, 2.5), new THREE.MeshLambertMaterial({map: grateTex}));
+            grate.rotation.y = Math.PI / 2;
+            grate.position.set(2.05, 0, 0);
+            acGrp.add(grate);
+            s.add(acGrp);
+        }
+        
+        if(text === "EAT") {
+            // Greyer, different shade, off center
+            const acGrp = new THREE.Group();
+            acGrp.position.set(-5, 16, 6); // Off center elsewhere
+            createBlock(5, 2, 4, 0x999999, 0, 0, 0, acGrp);
+            // Simple fan texture or dark circle on top
+            const fan = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.1, 16), new THREE.MeshLambertMaterial({color: 0x222222}));
+            fan.position.set(0, 1.05, 0);
+            acGrp.add(fan);
+            s.add(acGrp);
+        }
 
         if (text === "VAPES") {
             // Walk-in Marquee Style
@@ -2155,6 +2259,33 @@
                 rotTimer: 0
             };
             
+            // --- NEW: SPINNING V SIGN ---
+            // On top of roof. Y = 16 (Roof top) + some height
+            const vGrp = new THREE.Group();
+            vGrp.position.set(0, 18, 0);
+            
+            // Material: Silver/Off-White Striped
+            const stripTex = createStripeTexture(); // Reuse gold/black or make new? 
+            // Request: "off-white clean striped design, modern minimal design"
+            const silverStripe = createVerticalStripeTexture('#EEEEEE', '#CCCCCC');
+            
+            // Left arm of V
+            const vLeft = createBlock(1.5, 6, 1.5, 0xFFFFFF, -2, 3, 0, vGrp, silverStripe);
+            vLeft.rotation.z = -0.3;
+            // Right arm of V
+            const vRight = createBlock(1.5, 6, 1.5, 0xFFFFFF, 2, 3, 0, vGrp, silverStripe);
+            vRight.rotation.z = 0.3;
+            
+            s.add(vGrp);
+            
+            vapeSignObject = {
+                mesh: vGrp,
+                state: 'SPINNING', // SPINNING or WAITING
+                timer: 0,
+                duration: 15 + Math.random() * 8, // 15-23s
+                targetRot: 0
+            };
+            
         } else {
             // Standard Block Shop 
             createBlock(25, 15, 25, greyCol, 0, 7.5, 0, s); 
@@ -2186,6 +2317,24 @@
                 // For "Nice:Clothes" extra height adjustment if needed, but 12 is fine standard
                 s.add(sign);
             });
+            
+            // --- NEW: ADD SHUTTER TO NICE:CLOTHES ---
+            if(text === "Nice:Clothes") {
+                // Side facing Z+ (camera) is Offset 0: { pos: (0, 12, 13.1), rot: 0 }
+                // Shutter should cover the wall below the sign maybe, or replace a section.
+                // Let's attach a shutter panel on the front face (Z+)
+                // Box dim: 25x15x25. 
+                // Front face is at Z=12.5.
+                
+                const shutterTex = createShutterTexture();
+                const shutterMat = new THREE.MeshLambertMaterial({map: shutterTex});
+                
+                // Medium sized shutter: 10 wide, 10 high?
+                const shutter = new THREE.Mesh(new THREE.PlaneGeometry(12, 10), shutterMat);
+                // Position slightly in front of wall (12.55), centered X (or slightly offset), vertically centered on wall
+                shutter.position.set(0, 6, 12.6);
+                s.add(shutter);
+            }
 
         } else {
             // Standard Sign Placement (Side Facing)
@@ -2226,13 +2375,6 @@
                 if(staff.isRotating) {
                     staff.rotTimer += dt;
                     // Simple LERP rotation
-                    const t = Math.min(1.0, staff.rotTimer / staff.rotDuration);
-                    
-                    // Interpolate shortest path
-                    // Actually simpler here since we just want to look different
-                    // Just set rotation to target * t + start * (1-t)
-                    // But to avoid complex quaternion math for now, linear Y interp is okay if we normalize range
-                    // Or simply: 
                     const diff = staff.rotTarget - staff.mesh.rotation.y;
                     staff.mesh.rotation.y += diff * dt * 2.0; // Smooth approach
 
@@ -2322,18 +2464,52 @@
 
         const isWorker = role === 'WORKER' || role === 'GUARD' || role === 'ROMANCE_WORKER';
         let shirtCol = 0x333333; let shirtTex = null;
-        if(isWorker) shirtCol = C.workerColor;
+        let scaleMult = 1.0;
+        
+        if (role === 'POLICEMAN') {
+            shirtCol = 0xFFFFFF; 
+            shirtTex = createVerticalStripeTexture('#000000', '#000088'); // Black/Blue Vert Stripes
+            scaleMult = 1.03; // 3% Taller
+        }
+        else if (role === 'TROPICAL') {
+             shirtCol = 0xFFFFFF;
+             // Complementary colors: Cyan/Orange base?
+             shirtTex = createTropicalTexture(Math.random() > 0.5 ? '#00FFFF' : '#FFA500');
+        }
+        else if (role === 'STRIPE_HORIZ') {
+             shirtCol = 0xFFFFFF;
+             shirtTex = createStripeTexture(); // Reuse existing gold/black horizontal
+             // Or could make new one? Existing is good.
+        }
+        else if(isWorker) shirtCol = C.workerColor;
         else if(role === 'STRIPED') { shirtCol = 0xffffff; shirtTex = stripeTexture; }
         else shirtCol = C.clothes[Math.floor(Math.random()*C.clothes.length)]; 
 
-        createBlock(0.25, 1.6, 0.25, 0x111111, -0.2, 0.8, 0, mesh); createBlock(0.25, 1.6, 0.25, 0x111111, 0.2, 0.8, 0, mesh);
-        createBlock(0.9, 1.4, 0.5, shirtCol, 0, 2.2, 0, mesh, shirtTex); 
-        createBlock(0.25, 1.3, 0.25, shirtCol, -0.6, 2.2, 0, mesh, shirtTex); createBlock(0.25, 1.3, 0.25, shirtCol, 0.6, 2.2, 0, mesh, shirtTex);
+        createBlock(0.25 * scaleMult, 1.6 * scaleMult, 0.25 * scaleMult, 0x111111, -0.2 * scaleMult, 0.8 * scaleMult, 0, mesh); 
+        createBlock(0.25 * scaleMult, 1.6 * scaleMult, 0.25 * scaleMult, 0x111111, 0.2 * scaleMult, 0.8 * scaleMult, 0, mesh);
+        createBlock(0.9 * scaleMult, 1.4 * scaleMult, 0.5 * scaleMult, shirtCol, 0, 2.2 * scaleMult, 0, mesh, shirtTex); 
+        createBlock(0.25 * scaleMult, 1.3 * scaleMult, 0.25 * scaleMult, shirtCol, -0.6 * scaleMult, 2.2 * scaleMult, 0, mesh, shirtTex); 
+        createBlock(0.25 * scaleMult, 1.3 * scaleMult, 0.25 * scaleMult, shirtCol, 0.6 * scaleMult, 2.2 * scaleMult, 0, mesh, shirtTex);
         
-        createBlock(0.5, 0.6, 0.5, getRandomSkinColor(), 0, 3.2, 0, mesh); 
+        createBlock(0.5 * scaleMult, 0.6 * scaleMult, 0.5 * scaleMult, getRandomSkinColor(), 0, 3.2 * scaleMult, 0, mesh); 
         
+        // HAT FOR POLICEMAN
+        if (role === 'POLICEMAN') {
+            // Dark Black Top Hat
+            const hatGrp = new THREE.Group();
+            hatGrp.position.set(0, 3.55 * scaleMult, 0);
+            // Brim
+            createBlock(0.8, 0.1, 0.8, 0x050505, 0, 0, 0, hatGrp);
+            // Cylinder
+            const topGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.6, 16);
+            const top = new THREE.Mesh(topGeo, new THREE.MeshLambertMaterial({color: 0x050505}));
+            top.position.y = 0.35;
+            hatGrp.add(top);
+            mesh.add(hatGrp);
+        }
+
         // LUGGAGE LOGIC (Applied to approx 30% of all people, unless they are specific roles that might look weird, but let's keep it broad)
-        if(Math.random() < 0.30 && !isWorker) {
+        if(Math.random() < 0.30 && !isWorker && role !== 'POLICEMAN') {
             const lug = new THREE.Group(); lug.name = "LUGGAGE"; 
             createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
             // Position slightly to the side
@@ -2345,11 +2521,13 @@
     }
     
     // --- JAMBONI (CLEANER) ---
-    function createJamboni() {
-        if(jamboni) scene.remove(jamboni.mesh);
+    // Refactored to create multiple
+    function createJamboni(isSecond) {
         
         const group = new THREE.Group();
-        // Initial pos: somewhere in the near-side shops area
+        // Initial pos logic handled in logic or random here.
+        // If isSecond, spawn hidden initially, moved later? Or just spawn off screen.
+        // For first one:
         group.position.set((Math.random()-0.5)*100, 0, 40);
         
         // SCALING: 17% smaller => 0.83 scale factor
@@ -2365,6 +2543,14 @@
         // Left side stripe
         const stripe2 = createBlock(0.2*s, 0.4*s, 7*s, 0xAAAAAA, -3.1*s, 2.0*s, 0, group);
         stripe2.rotation.x = 0.15;
+        
+        // NEW: JAMBONI 2 GRILL
+        if (isSecond) {
+            // Small grey grill on front center (Z is +)
+            // Body is 8*s long (Z from -4s to +4s). Front is +4s.
+            // Width is 6*s.
+            const grill = createBlock(3*s, 1.5*s, 0.2*s, 0x666666, 0, 1.5*s, 4.1*s, group);
+        }
 
         // Seat/Engine bump
         createBlock(5*s, 2*s, 3*s, 0x883300, 0, 3.5*s, 2*s, group);
@@ -2389,71 +2575,99 @@
         group.add(driver);
         scene.add(group);
         
+        const speed = isSecond ? 0.0425 : 0.05; // 15% slower (0.05 * 0.85 = 0.0425)
+
         // Return object with state logic
         return {
             mesh: group,
             angle: Math.random() * Math.PI * 2,
-            speed: 0.05,
+            speed: speed,
             turnSpeed: 0,
-            timer: 0
+            timer: 0,
+            isSecond: isSecond,
+            circleMode: false,
+            circleTimer: 0
         };
     }
     
-    function updateJamboni(dt) {
-        if(!jamboni) return;
-        
-        jamboni.timer -= dt;
-        
-        // State change logic
-        if(jamboni.timer <= 0) {
-            const r = Math.random();
-            if(r < 0.5) {
-                // Drive straight
-                jamboni.turnSpeed = 0;
-                jamboni.timer = 2 + Math.random() * 4;
-            } else if (r < 0.8) {
-                // Zig Zag / Turn
-                jamboni.turnSpeed = (Math.random() - 0.5) * 1.5;
-                jamboni.timer = 1 + Math.random() * 2;
+    function updateJambonis(dt) {
+        jambonis.forEach(jamboni => {
+            jamboni.timer -= dt;
+            
+            // CIRCLE MODE LOGIC (Specific to Second Jamboni)
+            if (jamboni.isSecond && jamboni.circleMode) {
+                jamboni.circleTimer -= dt;
+                // Force a steady turn speed to create a big circle
+                // 0.8 rad/s creates a decent circle
+                jamboni.turnSpeed = 0.8; 
+                
+                if(jamboni.circleTimer <= 0) {
+                    jamboni.circleMode = false;
+                    jamboni.timer = 0; // Trigger new random state
+                }
             } else {
-                // U-Turn attempt
-                jamboni.turnSpeed = 2.5; // Sharp turn
-                jamboni.timer = 1.5;
-            }
+                // State change logic
+                if(jamboni.timer <= 0) {
+                    // Chance to enter circle mode for J2
+                    if (jamboni.isSecond && Math.random() < 0.25) {
+                        jamboni.circleMode = true;
+                        jamboni.circleTimer = 4 + Math.random() * 7; // 4-11s
+                    } else {
+                        const r = Math.random();
+                        if(r < 0.5) {
+                            // Drive straight
+                            jamboni.turnSpeed = 0;
+                            jamboni.timer = 2 + Math.random() * 4;
+                        } else if (r < 0.8) {
+                            // Zig Zag / Turn
+                            jamboni.turnSpeed = (Math.random() - 0.5) * 1.5;
+                            jamboni.timer = 1 + Math.random() * 2;
+                        } else {
+                            // U-Turn attempt
+                            jamboni.turnSpeed = 2.5; // Sharp turn
+                            jamboni.timer = 1.5;
+                        }
+                    }
 
-            // Path correction bias
-            const pos = jamboni.mesh.position;
-            if (pos.x > -80 && pos.x < 80) {
-                if (Math.random() > 0.33) {
-                    jamboni.turnSpeed = (pos.x > 0) ? 0.5 : -0.5;
+                    // Path correction bias (keep near center if not circle mode)
+                    if (!jamboni.circleMode) {
+                        const pos = jamboni.mesh.position;
+                        if (pos.x > -80 && pos.x < 80) {
+                            if (Math.random() > 0.33) {
+                                jamboni.turnSpeed = (pos.x > 0) ? 0.5 : -0.5;
+                            }
+                        }
+                    }
                 }
             }
-        }
-        
-        // Apply rotation
-        jamboni.angle += jamboni.turnSpeed * dt;
-        jamboni.mesh.rotation.y = jamboni.angle + Math.PI; // Face forward
-        
-        // Move forward
-        const dir = new THREE.Vector3(Math.sin(jamboni.angle), 0, Math.cos(jamboni.angle));
-        const newPos = jamboni.mesh.position.clone().add(dir.multiplyScalar(jamboni.speed * 60 * dt));
-        
-        // Collision check for Jamboni
-        let hit = false;
-        // Wall boundaries
-        if(newPos.x < -180 || newPos.x > 180 || newPos.z < -20 || newPos.z > 90) hit = true;
-        // Obstacle collision
-        for(let ob of obstacles) {
-            if(newPos.distanceTo(new THREE.Vector3(ob.x, 0, ob.z)) < ob.r + 3) hit = true;
-        }
+            
+            // Apply rotation
+            jamboni.angle += jamboni.turnSpeed * dt;
+            jamboni.mesh.rotation.y = jamboni.angle + Math.PI; // Face forward
+            
+            // Move forward
+            const dir = new THREE.Vector3(Math.sin(jamboni.angle), 0, Math.cos(jamboni.angle));
+            const newPos = jamboni.mesh.position.clone().add(dir.multiplyScalar(jamboni.speed * 60 * dt));
+            
+            // Collision check for Jamboni
+            let hit = false;
+            // Wall boundaries
+            if(newPos.x < -180 || newPos.x > 180 || newPos.z < -20 || newPos.z > 90) hit = true;
+            // Obstacle collision
+            for(let ob of obstacles) {
+                if(newPos.distanceTo(new THREE.Vector3(ob.x, 0, ob.z)) < ob.r + 3) hit = true;
+            }
 
-        if(hit) {
-             jamboni.angle += Math.PI + (Math.random()-0.5);
-             jamboni.timer = 2.0;
-             jamboni.turnSpeed = 0;
-        } else {
-            jamboni.mesh.position.copy(newPos);
-        }
+            if(hit) {
+                 jamboni.angle += Math.PI + (Math.random()-0.5);
+                 jamboni.timer = 2.0;
+                 jamboni.turnSpeed = 0;
+                 // Cancel circle mode on hit
+                 jamboni.circleMode = false;
+            } else {
+                jamboni.mesh.position.copy(newPos);
+            }
+        });
     }
 
     function spawnPigeon() {
@@ -2542,7 +2756,6 @@
         greenTargetAssigned = false;
         greenTargetSpawned = false;
         lateDepartureTriggered = false;
-        chainReactionTriggered = false; // Reset chain reaction
         
         // Pick Random Package Color for Act 2
         const types = ['NEON_GREEN', 'WHITE', 'LIGHT_BLUE'];
@@ -2563,20 +2776,47 @@
             [trainTypes[i], trainTypes[j]] = [trainTypes[j], trainTypes[i]];
         }
         
+        // CALCULATE TOTAL PASSENGERS ACROSS ALL TRAINS
+        // We need this to distribute the ~35 special types (3-6 decoys + 17-38 shirts)
+        let totalPax = 0;
+        let pCounts = [];
+        
         // Assign delays (0 to 37 seconds)
         for(let i=0; i<6; i++) {
+            const count = Math.floor(1 + Math.random() * 89);
+            totalPax += count;
+            pCounts.push(count);
+            
             arrivalTrainData.push({
                 platformIdx: i,
                 delay: Math.random() * 37,
                 type: trainTypes[i].type,
                 color: trainTypes[i].color,
                 spawned: false,
-                passengerCount: Math.floor(1 + Math.random() * 89),
+                passengerCount: count,
                 passengerTimer: 0,
                 passengerTotalTime: 15.0, // Spawn over 15s
                 passengersSpawned: 0,
-                targetZ: -60 + (Math.random() * 25) // Store random stop point per train (-60 to -35)
+                targetZ: -60 + (Math.random() * 25), // Store random stop point per train (-60 to -35)
+                specialQueue: [] // Queue for special types
             });
+        }
+        
+        // Distribute Specials
+        // 1. Decoys (3-6)
+        const decoysNeeded = 3 + Math.floor(Math.random() * 4);
+        for(let i=0; i<decoysNeeded; i++) {
+             // Pick random train based on capacity weight? Or just random
+             const tIdx = Math.floor(Math.random() * 6);
+             arrivalTrainData[tIdx].specialQueue.push('DECOY_ACT2');
+        }
+        
+        // 2. Special Shirts (17-38)
+        const shirtsNeeded = 17 + Math.floor(Math.random() * 22);
+        for(let i=0; i<shirtsNeeded; i++) {
+             const tIdx = Math.floor(Math.random() * 6);
+             const type = Math.random() > 0.5 ? 'TROPICAL' : 'STRIPE_HORIZ';
+             arrivalTrainData[tIdx].specialQueue.push(type);
         }
     }
     
@@ -2594,17 +2834,34 @@
         // Role
         let role = 'CIV';
         if(isGreenTarget) role = 'GREEN_TARGET';
+        else {
+             // Check Queue
+             if(train.specialQueue.length > 0) {
+                 role = train.specialQueue.pop();
+             }
+        }
         
-        const mesh = createPerson(role, trainX, z);
+        // Normalize role for createPerson if it is DECOY_ACT2
+        let createRole = role;
+        if (role === 'DECOY_ACT2') createRole = 'CIV'; // Standard look, but adds pkg below
+
+        const mesh = createPerson(createRole, trainX, z);
         
-        // Add Package if Target
+        // Add Package if Target or Decoy
         if(role === 'GREEN_TARGET') {
             const pkg = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.15), new THREE.MeshBasicMaterial({color: currentPackageColor})); 
             pkg.position.set(0.6, 1.5, 0.3); 
             mesh.add(pkg);
+        } else if (role === 'DECOY_ACT2') {
+             // Pink, Orange, Brown
+             const cols = [0xFF69B4, 0xFFA500, 0x8B4513];
+             const c = cols[Math.floor(Math.random()*cols.length)];
+             const pkg = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.15), new THREE.MeshBasicMaterial({color: c}));
+             pkg.position.set(0.6, 1.5, 0.3);
+             mesh.add(pkg);
         }
         
-        // Also 10% Luggage chance for arrivals (if not target)
+        // Also 10% Luggage chance for arrivals (if not target/decoy)
         else if(Math.random() < 0.10) {
             const lug = new THREE.Group(); lug.name = "LUGGAGE"; 
             createBlock(0.6, 1.0, 0.4, 0x330000, 0, 0.5, 0, lug); createBlock(0.1, 1.2, 0.1, 0x111111, 0, 0.6, -0.3, lug);
@@ -2636,13 +2893,16 @@
         const centerZ = 20 + Math.random() * 30;
         waypoints.push(new THREE.Vector3(centerX, 0, centerZ));
         
-        // 5. Exits are now the Sliding Doors at +/- 225 X
-        // Randomly pick left or right exit
-        const exitX = Math.random() > 0.5 ? 230 : -230;
-        waypoints.push(new THREE.Vector3(exitX, 0, 50));
+        // 5. Shop Targets / Exit Points
+        const shops = [
+            {x: -160, z: 10}, {x: 160, z: -20}, {x: -160, z: 40}, {x: 160, z: 40}
+        ];
+        const shop = shops[Math.floor(Math.random() * shops.length)];
+        waypoints.push(new THREE.Vector3(shop.x, 0, shop.z));
         
-        // 6. Final fade point deeper into the "void"
-        waypoints.push(new THREE.Vector3(exitX > 0 ? 250 : -250, 0, 50));
+        // 6. Fade Out Point
+        const exitX = shop.x > 0 ? 250 : -250;
+        waypoints.push(new THREE.Vector3(exitX, 0, shop.z));
 
         const civ = {
             mesh: mesh,
@@ -2661,19 +2921,42 @@
     // --- LOGIC ---
     
     // NEW: First prepare the world but wait in "READY_CHECK" state
-    function prepareGameEnv(mode) {
+    function prepareGameEnv(mode, keepPosition) {
         gameMode = mode;
         timerRunning = false;
         timerStartTime = 0;
         isInitializing = false; // Reset lock
         
         // RESET CAMERA & VIEW FOR REPLAY
-        let camY = 50; 
-        if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
-        camera.position.set(0, camY, 130); 
-        camera.lookAt(0,0,0); 
-        pitch = -0.4; 
-        yaw = 0;
+        // UPDATED FOR SNIPER POS SETTING
+        if (!keepPosition) {
+            let camX = 0;
+            let camY = 50; 
+            let camZ = 130;
+
+            if (SETTING_SNIPER_POS === 'RANDOM') {
+                // X: Fill the space between -280 and 280 (was >170 or <-170)
+                // Just use random range directly
+                camX = (Math.random() - 0.5) * 560;
+                
+                // Y: Wider range (15 to 95)
+                camY = 15 + Math.random() * 80;
+            } else {
+                // CENTRAL (Existing subtle sway)
+                if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
+            }
+
+            camera.position.set(camX, camY, camZ); 
+            
+            // Look at action center (slightly offset Z to -40 for better angle)
+            const targetLook = new THREE.Vector3(0, 0, -40);
+            camera.lookAt(targetLook); 
+            
+            // RECALCULATE PITCH/YAW FROM CAMERA ORIENTATION
+            // This ensures aim logic starts correctly relative to random spawn
+            yaw = camera.rotation.y;
+            pitch = camera.rotation.x;
+        }
         
         // Ensure zoom is OFF
         toggleZoom(true); 
@@ -2702,7 +2985,6 @@
         particles.forEach(p => scene.remove(p.mesh)); particles = [];
         looseItems.forEach(i => scene.remove(i.mesh)); looseItems = [];
         arrivingTrains.forEach(t => scene.remove(t.mesh)); arrivingTrains = [];
-        slidingDoors.forEach(d => scene.remove(d.grp)); slidingDoors = [];
         
         // Reset trains completely
         spawnTrains();
@@ -2710,9 +2992,13 @@
         obstacles = []; // Clear obstacles (rebuilt in buildStation if static, but shops are static)
         
         shopStaff = []; 
+        vapeSignObject = null; // Reset
         
-        // Create Jamboni
-        jamboni = createJamboni();
+        // Reset Jambonis
+        jambonis.forEach(j => scene.remove(j.mesh));
+        jambonis = [];
+        // Create 1st Jamboni
+        jambonis.push(createJamboni(false));
         
         drawBoard(["AWAITING DATA..."]);
 
@@ -2789,6 +3075,20 @@
         const guardMesh = createPerson('GUARD', (Math.random()-0.5)*200, -50);
         civilians.push({mesh:guardMesh, role:'GUARD', state:'WALKING', waypoints:[new THREE.Vector3(100,0,-50), new THREE.Vector3(-100,0,-50)], speed:0.02});
         
+        // NEW POLICEMAN
+        // Starts on Platform 2/3 area (-60 to 20 X)
+        // Plat 2 is -20, Plat 3 is 20. Midpoint 0.
+        // Let's spawn near 0.
+        const copMesh = createPerson('POLICEMAN', (Math.random()-0.5)*40, -50 + Math.random()*20);
+        civilians.push({
+            mesh: copMesh,
+            role: 'POLICEMAN',
+            state: 'WANDERING', 
+            waypoints: [new THREE.Vector3(20, 0, -40)], 
+            speed: 0.008, // Very slow
+            waitTimer: 0
+        });
+
         // Increased Static Count by 4% (approx +1 or +2)
         const staticCount = Math.floor((5 + Math.random() * 22) * 1.04); 
         for(let i=0; i<staticCount; i++) {
@@ -2842,8 +3142,9 @@
     function triggerRush() {
         gameState = 'RUSH';
         civilians.forEach(c => {
-            if(c.role === 'WORKER' || c.role === 'GUARD' || c.role === 'STATIC') {
+            if(c.role === 'WORKER' || c.role === 'GUARD' || c.role === 'STATIC' || c.role === 'POLICEMAN') {
                 if(c.role === 'WORKER') { c.state = 'WALKING'; c.speed = 0.02; c.waypoints = [new THREE.Vector3((Math.random()-0.5)*200, 0, -40 - Math.random()*40)]; }
+                // Policeman ignores rush, keeps wandering or stops
                 return;
             }
             
@@ -2876,6 +3177,40 @@
         gameTime += dt;
         if(gameTime > nextPigeonTime) { spawnPigeon(); nextPigeonTime = gameTime + 10 + Math.random()*15; }
         
+        // --- JAMBONI 2 SPAWN LOGIC ---
+        if(gameTime > 77 && jambonis.length < 2) {
+            // Spawn second jamboni
+            const j2 = createJamboni(true); // isSecond = true
+            // Spawn at either EAT (-160, 10) or COMBS (160, -20)
+            if (Math.random() > 0.5) {
+                j2.mesh.position.set(-160, 0, 10);
+            } else {
+                j2.mesh.position.set(160, 0, -20);
+            }
+            jambonis.push(j2);
+        }
+        
+        // --- SPINNING V SIGN UPDATE ---
+        if(vapeSignObject) {
+            vapeSignObject.timer += dt;
+            if(vapeSignObject.state === 'SPINNING') {
+                // Spin slowly
+                vapeSignObject.mesh.rotation.y += dt * 0.1; // Slow spin
+                if(vapeSignObject.timer > vapeSignObject.duration) {
+                    vapeSignObject.state = 'WAITING';
+                    vapeSignObject.timer = 0;
+                    vapeSignObject.duration = 5 + Math.random() * 5; // Wait 5-10s
+                }
+            } else {
+                // WAITING
+                if(vapeSignObject.timer > vapeSignObject.duration) {
+                    vapeSignObject.state = 'SPINNING';
+                    vapeSignObject.timer = 0;
+                    vapeSignObject.duration = 15 + Math.random() * 8; // 15-23s
+                }
+            }
+        }
+        
         // --- PHONE OVERLAY LOGIC WITH EASTER EGG ---
         const overlay = document.getElementById('phone-overlay');
         const text = document.getElementById('phone-text');
@@ -2899,8 +3234,6 @@
             overlay.style.bottom = "-200px";
             overlay.dataset.phase = "3";
         }
-
-        updateDoors(dt);
         
         // BUG FIX: Ensure board only generates ONCE to prevent freeze/loop
         if(gameTime > 17 && !boardDataGenerated) {
@@ -3098,42 +3431,21 @@
             
             // 4. Late Departure Logic
             if(lateDepartureTriggered && gameTime > lateDepartureTime) {
-                // Chain Reaction Trigger
-                if (!chainReactionTriggered) {
-                    chainReactionTriggered = true;
-                    // Find 2 more random trains that are sitting there
-                    const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving);
-                    // Shuffle
-                    for (let i = sitting.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [sitting[i], sitting[j]] = [sitting[j], sitting[i]];
-                    }
-                    
-                    // Pick up to 2
-                    const extraDepartures = sitting.slice(0, 2);
-                    extraDepartures.forEach(t => {
-                        const delay = 5 + Math.random() * 42; // 5-47 seconds later
-                        t.scheduledDeparture = gameTime + delay;
-                    });
-                }
-                
-                // Pick random arrived train to leave (The Trigger Train)
-                const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving && !t.scheduledDeparture);
+                // Pick random arrived train to leave
+                // We use a flag inside arrivingTrains to track if it's leaving
+                const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving);
                 if(sitting.length > 0) {
-                     // Check if any already leaving to avoid double trigger if desired, but code allows one main trigger
-                     const leaving = arrivingTrains.find(t => t.isLeaving && !t.scheduledDeparture);
+                     // Pick one and mark it leaving
+                     // But we only want ONE to leave. So check if any are already leaving.
+                     const leaving = arrivingTrains.find(t => t.isLeaving);
                      if(!leaving) {
                          const t = sitting[Math.floor(Math.random()*sitting.length)];
                          t.isLeaving = true;
                      }
                 }
                 
-                // Move leaving trains (Main + Scheduled Extras)
+                // Move leaving trains
                 arrivingTrains.forEach(t => {
-                    if (t.scheduledDeparture && gameTime > t.scheduledDeparture) {
-                        t.isLeaving = true;
-                    }
-                    
                     if(t.isLeaving) {
                         t.mesh.position.z -= 4.0 * dt; // Very slow departure
                     }
@@ -3252,11 +3564,30 @@
         if(gameState === 'BLEEDING') {
             bleedTimer += dt;
             if(victimRef && victimRef.mesh) {
-                if(victimRef.role === 'TARGET' || victimRef.role === 'COURIER' || victimRef.role === 'GREEN_TARGET') {
-                    if(victimRef.mesh.rotation.x > -Math.PI/2) { victimRef.mesh.rotation.x -= dt * 5.0; victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); } 
-                    else if(bleedTimer > 1.0 && victimRef.mesh.position.y < 15) { victimRef.mesh.position.y += dt * 2.0; victimRef.mesh.rotation.y = 0; }
-                } else {
-                    if(victimRef.mesh.rotation.x > -Math.PI/2) { victimRef.mesh.rotation.x -= dt * 5.0; victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); }
+                // Ensure rotation happens even for Act 2 target
+                if(victimRef.mesh.rotation.x > -Math.PI/2) { 
+                    victimRef.mesh.rotation.x -= dt * 5.0; 
+                    victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); 
+                } 
+                
+                // Specific floating logic only for main target (Act 1) or Courier roles? 
+                // Act 2 target should also just fall.
+                // The floating logic below was:
+                // else if(bleedTimer > 1.0 && victimRef.mesh.position.y < 15) { victimRef.mesh.position.y += dt * 2.0; victimRef.mesh.rotation.y = 0; }
+                
+                // Let's make sure Green Target (Act 2) does NOT float up like a soul (unless desired, but user said "disappear like target in first act")
+                // Wait, Act 1 target usually floats up in this codebase?
+                // "they don't fall down or disappear, they should disappear just like the target in the first act does"
+                
+                // Checking code: Act 1 target has `victimRef.mesh.position.y += dt * 2.0` after 1s.
+                // This makes them ascend.
+                // So Act 2 target should ALSO ascend if it's "just like target in first act".
+                
+                if(victimRef.role === 'TARGET' || victimRef.role === 'GREEN_TARGET') {
+                     if(bleedTimer > 1.0 && victimRef.mesh.position.y < 15) {
+                         victimRef.mesh.position.y += dt * 2.0;
+                         victimRef.mesh.rotation.y += dt; // Spin slightly while ascending
+                     }
                 }
             }
             updateLooseItems(dt);
@@ -3322,7 +3653,7 @@
         if(gameState === 'ENDED') return;
 
         updateLogic(dt);
-        updateJamboni(dt); // Update the cleaner
+        updateJambonis(dt); // Update the cleaners
         updateShopStaff(dt); // Update shopkeepers
         
         const aimSpeed = isZoomed ? 0.2 * dt : 1.0 * dt;
@@ -3379,34 +3710,6 @@
                             body.style.color = "#fff"; // Revert to white
                          }
                      }, 1500);
-                }
-            }
-            
-            // TARGET LOST CHECK (GREEN TARGET ESCAPED)
-            if(c.role === 'GREEN_TARGET' && Math.abs(c.mesh.position.x) > 220) {
-                if(gameState !== 'ENDED' && gameState !== 'BLEEDING') {
-                    const overlay = document.getElementById('phone-overlay');
-                    const body = document.getElementById('phone-text');
-                    overlay.style.bottom = "20px";
-                    
-                    document.querySelector('.intel-header').innerText = "MISSION FAILED";
-                    document.querySelector('.intel-header').style.color = "#FF0000"; 
-                    body.innerText = "LOST THEM. GET BACK TO BASE ASAP.";
-                    body.style.color = "#FF0000";
-                    
-                    // Trigger Fail State immediately or allow player to read?
-                    // Let's trigger loss after 3 seconds so they can read it.
-                    if(!c.hasLostTriggered) {
-                        c.hasLostTriggered = true;
-                        setTimeout(() => {
-                            if(gameState !== 'ENDED') {
-                                resultIsWin = false;
-                                resultReason = "TARGET ESCAPED. MISSION COMPROMISED.";
-                                victimSurvivalStatus = "AT LARGE"; 
-                                showEndScreen();
-                            }
-                        }, 3500);
-                    }
                 }
             }
             
@@ -3498,6 +3801,28 @@
                  c.state = 'WALKING'; c.waypoints = [new THREE.Vector3((Math.random()-0.5)*250, 0, 20 + Math.random()*80)];
             }
             
+            // --- POLICEMAN LOGIC ---
+            if(c.role === 'POLICEMAN' && c.state !== 'DOWN') {
+                if (c.state === 'WANDERING') {
+                    // If arrived
+                    if (c.waypoints.length === 0) {
+                        c.state = 'WAITING';
+                        // Wait up to 29s
+                        c.waitTimer = Math.random() * 29;
+                    }
+                } else if (c.state === 'WAITING') {
+                    c.waitTimer -= dt;
+                    if (c.waitTimer <= 0) {
+                         c.state = 'WANDERING';
+                         // Target Plat 2/3 area (-60 to +20 approx)
+                         // Restrict X to -50 to +30. Z to -70 to 0.
+                         const tx = -50 + Math.random() * 80;
+                         const tz = -70 + Math.random() * 70;
+                         c.waypoints = [new THREE.Vector3(tx, 0, tz)];
+                    }
+                }
+            }
+
             // GENERAL MOVEMENT LOGIC (Applies to all walking states including ROMANCE logic)
             if((c.state === 'WALKING' || c.state === 'WANDERING' || c.state === 'ROMANCE_SEQUENCE' || c.state === 'EXITING') && c.waypoints.length > 0) {
                 // If in romance sequence but waiting/flirting/pining, skip movement
@@ -3528,8 +3853,8 @@
                     c.waypoints.shift();
                     if(c.waypoints.length === 0) {
                         if(c.role === 'GUARD') c.waypoints = [new THREE.Vector3(c.mesh.position.x > 0 ? -100 : 100, 0, -50)];
-                        else if(gameState === 'RUSH' && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && c.role !== 'STATIC') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
-                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } else if (c.role !== 'ROMANCE_WORKER' && c.state !== 'EXITING') c.state = 'IDLE';
+                        else if(gameState === 'RUSH' && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && c.role !== 'STATIC' && c.role !== 'POLICEMAN') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
+                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } else if (c.role !== 'ROMANCE_WORKER' && c.role !== 'POLICEMAN' && c.state !== 'EXITING') c.state = 'IDLE';
                     }
                 } else {
                     dir.normalize(); 
@@ -3673,7 +3998,14 @@
             }
 
             // GENERATE BIO FOR FAILURE
-            const bio = generateBio();
+            let bio;
+            // USE GANGSTER DATA IF ACT 2 TARGET
+            if (civ.role === 'GREEN_TARGET') {
+                bio = generateGangsterBio();
+            } else {
+                bio = generateBio();
+            }
+            
             document.getElementById('bio-name').innerText = bio.name;
             document.getElementById('bio-dob').innerText = bio.dob;
             document.getElementById('bio-ssn').innerText = bio.ssn;
@@ -3705,7 +4037,11 @@
                     life: 20.0 // Long life so it survives killcam
                 });
             }
+            // Reset rotation to allow fall animation
             civ.mesh.rotation.x = 0; 
+            
+            // Set victimRef for logic loop
+            victimRef = civ;
         }
         gameState = 'BLEEDING'; bleedTimer = 0; bloodSpawned = false;
     }
