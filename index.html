@@ -284,6 +284,42 @@
             font-weight: bold;
             color: #eee;
         }
+        
+        /* DREAM MODE AUDIO CONTROLS */
+        #dream-controls {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.5); padding: 15px;
+            border: 1px solid #444; border-radius: 4px;
+            display: none; z-index: 60;
+            backdrop-filter: blur(5px);
+        }
+        .dream-vol-row { display: flex; align-items: center; margin-bottom: 8px; }
+        .dream-vol-row:last-child { margin-bottom: 0; }
+        .dream-vol-label { font-family: 'Montserrat', sans-serif; font-size: 10px; color: #888; width: 50px; }
+        
+        /* DREAM UI TOGGLE BUTTON */
+        #dream-ui-toggle {
+            position: absolute; bottom: 20px; right: 20px;
+            width: 30px; height: 30px;
+            background: transparent;
+            border: 2px solid #fff; /* Dynamically updated via JS */
+            border-radius: 50%;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 100;
+            display: none; /* Only in dream mode */
+            align-items: center; justify-content: center;
+            transition: all 0.3s;
+            animation: throb-soft 2s infinite ease-in-out;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+        }
+        @keyframes throb-soft {
+            0% { transform: scale(1); box-shadow: 0 0 5px currentColor; opacity: 0.8; }
+            50% { transform: scale(1.15); box-shadow: 0 0 15px currentColor; opacity: 1; }
+            100% { transform: scale(1); box-shadow: 0 0 5px currentColor; opacity: 0.8; }
+        }
 
 
         /* --- MENUS --- */
@@ -421,6 +457,13 @@
             70% { box-shadow: 0 0 0 10px rgba(123, 44, 191, 0); }
             100% { box-shadow: 0 0 0 0 rgba(123, 44, 191, 0); }
         }
+        
+        /* SLOW TEXT PULSE FOR DREAM BUTTON TEXT */
+        @keyframes text-pulse-slow {
+            0% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.7; transform: scale(1); }
+        }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spinner {
@@ -449,13 +492,12 @@
         }
         button.action-btn:hover::before { left: 100%; transition: 0.5s; }
 
-        button.action-btn.clicked {
-            animation: none; transform: scale(0.95); background: #333; box-shadow: inset 0 0 10px #000; border: 1px solid #555;
-        }
-        
         button.action-btn:hover { transform: translateY(-2px); }
         button.action-btn:active { transform: translateY(1px); }
 
+        button.action-btn.clicked {
+            animation: none; transform: scale(0.95); background: #333; box-shadow: inset 0 0 10px #000; border: 1px solid #555;
+        }
         
         /* PLAY FOR FUN BUTTON (Primary) */
         #btn-fun {
@@ -481,15 +523,12 @@
             box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
         }
         
-        /* DREAM BUTTON (Hidden initially, Pulse) */
+        /* DREAM BUTTON SPECIAL STYLE */
         #btn-dream {
             display: none; /* Hidden by default */
-            animation: pulse-slow 3s infinite ease-in-out;
         }
-        @keyframes pulse-slow {
-            0% { transform: scale(1); letter-spacing: 2px; }
-            50% { transform: scale(1.02); letter-spacing: 3px; color: #fff; text-shadow: 0 0 10px #fff; }
-            100% { transform: scale(1); letter-spacing: 2px; }
+        #btn-dream span {
+            animation: text-pulse-slow 4s infinite ease-in-out;
         }
 
         /* End game button container for stacking */
@@ -754,6 +793,21 @@
         <div class="dream-target-body" id="dream-target-text">SCANNING…</div>
     </div>
     
+    <!-- DREAM MODE AUDIO CONTROLS (Top-right) -->
+    <div id="dream-controls">
+        <div class="dream-vol-row">
+            <span class="dream-vol-label">MUSIC</span>
+            <input type="range" id="dream-music-slider" class="tech-slider" min="0" max="1" step="0.02">
+        </div>
+        <div class="dream-vol-row">
+            <span class="dream-vol-label">SFX</span>
+            <input type="range" id="dream-sfx-slider" class="tech-slider" min="0" max="1" step="0.02">
+        </div>
+    </div>
+    
+    <!-- NEW DREAM UI TOGGLE BUTTON -->
+    <button id="dream-ui-toggle" onclick="toggleDreamUI()">_</button>
+    
     <div id="high-score-modal">
 
         <div class="hs-content">
@@ -853,8 +907,10 @@
                 <button id="btn-fun" class="action-btn" onclick="initiateGame('STREAK', this)">PLAY FOR FUN</button>
                 <button id="btn-speed" class="action-btn sec-btn" onclick="initiateGame('TIMED', this)">PLAY FOR SPEED</button>
             </div>
-            <!-- DREAM STATE BUTTON -->
-            <button id="btn-dream" class="action-btn sec-btn" style="margin-top:10px; font-size:12px; height:40px; color:#666; border-color:#333;" onclick="initiateDreamMode(this)">DREAM STATE SCREENSAVER MODE</button>
+            <!-- DREAM STATE BUTTON (Unlockable) -->
+            <button id="btn-dream" class="action-btn sec-btn" style="margin-top:10px; font-size:12px; height:40px; color:#666; border-color:#333;" onclick="initiateDreamMode(this)">
+                <span>DREAM STATE SCREENSAVER MODE</span>
+            </button>
         </div>
 
         <div class="dossier" id="end-dossier" style="display:none; text-align:center;">
@@ -1053,7 +1109,8 @@
     // --- EXPANDED MUSIC LIBRARY ---
     const MUSIC_TRACKS = [
         'music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 
-        'music5.mp3', 'music6.mp3', 'music7.mp3', 'music8.mp3'
+        'music5.mp3', 'music6.mp3', 'music7.mp3', 'music8.mp3',
+        'music9.mp3', 'music10.mp3'
     ];
     
     // --- DOCUMENTARY TRACKS ---
@@ -1070,64 +1127,34 @@
     // COMB FACTS & REVIEWS (TVGoHome Style)
     // AMENDMENT: Changed single quotes to double quotes for facts
     const COMB_TRIVIA = [
-        "FACT: The first comb was made of frozen butter.",
-        "REVIEW: \"It combed my soup perfectly.\" - G. Ramsey",
         "FACT: Napoleon used a comb to signal retreat.",
         "REVIEW: \"Too pointy. 1 star.\" - Anon",
         "FACT: Combs were illegal in Devon until 1984.",
-        "REVIEW: \"My hamster loves the grip.\" - P. Daniels",
-        "FACT: A comb cannot float in mercury.",
         "REVIEW: \"Don't shop at COMBS, terrible service.\" - Jeff in Stoke",
         "FACT: In 1204, a comb was elected Mayor of Norwich.",
-        "REVIEW: \"It smells of old trams.\" - B. Johnson",
-        "FACT: The moon is shaped like a very old comb.",
-        "REVIEW: \"Instructions unclear, combed my toaster.\"",
-        "FACT: Queen Victoria owned 400 invisible combs.",
         "REVIEW: \"Does not work on bald eagles.\" - USA_Fan",
         "FACT: Comb technology peaked in the Bronze Age.",
         "REVIEW: \"Refund refused. Sad.\" - Karen1975",
         "FACT: \"Comb\" is short for \"Combustable\".",
-        "REVIEW: \"Perfect for scratching my car.\" - D. Clarkson",
-        "FACT: Every 3rd comb sold is haunted.",
         "REVIEW: \"It whispers to me at night.\" - SpookySteve",
         "FACT: Combs can be used as primitive radios.",
         "REVIEW: \"Only picks up Radio 4.\" - T. May",
         "FACT: A comb has never killed a swan.",
         "REVIEW: \"Too many teeth, not enough gum.\"",
         "FACT: The collective noun for combs is a \"Tangle\".",
-        "REVIEW: \"Made of cheese? No. Disappointed.\"",
-        "FACT: Julius Caesar invented the parting.",
         "REVIEW: \"Sticky. Why is it sticky?\"",
         "FACT: Combs are banned in space.",
         "REVIEW: \"Arrived broken. Fixed with tape. 3/10\"",
         "FACT: The world's largest comb is in Wigan.",
-        "REVIEW: \"Not suitable for heavy gravel.\"",
-        "FACT: Ancient Greeks combed their salads.",
         "REVIEW: \"Expensive for a piece of plastic.\"",
-        "FACT: A comb a day keeps the barber away.",
-        "REVIEW: \"My cat ate it.\"",
-        "FACT: Combs were once currency in Wales.",
-        "REVIEW: \"Too loud when dropped.\"",
         "FACT: The plastic comb was invented by accident.",
-        "REVIEW: \"Does not comb thoughts. False advertising.\"",
-        "FACT: Vikings used combs to navigate.",
         "REVIEW: \"Slippery when wet.\"",
         "FACT: A comb has 42 teeth on average.",
         "REVIEW: \"Lost it immediately.\"",
         "FACT: Combs are afraid of heights.",
         "REVIEW: \"Color did not match my aura.\"",
         "FACT: You can play a comb like a kazoo.",
-        "REVIEW: \"Tastes like purple.\"",
-        "FACT: The Titanic had a dedicated comb room.",
-        "REVIEW: \"Too shiny.\"",
-        "FACT: Combs were originally square.",
         "REVIEW: \"Not round enough.\"",
-        "FACT: A broken comb signifies rain.",
-        "REVIEW: \"It bit me.\"",
-        "FACT: Combs dissolve in vinegar.",
-        "REVIEW: \"Why is it vibrating?\"",
-        "FACT: The Queen combs her corgis daily.",
-        "REVIEW: \"Good for scraping toast.\"",
         "FACT: Combs are 90% air.",
         "REVIEW: \"Heavier than it looks.\"",
         "FACT: Never lend a comb to a ghost.",
@@ -1136,34 +1163,36 @@
         "REVIEW: \"My dog hates it.\"",
         "FACT: The word \"Comb\" is 4 letters long.",
         "REVIEW: \"I ordered a brush. This is a comb.\"",
-        "FACT: Combs amplify silence.",
-        "REVIEW: \"Works on llamas.\"",
         "FACT: There is no such thing as a left-handed comb.",
-        "REVIEW: \"I am left handed. It exploded.\"",
-        "FACT: Combs are magnetic to socks.",
-        "REVIEW: \"Found in my soup.\"",
-        "FACT: A comb is a ladder for fleas.",
-        "REVIEW: \"Too extravagant.\"",
-        "FACT: Combs are allergic to jazz.",
         "REVIEW: \"It sings.\"",
-        "FACT: A comb is just a skeleton of a brush.",
-        "REVIEW: \"Too boney.\"",
-        "FACT: Combs hate water.",
-        "REVIEW: \"It sank.\"",
-        "FACT: Every comb has a name.",
-        "REVIEW: \"Mine is called Steve.\"",
         "FACT: Combs can feel love.",
         "REVIEW: \"It judged me.\"",
-        "FACT: A comb is a mirror for hair.",
-        "REVIEW: \"Too reflective.\"",
-        "FACT: Combs are older than time.",
-        "REVIEW: \"Dusty.\"",
         "FACT: A comb is a key to a lock of hair.",
         "REVIEW: \"Did not unlock my door.\"",
-        "FACT: Combs are strictly non-edible.",
-        "REVIEW: \"Crunchy.\"",
         "FACT: A comb is a saw for air.",
         "REVIEW: \"Too sharp.\""
+    ];
+    
+    // NEW CONTENT FOR TICKER
+    const TRAFFIC_NEWS = [
+        "M1 Southbound blocked by overturned lorry.",
+        "A406 North Circular standstill due to planned engineering works.",
+        "M25 slow clockwise, anti-clockwise.",
+        "Delays on the M6 - Drive Carefully",
+        "Delays on A1 near Peterborough",
+        "M4 closed. Just... closed. Don't ask.",
+    ];
+    
+    const WEATHER_NEWS = [
+        "White Christmas odds slashed to 10/1.",
+        "Grey skies expected until April.",
+        "Tonight: Light drizzle turning into heavy rain.",
+        "Wind warning: Gales expected this weekend.",
+        "Temperatures dropping. Put the kettle on.",
+    ];
+    
+    const XMAS_HEADLINES = [
+        "Santa arrested for airspace violation over Luton",
     ];
 
     // WIN PHRASES
@@ -1197,9 +1226,11 @@
     let dreamZoomDir = 1; // 1 = in, -1 = out
     let dreamRushActive = false; // Flag to allow rush logic in Dream mode without state change
     let lastDreamSide = 'LEFT'; // To alternate cameras: LEFT or RIGHT
+    let dreamSkyTimer = 0; // For sky color transition
 
     // Dream intel for new bottom-right UI
     let dreamIntelPhase = 0;  // 0 = none, 1 = first message, 2 = second message, 3 = done
+    let dreamUIVisible = true; // State for UI toggle
 
 
     // DREAM CAMERA CONFIGURATIONS - UPDATED WITH SIDE TAGS
@@ -1218,6 +1249,18 @@
         { side: 'RIGHT', pos: {x: 0, y: 140, z: 0}, look: {x: 0, y: 0, z: -50} }, // Ant View (Right turn)
         { side: 'LEFT', pos: {x: 0, y: 5, z: 120}, look: {x: 0, y: 60, z: -100} } // Low Up (Left turn)
     ];
+    
+    // DREAM SKY PALETTES (Top Color, Bottom Color, Light Color)
+    const DREAM_SKIES = [
+        { name: "Standard", top: 0x1a1a20, bot: 0x6d5045, light: 0xffddaa },
+        { name: "Golden Hour", top: 0x001133, bot: 0xFFaa00, light: 0xFFaa00 }, // Deep blue to bright gold
+        { name: "Cyber Sunset", top: 0x220033, bot: 0xFF0055, light: 0xFF5500 }, // Purple to hot pink
+        { name: "Deep Space", top: 0x000000, bot: 0x001122, light: 0x8899aa }, // Very dark
+        { name: "Royal Blood", top: 0x330000, bot: 0x884400, light: 0xff4444 }  // Red to Orange
+    ];
+    let currentSkyIdx = 0;
+    let nextSkyIdx = 0;
+    let skyBlend = 0; // 0 to 1
 
     // Arrival Logic Variables
     let arrivalPhase = 'WAITING'; // WAITING, ARRIVING, BOARDING_OFF, COMPLETE
@@ -1254,6 +1297,7 @@
     let statuePos = null; 
     let jambonis = []; // The cleaner vehicles (ARRAY NOW)
     let shopStaff = []; // The shopkeepers
+    let stationLamps = []; // Array of { mesh, light }
     
     // Logic
     let targetObj = null; 
@@ -1261,6 +1305,7 @@
     let targetPlatform = -1; 
     let isInitializing = false; // Prevent double init
     let boardDataGenerated = false; // Prevent board redraw loop
+    let isNightMode = false; // Night mode state
     
     let boardCanvas, boardCtx, boardTexture;
     let nextPigeonTime = 5;
@@ -1282,6 +1327,8 @@
     
     // Sky Dome Uniforms Ref
     let skyUniforms = null;
+    let sunLight = null; // Ref to sun
+    let ambientLight = null; // Ref to ambient
 
     // Settings & Persistence
     let SETTING_CROWD = 80;
@@ -1380,16 +1427,20 @@
         document.getElementById('vol-sfx-slider').value = SETTING_SFX_VOL;
         document.getElementById('slide-menu-vol').value = SETTING_MENU_VOL;
         
-        // UNLOCK DREAM BUTTON IF TARGET > 0
-        if (STATS.target > 0) {
-            document.getElementById('btn-dream').style.display = 'block';
-        }
+        // Sync Dream Sliders
+        document.getElementById('dream-music-slider').value = SETTING_MUSIC_VOL;
+        document.getElementById('dream-sfx-slider').value = SETTING_SFX_VOL;
 
         updateRadioVisuals();
         updateSniperPosVisuals();
         updateMenuVisuals();
         renderLeaderboard();
         renderStats();
+        
+        // Unlock Dream Button if played before (Target stats > 0)
+        if(STATS.target > 0) {
+            document.getElementById('btn-dream').style.display = 'flex';
+        }
     }
 
     function renderLeaderboard() {
@@ -1541,6 +1592,22 @@
         const isMin = ui.classList.contains('minimized');
         icon.innerText = isMin ? '^' : 'v';
         text.innerText = isMin ? 'OPEN MENU' : 'HIDE MENU';
+    }
+    
+    // TOGGLE DREAM UI
+    function toggleDreamUI() {
+        dreamUIVisible = !dreamUIVisible;
+        const disp = dreamUIVisible ? 'block' : 'none';
+        
+        // Toggle Audio Controls
+        const ac = document.getElementById('dream-controls');
+        if(ac) ac.style.display = disp;
+        
+        // Toggle Intel Panel (only if phase > 0)
+        if(dreamIntelPhase > 0) {
+            const dp = document.getElementById('dream-target-panel');
+            if(dp) dp.style.display = disp;
+        }
     }
 
     // --- AUDIO SYSTEM ---
@@ -1884,11 +1951,11 @@
 
         raycaster = new THREE.Raycaster();
 
-        const amb = new THREE.AmbientLight(0xffffff, 0.6); scene.add(amb);
-        const sun = new THREE.SpotLight(0xffddaa, 1.5);
-        sun.position.set(50, 150, 50); sun.angle = 0.8; sun.penumbra = 0.5; sun.castShadow = true;
-        sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
-        scene.add(sun);
+        ambientLight = new THREE.AmbientLight(0xffffff, 0.6); scene.add(ambientLight);
+        sunLight = new THREE.SpotLight(0xffddaa, 1.5);
+        sunLight.position.set(50, 150, 50); sunLight.angle = 0.8; sunLight.penumbra = 0.5; sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
+        scene.add(sunLight);
 
         stripeTexture = createStripeTexture();
         marbleTexture = createMarbleTexture();
@@ -1908,6 +1975,8 @@
         sliderMusic.addEventListener('input', function() { 
             SETTING_MUSIC_VOL = parseFloat(this.value); 
             if(activeMusicAudio) activeMusicAudio.volume = SETTING_MUSIC_VOL;
+            // SYNC DREAM SLIDER
+            document.getElementById('dream-music-slider').value = SETTING_MUSIC_VOL;
             saveSettings(); 
         });
 
@@ -1916,7 +1985,26 @@
         sliderSFX.addEventListener('input', function() { 
             SETTING_SFX_VOL = parseFloat(this.value);
             sfx.volume = SETTING_SFX_VOL;
+            // SYNC DREAM SLIDER
+            document.getElementById('dream-sfx-slider').value = SETTING_SFX_VOL;
             saveSettings(); 
+        });
+        
+        // --- NEW DREAM SLIDERS LISTENERS ---
+        const dMus = document.getElementById('dream-music-slider');
+        dMus.addEventListener('input', function() {
+            SETTING_MUSIC_VOL = parseFloat(this.value);
+            if(activeMusicAudio) activeMusicAudio.volume = SETTING_MUSIC_VOL;
+            document.getElementById('vol-music-slider').value = SETTING_MUSIC_VOL; // Sync Main Menu
+            saveSettings();
+        });
+        
+        const dSfx = document.getElementById('dream-sfx-slider');
+        dSfx.addEventListener('input', function() {
+            SETTING_SFX_VOL = parseFloat(this.value);
+            sfx.volume = SETTING_SFX_VOL;
+            document.getElementById('vol-sfx-slider').value = SETTING_SFX_VOL; // Sync Main Menu
+            saveSettings();
         });
 
         animate();
@@ -1926,21 +2014,48 @@
     function randomizeSky() {
         if (!skyUniforms) return;
         
-        // 1 in 4 chance for "Grey Day" (15% darker, greyer)
-        const isGreyDay = Math.random() < 0.25;
-        
-        if (isGreyDay) {
-            // Darker, Greyer
-            // Original Top: 0x1a1a20 (Very dark blue/grey) -> Make greyer
-            skyUniforms.topColor.value.setHex(0x151518); 
-            
-            // Original Bottom: 0x6d5045 (Warm orange/brown grey) -> Make greyer and darker
-            // Reduce saturation/warmth
-            skyUniforms.bottomColor.value.setHex(0x555050); 
+        // NIGHT MODE LOGIC (1 in 3 chance of generation)
+        // Reset lamps first
+        stationLamps.forEach(lamp => {
+             lamp.light.intensity = 0;
+             if(lamp.volumetric) lamp.volumetric.visible = false;
+        });
+
+        if (isNightMode) {
+             // NIGHT: Dark Blue/Black Sky
+             skyUniforms.topColor.value.setHex(0x000000); 
+             skyUniforms.bottomColor.value.setHex(0x000510);
+             ambientLight.intensity = 0.15; // Dim ambient
+             sunLight.intensity = 0.1; // Moonlight
+             sunLight.color.setHex(0x8899FF); // Blueish moonlight
+             
+             // Turn on Street Lamps
+             stationLamps.forEach(lamp => {
+                  lamp.light.intensity = 1.2;
+                  if(lamp.volumetric) lamp.volumetric.visible = true;
+             });
+             
         } else {
-            // Standard Beautiful Pastel/Warm
-            skyUniforms.topColor.value.setHex(0x1a1a20);
-            skyUniforms.bottomColor.value.setHex(0x6d5045);
+            // DAY MODES
+            ambientLight.intensity = 0.6;
+            sunLight.intensity = 1.5;
+            sunLight.color.setHex(0xffddaa);
+
+            // Only randomize initially if NOT dream mode (Dream mode handles its own loop)
+            if (gameMode === 'DREAM') return;
+            
+            // 1 in 4 chance for "Grey Day" (15% darker, greyer)
+            const isGreyDay = Math.random() < 0.25;
+            
+            if (isGreyDay) {
+                // Darker, Greyer
+                skyUniforms.topColor.value.setHex(0x151518); 
+                skyUniforms.bottomColor.value.setHex(0x555050); 
+            } else {
+                // Standard Beautiful Pastel/Warm
+                skyUniforms.topColor.value.setHex(0x1a1a20);
+                skyUniforms.bottomColor.value.setHex(0x6d5045);
+            }
         }
     }
 
@@ -2017,9 +2132,9 @@
                 x = (Math.random() > 0.5 ? 1 : -1) * (350 + Math.random() * 400);
             }
             
-            // THICKER BUILDINGS UPDATE (1.25x)
-            const w = (20 + Math.random() * 50) * 1.25;
-            const d = (20 + Math.random() * 50) * 1.25;
+            // INCREASED THICKNESS by 20%
+            const w = (20 + Math.random() * 50) * 1.2;
+            const d = (20 + Math.random() * 50) * 1.2;
             const h = 40 + Math.random() * 300; // Varying heights, some very tall
             
             const col = buildingColors[Math.floor(Math.random() * buildingColors.length)];
@@ -2035,10 +2150,10 @@
                 x = 100; z = 400; 
                 const cwGrp = new THREE.Group();
                 cwGrp.position.set(x, 0, z);
-                // Tower body
-                createBlock(40 * 1.25, 300, 40 * 1.25, 0x555566, 0, 150, 0, cwGrp, tex);
+                // Tower body - THICKER
+                createBlock(48, 300, 48, 0x555566, 0, 150, 0, cwGrp, tex);
                 // Pyramid Top
-                const pyrGeo = new THREE.ConeGeometry(30 * 1.25, 40, 4);
+                const pyrGeo = new THREE.ConeGeometry(36, 40, 4);
                 const pyrMat = new THREE.MeshLambertMaterial({color: 0x555566});
                 const pyr = new THREE.Mesh(pyrGeo, pyrMat);
                 pyr.position.y = 320;
@@ -2058,12 +2173,37 @@
                 
                 // Add Red noise to sand buildings
                 if (isSand) {
-                   // Simple way: overlay geometry or just rely on color
                    mat.color.setHex(0x8B4513); // Darker brown/red
                 }
                 
                 const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
                 mesh.position.set(x, h/2 - 20, z); // Sink slightly
+                
+                // 20 RANDOM WINDOW LIGHTS LOGIC
+                // We add "Lit Windows" to random buildings.
+                // ~150 buildings. 20 lit windows total distributed among them.
+                // Approx 1 in 7 buildings gets a special lit window.
+                if (Math.random() < 0.15) {
+                    const winW = 3 + Math.random()*3;
+                    const winH = 2 + Math.random()*2;
+                    const winGeo = new THREE.PlaneGeometry(winW, winH);
+                    const winMat = new THREE.MeshBasicMaterial({ color: 0xFFFFCC }); // Bright Warm White
+                    const winMesh = new THREE.Mesh(winGeo, winMat);
+                    
+                    // Place on a random face
+                    const side = Math.floor(Math.random() * 4);
+                    // 0: Front (z+), 1: Back (z-), 2: Right (x+), 3: Left (x-)
+                    
+                    let yPos = (Math.random() - 0.5) * (h * 0.8); // Spread vertically
+                    
+                    if (side === 0) { winMesh.position.set(0, yPos, d/2 + 0.1); }
+                    else if (side === 1) { winMesh.position.set(0, yPos, -d/2 - 0.1); winMesh.rotation.y = Math.PI; }
+                    else if (side === 2) { winMesh.position.set(w/2 + 0.1, yPos, 0); winMesh.rotation.y = Math.PI/2; }
+                    else { winMesh.position.set(-w/2 - 0.1, yPos, 0); winMesh.rotation.y = -Math.PI/2; }
+                    
+                    mesh.add(winMesh);
+                }
+
                 scene.add(mesh);
             }
             
@@ -2239,17 +2379,8 @@
         scene.add(grp);
     }
     
-    // NEW DETAILED PLANTS FOR BACK WALL
-    function createConcoursePlants() {
-        const positions = [-120, -40, 40, 120]; 
-        positions.forEach(x => {
-            const finalX = x + (Math.random() - 0.5) * 30;
-            const z = 115 + (Math.random() - 0.5) * 5; 
-            createDetailedPlant(finalX, z);
-        });
-    }
-
-        function createDetailedPlant(x, z) {
+    // NEW DETAILED PLANT FUNCTION (DULLER COLORS)
+    function createDetailedPlant(x, z) {
         const grp = new THREE.Group();
         grp.position.set(x, 0, z);
         
@@ -2284,6 +2415,111 @@
         scene.add(grp);
     }
     
+    // CHRISTMAS TREE
+    function createChristmasTree(x, z) {
+        const grp = new THREE.Group();
+        grp.position.set(x, 0, z);
+
+        // Trunk
+        createBlock(1.5, 4, 1.5, 0x3d2817, 0, 2, 0, grp);
+
+        // Layers of green cones
+        const green = new THREE.MeshLambertMaterial({color: 0x0f400f});
+        for(let i=0; i<4; i++) {
+            const size = 6 - i;
+            const yPos = 4 + (i * 3.5);
+            const layer = new THREE.Mesh(new THREE.ConeGeometry(size, 5, 8), green);
+            layer.position.y = yPos;
+            grp.add(layer);
+            
+            // Minimal Ornaments (Small random spheres on edge)
+            for(let j=0; j<6; j++) {
+                const angle = (Math.PI*2 / 6) * j + (i*0.5);
+                const r = size * 0.8;
+                const ball = new THREE.Mesh(new THREE.SphereGeometry(0.4), new THREE.MeshLambertMaterial({color: Math.random()>0.5 ? 0xff0000 : 0xffff00}));
+                ball.position.set(Math.cos(angle)*r, yPos - 1.5, Math.sin(angle)*r);
+                grp.add(ball);
+            }
+        }
+
+        // Star
+        const star = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2), new THREE.MeshBasicMaterial({color: 0xFFFF00}));
+        star.position.y = 18;
+        grp.add(star);
+
+        // Picket Fence Surround (White Blocks)
+        // Square layout around base
+        const fR = 7;
+        const fH = 1.5;
+        const fW = 0.3;
+        for(let i=0; i<12; i++) {
+            // Left/Right sides
+            const zOff = -fR + (i * (fR*2/11));
+            createBlock(0.4, fH, fW, 0xFFFFFF, -fR, fH/2, zOff, grp);
+            createBlock(0.4, fH, fW, 0xFFFFFF, fR, fH/2, zOff, grp);
+            // Front/Back sides
+            const xOff = -fR + (i * (fR*2/11));
+            createBlock(fW, fH, 0.4, 0xFFFFFF, xOff, fH/2, -fR, grp);
+            createBlock(fW, fH, 0.4, 0xFFFFFF, xOff, fH/2, fR, grp);
+        }
+        
+        obstacles.push({x: x, z: z, r: 8});
+        scene.add(grp);
+    }
+
+   
+    
+    // STREET LAMP
+    function createStreetLamp(x, z) {
+        const grp = new THREE.Group();
+        grp.position.set(x, 0, z);
+        
+        // Pole (Black/Dark Grey)
+        createBlock(1, 12, 1, 0x111111, 0, 6, 0, grp);
+        
+        // Angled Head
+        const head = new THREE.Group();
+        head.position.set(0, 11.5, 0);
+        createBlock(0.8, 3, 0.8, 0x111111, 0, 1.5, 0, head); // Neck
+        // Light Housing
+        createBlock(2.5, 1, 2.5, 0x111111, 0, 3, 0, head);
+        // Bulb Glow Mesh (Emissive)
+        const bulb = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 2), new THREE.MeshBasicMaterial({color: 0xFFDD88}));
+        bulb.position.set(0, 2.9, 0);
+        bulb.rotation.x = Math.PI; // Face down
+        head.add(bulb);
+        
+        // Actual Light (Spotlight for cone effect)
+        const light = new THREE.SpotLight(0xFFDD88, 0, 40, 0.8, 0.5, 1);
+        light.position.set(0, 2.8, 0);
+        light.target.position.set(0, -10, 0);
+        head.add(light);
+        head.add(light.target);
+        
+        // Volumetric Cone approximation (Transparent mesh)
+        const coneGeo = new THREE.ConeGeometry(4, 15, 32, 1, true);
+        const coneMat = new THREE.MeshBasicMaterial({
+            color: 0xFFDD88, 
+            transparent: true, 
+            opacity: 0.1, 
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+        const volCone = new THREE.Mesh(coneGeo, coneMat);
+        volCone.position.set(0, -6, 0);
+        head.add(volCone);
+        volCone.visible = false; // Hidden by default
+
+        grp.add(head);
+        
+        obstacles.push({x: x, z: z, r: 2});
+        scene.add(grp);
+        
+        return { mesh: grp, light: light, volumetric: volCone };
+    }
+
+    
     function createSignpost() {
         const grp = new THREE.Group();
         // Slightly off centre by random 4% (5-15 units)
@@ -2317,15 +2553,17 @@
         const grass = new THREE.Mesh(grassGeo, grassMat);
         grass.rotation.x = -Math.PI / 2; grass.position.set(0, -3.0, -400); grass.receiveShadow = true; scene.add(grass);
         
-        // FOREST 1: DISTANT
+        // INCREASED FOREST DENSITY AND VARIETY
         for(let i = 0; i < 300; i++) {
             const treeGroup = new THREE.Group();
+            // Spread wide but keep back from foreground (Z < -250)
             const tx = (Math.random() - 0.5) * 1000; 
             const tz = -250 - (Math.random() * 650); 
             
             const type = Math.random();
+            
             if (type < 0.6) {
-                // PINE
+                // STANDARD PINE
                 const trunkH = 5 + Math.random() * 5;
                 createBlock(1.5, trunkH, 1.5, 0x3d2817, 0, trunkH/2, 0, treeGroup);
                 const leavesH = 10 + Math.random() * 10;
@@ -2335,38 +2573,44 @@
                 leaves.position.set(0, trunkH + (leavesH/2) - 1, 0); 
                 treeGroup.add(leaves);
             } else if (type < 0.85) {
-                // OAK
+                // OAK STYLE (Rounder)
                 const trunkH = 4 + Math.random() * 3;
                 createBlock(2.0, trunkH, 2.0, 0x4a3c31, 0, trunkH/2, 0, treeGroup);
                 const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(5 + Math.random()*2), new THREE.MeshLambertMaterial({ color: 0x228B22 }));
                 leaves.position.set(0, trunkH + 4, 0);
                 treeGroup.add(leaves);
             } else {
-                // FERN
+                // FERN / BUSH (Low)
                 const leaves = new THREE.Mesh(new THREE.ConeGeometry(3, 4, 6), new THREE.MeshLambertMaterial({ color: 0x32CD32 }));
                 leaves.position.set(0, 0, 0);
                 treeGroup.add(leaves);
+                // Clusters
                 const leaves2 = leaves.clone(); leaves2.position.set(2, -1, 0); leaves2.rotation.z = -0.5; treeGroup.add(leaves2);
                 const leaves3 = leaves.clone(); leaves3.position.set(-2, -1, 0); leaves3.rotation.z = 0.5; treeGroup.add(leaves3);
                 treeGroup.position.y = -1.5;
             }
+
             treeGroup.position.set(tx, -2.5, tz); 
             scene.add(treeGroup);
         }
         
-        // FOREST 2: NEAR BORDER (SIDES)
-        // Flanking the station X < -225 and X > 225
-        for(let i=0; i<50; i++) {
-            const treeGroup = new THREE.Group();
+        // NEW: CLOSER TREES (FLANKING SIDES)
+        // Filling Z range -250 to 50, X range > 230 or < -230
+        for (let i = 0; i < 40; i++) {
             const side = Math.random() > 0.5 ? 1 : -1;
-            const tx = side * (240 + Math.random() * 100); // 240 to 340
-            const tz = -150 + Math.random() * 300; // Along the length (-150 to 150)
+            const tx = side * (240 + Math.random() * 100);
+            const tz = -250 + Math.random() * 300;
             
-            // Simpler Trees
-            const trunkH = 4 + Math.random() * 3;
+            const treeGroup = new THREE.Group();
+            
+            // Simpler Pine for border
+            const trunkH = 4 + Math.random() * 4;
             createBlock(1.5, trunkH, 1.5, 0x3d2817, 0, trunkH/2, 0, treeGroup);
-            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(4 + Math.random()*2), new THREE.MeshLambertMaterial({ color: 0x228B22 }));
-            leaves.position.set(0, trunkH + 3, 0);
+            const leavesH = 8 + Math.random() * 8;
+            const leafGeo = new THREE.ConeGeometry(3 + Math.random()*2, leavesH, 8);
+            const leafMat = new THREE.MeshLambertMaterial({ color: 0x0f2e0f });
+            const leaves = new THREE.Mesh(leafGeo, leafMat);
+            leaves.position.set(0, trunkH + (leavesH/2) - 1, 0);
             treeGroup.add(leaves);
             
             treeGroup.position.set(tx, -2.5, tz);
@@ -2401,17 +2645,47 @@
         wallR.rotation.y = -Math.PI / 2;
         scene.add(wallR);
         
-        // NEW BACK FENCE (Z+)
-        createPerpendicularFence(124, -220, 220);
         
-        // NEW PLANTS (Z+ Edge)
-        createConcoursePlants();
+        // CHRISTMAS TREE (Corner)
+        createChristmasTree(180, 80);
         
         // SHRUBS (4 Corners)
         createShrub(-210, -10);
         createShrub(210, -10);
         createShrub(-210, 110);
         createShrub(210, 110);
+        
+        // STREET LAMPS (28 Total - Platforms + Concourse)
+        stationLamps = [];
+        // 1. Along Platforms (Z < -20)
+        // Platforms are at -100 + i*40. Place lamps between tracks.
+        for(let i=0; i<=6; i++) {
+             const x = -120 + (i * 40);
+             // 3 lamps deep
+             createStreetLamp(x, -60).mesh.rotation.y = 0;
+             stationLamps.push(createStreetLamp(x, -60));
+             stationLamps.push(createStreetLamp(x, -120));
+             stationLamps.push(createStreetLamp(x, -180));
+        }
+        // 2. Concourse (Grid)
+        // Avoiding Shop area (X +/- 160)
+        // Range X -200 to 200, Z 10 to 100
+        const concourseLampPos = [
+            {x: -120, z: 20}, {x: -60, z: 20}, {x: 0, z: 20}, {x: 60, z: 20}, {x: 120, z: 20},
+            {x: -120, z: 80}, {x: -60, z: 80}, {x: 0, z: 80}, {x: 60, z: 80}, {x: 120, z: 80}
+        ];
+        concourseLampPos.forEach(p => stationLamps.push(createStreetLamp(p.x, p.z)));
+        
+        // NEW FENCE ALONG BACK (Z = 125, Width -225 to 225)
+        createPerpendicularFence(125, -225, 225);
+        
+        // NEW PLANTS ALONG BACK FENCE
+        // Spaced out: -150, -50, 50, 150 approx
+        createDetailedPlant(-150, 118);
+        createDetailedPlant(-50, 118);
+        createDetailedPlant(50, 118);
+        createDetailedPlant(150, 118);
+        
 
         for(let i=0; i<6; i++) {
             const x = -100 + (i * 40);
@@ -2839,50 +3113,76 @@
         });
     }
 
-    function drawBoard(lines, isScrolling) {
+        function drawBoard(lines, isScrolling) {
         boardCtx.fillStyle = '#000000'; boardCtx.fillRect(0,0,1024,256);
-        boardCtx.font = 'bold 40px Courier New'; boardCtx.fillStyle = '#FF9900'; boardCtx.textAlign = 'left';
+        
+        // DOT MATRIX STYLE SETUP
+        boardCtx.font = '400 48px "Codystar", monospace'; 
+        boardCtx.fillStyle = '#FF9900'; 
+        boardCtx.textAlign = 'left';
+        
+        // Add LED Glow Effect
+        boardCtx.shadowColor = '#FF7700';
+        boardCtx.shadowBlur = 8;
         
         if(isScrolling) {
             // SCROLLING NEWS TICKER
-            boardCtx.fillText("NEWS UPDATE:", 20, 50); 
+            boardCtx.fillText("NEWS UPDATE", 20, 50); 
+            // Simple line doesn't look good with dots, let's make it a series of periods or just a rect with low opacity
+            boardCtx.shadowBlur = 0; // Turn off glow for bar to stay sharp or keep it
             boardCtx.fillRect(20, 60, 984, 4);
-            boardCtx.font = 'bold 60px Courier New';
+            boardCtx.shadowBlur = 8; // Turn glow back on
             
             // Construct ticker content if empty
             if (!tickerContent) {
-                const headlines = [
-                    "Tottenham Hotspur win the Premier League in style with a 7-2 victory over Chelsea",
-                    "Tottenham celebrate first league win for 66 years",
-                    "Spurs finally lift the trophy in dramatic final day scenes",
-                    "Miracle in North London as Tottenham clinch the title"
-                ];
-                const rndHead = headlines[Math.floor(Math.random() * headlines.length)];
+                // Gaps logic: 1 space ~ 36px width in this font?
+                // Need 6-13 seconds gap. At speed 120px/s => 720px - 1560px gap.
+                // Just use heavy padding.
+                const longGap = "                                                                      "; // ~20s gap
                 
-                const football = `BREAKING NEWS: ${rndHead} *** 50% off your first COMB with discount: I LOVE COMBS *** England Awarded "Greyest" Country Award *** `;
-                // Add random comb facts - AMENDED to use 4 loops instead of 5
-                let extras = "";
-                for(let k=0; k<4; k++) {
-                    // Add random chance for Nice:Clothes advert
-                    if(Math.random() < 0.25) {
-                        extras += "Nice:Clothes *All*Ages*4*All*Wages* *** ";
-                    }
-                    extras += COMB_TRIVIA[Math.floor(Math.random() * COMB_TRIVIA.length)] + " *** COMBS! *** ";
-                }
-                tickerContent = football + extras;
+                tickerContent = "";
+                // Traffic
+                tickerContent += "TRAFFIC: " + TRAFFIC_NEWS[Math.floor(Math.random() * TRAFFIC_NEWS.length)];
+                tickerContent += longGap;
+                // Weather
+                tickerContent += "WEATHER: " + WEATHER_NEWS[Math.floor(Math.random() * WEATHER_NEWS.length)];
+                tickerContent += longGap;
+                // Comb Fact
+                tickerContent += "COMBS: " + COMB_TRIVIA[Math.floor(Math.random() * COMB_TRIVIA.length)];
+                tickerContent += longGap;
+                // Xmas Headline
+                tickerContent += "BREAKING: " + XMAS_HEADLINES[Math.floor(Math.random() * XMAS_HEADLINES.length)];
             }
             
             // Draw text at offset
             boardCtx.fillText(tickerContent, 1024 - newsTickerOffset, 150);
             
             newsTickerOffset += 2.0; // Speed
-            if(newsTickerOffset > (tickerContent.length * 40) + 1024) newsTickerOffset = 0; 
+            if(newsTickerOffset > (tickerContent.length * 40) + 1024) {
+                newsTickerOffset = 0; 
+                tickerContent = ""; // Reset to generate new news next loop
+            }
             
         } else {
             // STANDARD DEPARTURES
-            boardCtx.fillText("DEPARTURES", 20, 50); boardCtx.fillRect(20, 60, 984, 4);
-            for(let i=0; i<lines.length; i++) boardCtx.fillText(lines[i], 20, 110 + (i*50));
+            // Switch time based on Day/Night
+            const hour = isNightMode ? 21 : 14;
+            
+            boardCtx.fillText("DEPARTURES", 20, 50); 
+            boardCtx.shadowBlur = 0;
+            boardCtx.fillRect(20, 60, 984, 4);
+            boardCtx.shadowBlur = 8;
+
+            for(let i=0; i<lines.length; i++) {
+                // Replace 14: or 17: with current hour context if needed, but lines are passed in
+                // Actually lines are generated in updateLogic with hardcoded times.
+                // We'll trust the input lines for now, but update logic below.
+                boardCtx.fillText(lines[i], 20, 110 + (i*50));
+            }
         }
+        
+        // Reset shadow for performance if needed, though canvas state resets mostly
+        boardCtx.shadowBlur = 0;
         
         if(boardTexture) boardTexture.needsUpdate = true;
     }
@@ -2902,13 +3202,14 @@
         }
         else if (role === 'TROPICAL') {
              shirtCol = 0xFFFFFF;
-             // Complementary colors: Cyan/Orange base?
              shirtTex = createTropicalTexture(Math.random() > 0.5 ? '#00FFFF' : '#FFA500');
         }
         else if (role === 'STRIPE_HORIZ') {
              shirtCol = 0xFFFFFF;
-             shirtTex = createStripeTexture(); // Reuse existing gold/black horizontal
-             // Or could make new one? Existing is good.
+             shirtTex = createStripeTexture(); 
+        }
+        else if (role === 'SANTA') {
+             shirtCol = 0xCC0000; // Bright Red
         }
         else if(isWorker) shirtCol = C.workerColor;
         else if(role === 'STRIPED') { shirtCol = 0xffffff; shirtTex = stripeTexture; }
@@ -2925,16 +3226,37 @@
         
         // HAT FOR POLICEMAN
         if (role === 'POLICEMAN') {
-            // Dark Black Top Hat
             const hatGrp = new THREE.Group();
             hatGrp.position.set(0, 3.55 * scaleMult, 0);
-            // Brim
             createBlock(0.8, 0.1, 0.8, 0x050505, 0, 0, 0, hatGrp);
-            // Cylinder
             const topGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.6, 16);
             const top = new THREE.Mesh(topGeo, new THREE.MeshLambertMaterial({color: 0x050505}));
             top.position.y = 0.35;
             hatGrp.add(top);
+            mesh.add(hatGrp);
+        }
+        
+        // SANTA ACCESSORIES
+        if (role === 'SANTA') {
+            // Beard (White block on face)
+            createBlock(0.5, 0.4, 0.2, 0xFFFFFF, 0, 3.0, 0.25, mesh);
+            
+            // Hat (Red Cone + White Trim)
+            const hatGrp = new THREE.Group();
+            hatGrp.position.set(0, 3.55 * scaleMult, 0);
+            // White Trim
+            createBlock(0.6, 0.15, 0.6, 0xFFFFFF, 0, 0, 0, hatGrp);
+            // Red Cone
+            const cone = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.8, 16), new THREE.MeshLambertMaterial({color: 0xCC0000}));
+            cone.position.y = 0.4;
+            // Tilt slightly
+            cone.rotation.x = -0.2;
+            hatGrp.add(cone);
+            // Bobble
+            const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(0.12), new THREE.MeshLambertMaterial({color: 0xFFFFFF}));
+            ball.position.set(0, 0.8, -0.15);
+            hatGrp.add(ball);
+            
             mesh.add(hatGrp);
         }
 
@@ -3192,6 +3514,17 @@
         currentPackageType = types[Math.floor(Math.random() * types.length)];
         currentPackageColor = PACKAGE_COLORS[currentPackageType];
         
+        // Update Dream UI Button Color if exists
+        const btn = document.getElementById('dream-ui-toggle');
+        if(btn) {
+            let hexStr = "#39FF14"; // default neon green
+            if(currentPackageType === 'WHITE') hexStr = "#FFFFFF";
+            if(currentPackageType === 'LIGHT_BLUE') hexStr = "#ADD8E6";
+            btn.style.borderColor = hexStr;
+            btn.style.color = hexStr;
+            btn.style.boxShadow = `0 0 5px ${hexStr}`;
+        }
+        
         // Generate train types for 6 platforms
         // One is Sand/Siren, One is Purple Stripe, Rest random standard
         let trainTypes = [
@@ -3241,7 +3574,14 @@
              arrivalTrainData[tIdx].specialQueue.push('DECOY_ACT2');
         }
         
-        // 2. Special Shirts (17-38)
+        // 2. Santas (3-7)
+        const santasNeeded = 3 + Math.floor(Math.random() * 5);
+        for(let i=0; i<santasNeeded; i++) {
+             const tIdx = Math.floor(Math.random() * 6);
+             arrivalTrainData[tIdx].specialQueue.push('SANTA');
+        }
+        
+        // 3. Special Shirts (17-38)
         const shirtsNeeded = 17 + Math.floor(Math.random() * 22);
         for(let i=0; i<shirtsNeeded; i++) {
              const tIdx = Math.floor(Math.random() * 6);
@@ -3365,6 +3705,8 @@
             document.getElementById('phone-overlay').style.display = 'block'; // FIX: Show phone overlay in dream mode
             document.getElementById('fixed-timer-container').style.display = 'none';
             document.getElementById('menu-streak-box').style.display = 'none';
+            document.getElementById('dream-controls').style.display = 'block'; // SHOW AUDIO UI
+            document.getElementById('dream-ui-toggle').style.display = 'flex'; // SHOW UI TOGGLE
             // Start Dream Logic
             dreamTimer = 0;
             dreamCamTimer = 0;
@@ -3383,37 +3725,43 @@
             else if(def.side === 'RIGHT') lastDreamSide = 'RIGHT';
             else lastDreamSide = Math.random() > 0.5 ? 'LEFT' : 'RIGHT'; // Default if random start is neutral
             
-        } else if (!keepPosition) {
-            // UPDATED FOR SNIPER POS SETTING
-            let camX = 0;
-            let camY = 50; 
-            let camZ = 130;
+        } else {
+            document.getElementById('dream-controls').style.display = 'none'; // HIDE AUDIO UI
+            document.getElementById('dream-ui-toggle').style.display = 'none'; // HIDE UI TOGGLE
+            
+            if (!keepPosition) {
+                // UPDATED FOR SNIPER POS SETTING
+                let camX = 0;
+                let camY = 50; 
+                let camZ = 130;
 
-            if (SETTING_SNIPER_POS === 'RANDOM') {
-                // X: Fill the space between -280 and 280 (was >170 or <-170)
-                // Just use random range directly
-                camX = (Math.random() - 0.5) * 560;
+                if (SETTING_SNIPER_POS === 'RANDOM') {
+                    // X: Fill the space between -280 and 280 (was >170 or <-170)
+                    // Just use random range directly
+                    camX = (Math.random() - 0.5) * 560;
+                    
+                    // Y: Wider range (15 to 95)
+                    camY = 15 + Math.random() * 80;
+                } else {
+                    // CENTRAL (Existing subtle sway)
+                    if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
+                }
+
+                camera.position.set(camX, camY, camZ); 
                 
-                // Y: Wider range (15 to 95)
-                camY = 15 + Math.random() * 80;
-            } else {
-                // CENTRAL (Existing subtle sway)
-                if(Math.random() < 0.17) { camY += (Math.random() > 0.5 ? 5 : -5); }
+                // Look at action center (slightly offset Z to -40 for better angle)
+                const targetLook = new THREE.Vector3(0, 0, -40);
+                camera.lookAt(targetLook); 
+                
+                // RECALCULATE PITCH/YAW FROM CAMERA ORIENTATION
+                // This ensures aim logic starts correctly relative to random spawn
+                yaw = camera.rotation.y;
+                pitch = camera.rotation.x;
             }
-
-            camera.position.set(camX, camY, camZ); 
-            
-            // Look at action center (slightly offset Z to -40 for better angle)
-            const targetLook = new THREE.Vector3(0, 0, -40);
-            camera.lookAt(targetLook); 
-            
-            // RECALCULATE PITCH/YAW FROM CAMERA ORIENTATION
-            // This ensures aim logic starts correctly relative to random spawn
-            yaw = camera.rotation.y;
-            pitch = camera.rotation.x;
         }
         
-        // Randomize Sky Color
+        // Determine Day/Night Mode (1 in 3 chance)
+        isNightMode = Math.random() < 0.33;
         randomizeSky();
         
         // Ensure zoom is OFF
@@ -3777,7 +4125,7 @@
              let displayOrder = [0,1,2,3,4,5];
              for (let i = displayOrder.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [displayOrder[i], displayOrder[j]] = [displayOrder[j], displayOrder[i]]; }
              for(let i=0; i<6; i++) {
-                 let pId = displayOrder[i]; let dest = platformData[pId]; let line = `14:0${i}  ${dest.padEnd(10, ' ')} PLAT ${pId+1}`; boardRows.push(line);
+                 let pId = displayOrder[i]; let dest = platformData[pId]; let line = `17:0${i}  ${dest.padEnd(10, ' ')} PLAT ${pId+1}`; boardRows.push(line);
              }
              if(Math.random() < 0.25) { const idx = Math.floor(Math.random() * 6); const northDest = NORTHERN[Math.floor(Math.random()*NORTHERN.length)]; boardRows[idx] = `14:0${idx}  ${northDest.padEnd(10, ' ')} PLAT 9b`; }
              drawBoard(boardRows);
