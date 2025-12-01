@@ -94,6 +94,12 @@
         }
         #return-btn:hover { background: #FFCC00; color: #000; box-shadow: 0 0 40px rgba(255, 204, 0, 0.8); }
 
+        /* --- DREAM MODE OVERLAY (FADE BLACK) --- */
+        #fade-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 500; pointer-events: none; opacity: 0;
+            transition: opacity 0.1s linear; /* Control via JS */
+        }
 
         /* --- VISUAL FX --- */
         #scope-overlay {
@@ -231,6 +237,54 @@
         }
         .intel-header { font-family: 'Montserrat', sans-serif; font-size: 10px; color: #FFCC00; letter-spacing: 3px; margin-bottom: 5px; }
         .intel-body { font-size: 18px; font-weight: bold; color: #fff; font-family: 'Courier Prime', monospace; }
+
+        /* DREAM MODE TARGET INTEL PANEL - REDESIGNED FOR VISIBILITY */
+        #dream-target-panel {
+            position: absolute; 
+            bottom: 30px; 
+            right: 30px; 
+            width: 340px;
+            background: rgba(20, 25, 20, 0.95);
+            border: 2px solid #556655;
+            border-left: 6px solid #d7c879; /* Gold accent */
+            box-shadow: 0 0 35px rgba(0,0,0,0.9);
+            padding: 20px;
+            color: #f7e8a3;
+            font-family: 'Courier Prime', monospace;
+            display: none;        
+            z-index: 45;
+            transition: all 0.5s ease-out;
+        }
+        #dream-target-panel.alert {
+            border-left-color: #FF4444;
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
+            animation: pulse-panel 2s infinite;
+        }
+        @keyframes pulse-panel {
+            0% { border-color: #556655; }
+            50% { border-color: #aa5555; }
+            100% { border-color: #556655; }
+        }
+        .dream-target-header {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #d7c879;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #445544;
+            padding-bottom: 5px;
+        }
+        #dream-target-panel.alert .dream-target-header {
+            color: #FF4444;
+        }
+        .dream-target-body {
+            font-size: 16px;
+            line-height: 1.4;
+            font-weight: bold;
+            color: #eee;
+        }
+
 
         /* --- MENUS --- */
         #menu {
@@ -395,12 +449,13 @@
         }
         button.action-btn:hover::before { left: 100%; transition: 0.5s; }
 
-        button.action-btn:hover { transform: translateY(-2px); }
-        button.action-btn:active { transform: translateY(1px); }
-
         button.action-btn.clicked {
             animation: none; transform: scale(0.95); background: #333; box-shadow: inset 0 0 10px #000; border: 1px solid #555;
         }
+        
+        button.action-btn:hover { transform: translateY(-2px); }
+        button.action-btn:active { transform: translateY(1px); }
+
         
         /* PLAY FOR FUN BUTTON (Primary) */
         #btn-fun {
@@ -418,12 +473,23 @@
         /* PLAY FOR SPEED BUTTON (Secondary) */
         /* Inherits size from action-btn, overrides colors only */
         button.sec-btn { 
-            background: #222; border: 1px solid #444; color: #888; 
+            background: #151515; border: 1px solid #333; color: #888; 
             animation: none; 
         }
         button.sec-btn:hover { 
-            background: #003300; color: #00FF00; border-color: #00FF00; 
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.3);
+            background: #002200; color: #00FF00; border-color: #005500; 
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        }
+        
+        /* DREAM BUTTON (Hidden initially, Pulse) */
+        #btn-dream {
+            display: none; /* Hidden by default */
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+        @keyframes pulse-slow {
+            0% { transform: scale(1); letter-spacing: 2px; }
+            50% { transform: scale(1.02); letter-spacing: 3px; color: #fff; text-shadow: 0 0 10px #fff; }
+            100% { transform: scale(1); letter-spacing: 2px; }
         }
 
         /* End game button container for stacking */
@@ -602,6 +668,9 @@
         <div id="return-msg">System Rebooted</div>
         <button id="return-btn" onclick="confirmReturn()">Resume Operation</button>
     </div>
+    
+    <!-- DREAM MODE FADE OVERLAY -->
+    <div id="fade-overlay"></div>
 
     <div id="confirm-modal">
         <div class="confirm-box">
@@ -670,16 +739,23 @@
         <div id="timer-ui">00.000</div>
     </div>
 
-    <div id="scope-overlay"></div>
+        <div id="scope-overlay"></div>
     <div id="crosshair"></div>
     <div id="blood-screen-container"></div>
     
     <div id="phone-overlay" data-phase="0">
         <div class="intel-header">INCOMING TRANSMISSION</div>
-        <div class="intel-body" id="phone-text">CONNECTING...</div>
+        <div class="intel-body" id="phone-text">CONNECTING.</div>
+    </div>
+
+    <!-- DREAM MODE TARGET INTEL (Bottom-right) -->
+    <div id="dream-target-panel">
+        <div class="dream-target-header">TARGET BRIEF</div>
+        <div class="dream-target-body" id="dream-target-text">SCANNING…</div>
     </div>
     
     <div id="high-score-modal">
+
         <div class="hs-content">
             <div class="hs-title">RECORD BREAKER</div>
             <div id="new-record-time">00.000s</div>
@@ -777,6 +853,8 @@
                 <button id="btn-fun" class="action-btn" onclick="initiateGame('STREAK', this)">PLAY FOR FUN</button>
                 <button id="btn-speed" class="action-btn sec-btn" onclick="initiateGame('TIMED', this)">PLAY FOR SPEED</button>
             </div>
+            <!-- DREAM STATE BUTTON -->
+            <button id="btn-dream" class="action-btn sec-btn" style="margin-top:10px; font-size:12px; height:40px; color:#666; border-color:#333;" onclick="initiateDreamMode(this)">DREAM STATE SCREENSAVER MODE</button>
         </div>
 
         <div class="dossier" id="end-dossier" style="display:none; text-align:center;">
@@ -1103,12 +1181,44 @@
     let scene, camera, renderer, raycaster;
     let clock = new THREE.Clock();
     
-    // States: MENU, READY_CHECK, MINGLE, RUSH, BLEEDING, INPUT_SCORE, SCREEN_EFFECT, ENDED
+    // States: MENU, READY_CHECK, MINGLE, RUSH, BLEEDING, INPUT_SCORE, SCREEN_EFFECT, ENDED, DREAM
     let gameState = 'MENU'; 
     let gameMode = 'STREAK'; 
     let gameTime = 0;
     let bleedTimer = 0;
     
+    // Dream Mode Logic
+    let dreamTimer = 0;
+    let dreamCamTimer = 0;
+    let dreamNextSwitch = 0;
+    let dreamFadeState = 'NONE'; // NONE, FADE_OUT, FADE_IN
+    let dreamZoomSpeed = 0.05;
+    let dreamTargetLook = new THREE.Vector3(0,0,-40);
+    let dreamZoomDir = 1; // 1 = in, -1 = out
+    let dreamRushActive = false; // Flag to allow rush logic in Dream mode without state change
+    let lastDreamSide = 'LEFT'; // To alternate cameras: LEFT or RIGHT
+
+    // Dream intel for new bottom-right UI
+    let dreamIntelPhase = 0;  // 0 = none, 1 = first message, 2 = second message, 3 = done
+
+
+    // DREAM CAMERA CONFIGURATIONS - UPDATED WITH SIDE TAGS
+    const DREAM_CAM_DEFS = [
+        // LEFT SIDE (Negative X)
+        // Keep within walls (approx +/- 225 X). Restrict to 190 max.
+        { side: 'LEFT', pos: {x: -180, y: 70, z: 120}, look: {x: 0, y: 0, z: -40} }, // High
+        { side: 'LEFT', pos: {x: -120, y: 35, z: 80}, look: {x: 20, y: 0, z: -20} }, // Mid
+        { side: 'LEFT', pos: {x: -80, y: 8, z: 20}, look: {x: 50, y: 80, z: -80} },  // Low/Roof view
+
+        // RIGHT SIDE (Positive X)
+        { side: 'RIGHT', pos: {x: 180, y: 80, z: 120}, look: {x: 0, y: 0, z: -40} }, // High
+        { side: 'RIGHT', pos: {x: 120, y: 30, z: 60}, look: {x: -20, y: 0, z: -20} }, // Mid
+        
+        // SPECIAL / CENTER (Assigned to specific sides to force rotation)
+        { side: 'RIGHT', pos: {x: 0, y: 140, z: 0}, look: {x: 0, y: 0, z: -50} }, // Ant View (Right turn)
+        { side: 'LEFT', pos: {x: 0, y: 5, z: 120}, look: {x: 0, y: 60, z: -100} } // Low Up (Left turn)
+    ];
+
     // Arrival Logic Variables
     let arrivalPhase = 'WAITING'; // WAITING, ARRIVING, BOARDING_OFF, COMPLETE
     let arrivalStartTime = 0;
@@ -1169,6 +1279,9 @@
     let newsDelay = 0;
     
     let vapeSignObject = null; // Spinning V
+    
+    // Sky Dome Uniforms Ref
+    let skyUniforms = null;
 
     // Settings & Persistence
     let SETTING_CROWD = 80;
@@ -1266,6 +1379,11 @@
         document.getElementById('vol-music-slider').value = SETTING_MUSIC_VOL;
         document.getElementById('vol-sfx-slider').value = SETTING_SFX_VOL;
         document.getElementById('slide-menu-vol').value = SETTING_MENU_VOL;
+        
+        // UNLOCK DREAM BUTTON IF TARGET > 0
+        if (STATS.target > 0) {
+            document.getElementById('btn-dream').style.display = 'block';
+        }
 
         updateRadioVisuals();
         updateSniperPosVisuals();
@@ -1485,6 +1603,27 @@
         // Wait for fade then show Ready Screen
         setTimeout(() => {
             prepareGameEnv(mode);
+        }, 3000);
+    }
+    
+    function initiateDreamMode(btn) {
+        if(isInitializing) return;
+        isInitializing = true;
+        if(btn) {
+            btn.classList.add('clicked');
+            btn.innerHTML = '<div class="spinner"></div>';
+        }
+        
+        const menuBgm = document.getElementById('menu-bgm');
+        if(menuBgm && !menuBgm.paused) {
+            fadeOutAudio(menuBgm, 2800, () => {
+                menuBgm.pause();
+                menuMusicStarted = false;
+            });
+        }
+        
+        setTimeout(() => {
+            prepareGameEnv('DREAM');
         }, 3000);
     }
     
@@ -1716,7 +1855,7 @@
                 gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
             }
         `;
-        const uniforms = {
+        skyUniforms = {
             topColor: { value: new THREE.Color(0x1a1a20) }, // Dark Grey
             bottomColor: { value: new THREE.Color(0x6d5045) }, // Hazy Warm Orange/Grey
             offset: { value: 33 },
@@ -1726,7 +1865,7 @@
         const skyMat = new THREE.ShaderMaterial({
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
-            uniforms: uniforms,
+            uniforms: skyUniforms,
             side: THREE.BackSide
         });
         const sky = new THREE.Mesh(skyGeo, skyMat);
@@ -1781,6 +1920,28 @@
         });
 
         animate();
+    }
+    
+    // NEW: Randomize Sky Dome Colors (Called in prepareGameEnv)
+    function randomizeSky() {
+        if (!skyUniforms) return;
+        
+        // 1 in 4 chance for "Grey Day" (15% darker, greyer)
+        const isGreyDay = Math.random() < 0.25;
+        
+        if (isGreyDay) {
+            // Darker, Greyer
+            // Original Top: 0x1a1a20 (Very dark blue/grey) -> Make greyer
+            skyUniforms.topColor.value.setHex(0x151518); 
+            
+            // Original Bottom: 0x6d5045 (Warm orange/brown grey) -> Make greyer and darker
+            // Reduce saturation/warmth
+            skyUniforms.bottomColor.value.setHex(0x555050); 
+        } else {
+            // Standard Beautiful Pastel/Warm
+            skyUniforms.topColor.value.setHex(0x1a1a20);
+            skyUniforms.bottomColor.value.setHex(0x6d5045);
+        }
     }
 
     function handleKey(e, isDown) {
@@ -1856,8 +2017,9 @@
                 x = (Math.random() > 0.5 ? 1 : -1) * (350 + Math.random() * 400);
             }
             
-            const w = 20 + Math.random() * 50;
-            const d = 20 + Math.random() * 50;
+            // THICKER BUILDINGS UPDATE (1.25x)
+            const w = (20 + Math.random() * 50) * 1.25;
+            const d = (20 + Math.random() * 50) * 1.25;
             const h = 40 + Math.random() * 300; // Varying heights, some very tall
             
             const col = buildingColors[Math.floor(Math.random() * buildingColors.length)];
@@ -1874,9 +2036,9 @@
                 const cwGrp = new THREE.Group();
                 cwGrp.position.set(x, 0, z);
                 // Tower body
-                createBlock(40, 300, 40, 0x555566, 0, 150, 0, cwGrp, tex);
+                createBlock(40 * 1.25, 300, 40 * 1.25, 0x555566, 0, 150, 0, cwGrp, tex);
                 // Pyramid Top
-                const pyrGeo = new THREE.ConeGeometry(30, 40, 4);
+                const pyrGeo = new THREE.ConeGeometry(30 * 1.25, 40, 4);
                 const pyrMat = new THREE.MeshLambertMaterial({color: 0x555566});
                 const pyr = new THREE.Mesh(pyrGeo, pyrMat);
                 pyr.position.y = 320;
@@ -2077,6 +2239,51 @@
         scene.add(grp);
     }
     
+    // NEW DETAILED PLANTS FOR BACK WALL
+    function createConcoursePlants() {
+        const positions = [-120, -40, 40, 120]; 
+        positions.forEach(x => {
+            const finalX = x + (Math.random() - 0.5) * 30;
+            const z = 115 + (Math.random() - 0.5) * 5; 
+            createDetailedPlant(finalX, z);
+        });
+    }
+
+    function createDetailedPlant(x, z) {
+        const grp = new THREE.Group();
+        grp.position.set(x, 0, z);
+        
+        // Pot (Dark Grey Ceramic)
+        const pot = new THREE.Mesh(new THREE.CylinderGeometry(2, 1.5, 3, 8), new THREE.MeshLambertMaterial({color: 0x444444}));
+        pot.position.y = 1.5;
+        grp.add(pot);
+        
+        const type = Math.random();
+        if(type < 0.5) {
+            // Skinny Tall
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 8, 5), new THREE.MeshLambertMaterial({color: 0x554433}));
+            stem.position.y = 5.5;
+            grp.add(stem);
+            // Foliage: Layers of cones
+            for(let i=0; i<3; i++) {
+                const foliage = new THREE.Mesh(new THREE.ConeGeometry(2 - (i*0.5), 3, 6), new THREE.MeshLambertMaterial({color: 0x228B22}));
+                foliage.position.y = 6 + (i * 2);
+                grp.add(foliage);
+            }
+        } else {
+            // Round Small
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 5), new THREE.MeshLambertMaterial({color: 0x554433}));
+            stem.position.y = 3.5;
+            grp.add(stem);
+            const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5), new THREE.MeshLambertMaterial({color: 0x32CD32}));
+            foliage.position.y = 5.5;
+            grp.add(foliage);
+        }
+        
+        obstacles.push({x: x, z: z, r: 3});
+        scene.add(grp);
+    }
+    
     function createSignpost() {
         const grp = new THREE.Group();
         // Slightly off centre by random 4% (5-15 units)
@@ -2110,17 +2317,15 @@
         const grass = new THREE.Mesh(grassGeo, grassMat);
         grass.rotation.x = -Math.PI / 2; grass.position.set(0, -3.0, -400); grass.receiveShadow = true; scene.add(grass);
         
-        // INCREASED FOREST DENSITY AND VARIETY
+        // FOREST 1: DISTANT
         for(let i = 0; i < 300; i++) {
             const treeGroup = new THREE.Group();
-            // Spread wide but keep back from foreground (Z < -250)
             const tx = (Math.random() - 0.5) * 1000; 
             const tz = -250 - (Math.random() * 650); 
             
             const type = Math.random();
-            
             if (type < 0.6) {
-                // STANDARD PINE
+                // PINE
                 const trunkH = 5 + Math.random() * 5;
                 createBlock(1.5, trunkH, 1.5, 0x3d2817, 0, trunkH/2, 0, treeGroup);
                 const leavesH = 10 + Math.random() * 10;
@@ -2130,24 +2335,41 @@
                 leaves.position.set(0, trunkH + (leavesH/2) - 1, 0); 
                 treeGroup.add(leaves);
             } else if (type < 0.85) {
-                // OAK STYLE (Rounder)
+                // OAK
                 const trunkH = 4 + Math.random() * 3;
                 createBlock(2.0, trunkH, 2.0, 0x4a3c31, 0, trunkH/2, 0, treeGroup);
                 const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(5 + Math.random()*2), new THREE.MeshLambertMaterial({ color: 0x228B22 }));
                 leaves.position.set(0, trunkH + 4, 0);
                 treeGroup.add(leaves);
             } else {
-                // FERN / BUSH (Low)
+                // FERN
                 const leaves = new THREE.Mesh(new THREE.ConeGeometry(3, 4, 6), new THREE.MeshLambertMaterial({ color: 0x32CD32 }));
                 leaves.position.set(0, 0, 0);
                 treeGroup.add(leaves);
-                // Clusters
                 const leaves2 = leaves.clone(); leaves2.position.set(2, -1, 0); leaves2.rotation.z = -0.5; treeGroup.add(leaves2);
                 const leaves3 = leaves.clone(); leaves3.position.set(-2, -1, 0); leaves3.rotation.z = 0.5; treeGroup.add(leaves3);
                 treeGroup.position.y = -1.5;
             }
-
             treeGroup.position.set(tx, -2.5, tz); 
+            scene.add(treeGroup);
+        }
+        
+        // FOREST 2: NEAR BORDER (SIDES)
+        // Flanking the station X < -225 and X > 225
+        for(let i=0; i<50; i++) {
+            const treeGroup = new THREE.Group();
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const tx = side * (240 + Math.random() * 100); // 240 to 340
+            const tz = -150 + Math.random() * 300; // Along the length (-150 to 150)
+            
+            // Simpler Trees
+            const trunkH = 4 + Math.random() * 3;
+            createBlock(1.5, trunkH, 1.5, 0x3d2817, 0, trunkH/2, 0, treeGroup);
+            const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(4 + Math.random()*2), new THREE.MeshLambertMaterial({ color: 0x228B22 }));
+            leaves.position.set(0, trunkH + 3, 0);
+            treeGroup.add(leaves);
+            
+            treeGroup.position.set(tx, -2.5, tz);
             scene.add(treeGroup);
         }
     }
@@ -2178,6 +2400,12 @@
         wallR.position.set(225, 0, 50);
         wallR.rotation.y = -Math.PI / 2;
         scene.add(wallR);
+        
+        // NEW BACK FENCE (Z+)
+        createPerpendicularFence(124, -220, 220);
+        
+        // NEW PLANTS (Z+ Edge)
+        createConcoursePlants();
         
         // SHRUBS (4 Corners)
         createShrub(-210, -10);
@@ -2333,11 +2561,14 @@
         return sirenMesh;
     }
 
-    // Helper to get skin color
+    // Helper to get skin color (Adjusted Ratios)
     function getRandomSkinColor() {
         // SKIN COLOR LOGIC
+        // Lowering white chance to approx 52% (was 58-81%, now shifting down)
+        // Increase mixed/black/brown by ~6%
         let skinCol = 0xFFCCAA; // Default
-        const whiteChance = 0.58 + (Math.random() * (0.81 - 0.58)); // 58% to 81% chance
+        const whiteChance = 0.52 + (Math.random() * (0.75 - 0.52)); // 52% to 75%
+        
         if(Math.random() < whiteChance) {
             skinCol = Math.random() > 0.5 ? 0xFFCCAA : 0xF5D0B0;
         } else {
@@ -2656,7 +2887,7 @@
         if(boardTexture) boardTexture.needsUpdate = true;
     }
 
-    function createPerson(role, x, z) {
+    function createPerson(role, x, z, overrideSkin) {
         const mesh = new THREE.Group(); mesh.position.set(x, 0, z);
         mesh.name = "PERSON_ROOT"; // Tag for raycaster
 
@@ -2689,7 +2920,8 @@
         createBlock(0.25 * scaleMult, 1.3 * scaleMult, 0.25 * scaleMult, shirtCol, -0.6 * scaleMult, 2.2 * scaleMult, 0, mesh, shirtTex); 
         createBlock(0.25 * scaleMult, 1.3 * scaleMult, 0.25 * scaleMult, shirtCol, 0.6 * scaleMult, 2.2 * scaleMult, 0, mesh, shirtTex);
         
-        createBlock(0.5 * scaleMult, 0.6 * scaleMult, 0.5 * scaleMult, getRandomSkinColor(), 0, 3.2 * scaleMult, 0, mesh); 
+        let skin = overrideSkin ? overrideSkin : getRandomSkinColor();
+        createBlock(0.5 * scaleMult, 0.6 * scaleMult, 0.5 * scaleMult, skin, 0, 3.2 * scaleMult, 0, mesh); 
         
         // HAT FOR POLICEMAN
         if (role === 'POLICEMAN') {
@@ -3124,10 +3356,35 @@
         timerRunning = false;
         timerStartTime = 0;
         isInitializing = false; // Reset lock
+        dreamRushActive = false; // Reset dream rush state
         
         // RESET CAMERA & VIEW FOR REPLAY
-        // UPDATED FOR SNIPER POS SETTING
-        if (!keepPosition) {
+        if (mode === 'DREAM') {
+            document.getElementById('top-ui-container').style.display = 'none';
+            document.getElementById('crosshair').style.display = 'none';
+            document.getElementById('phone-overlay').style.display = 'block'; // FIX: Show phone overlay in dream mode
+            document.getElementById('fixed-timer-container').style.display = 'none';
+            document.getElementById('menu-streak-box').style.display = 'none';
+            // Start Dream Logic
+            dreamTimer = 0;
+            dreamCamTimer = 0;
+            dreamNextSwitch = 15 + Math.random() * 10;
+            dreamFadeState = 'NONE';
+            camera.fov = 60; // Reset FOV for zoom
+            
+            // Set Initial Dream Pos (Random from config)
+            const def = DREAM_CAM_DEFS[Math.floor(Math.random() * DREAM_CAM_DEFS.length)];
+            camera.position.set(def.pos.x, def.pos.y, def.pos.z);
+            dreamTargetLook.set(def.look.x, def.look.y, def.look.z);
+            camera.lookAt(dreamTargetLook);
+            
+            // Set initial side for alternation logic
+            if(def.side === 'LEFT') lastDreamSide = 'LEFT';
+            else if(def.side === 'RIGHT') lastDreamSide = 'RIGHT';
+            else lastDreamSide = Math.random() > 0.5 ? 'LEFT' : 'RIGHT'; // Default if random start is neutral
+            
+        } else if (!keepPosition) {
+            // UPDATED FOR SNIPER POS SETTING
             let camX = 0;
             let camY = 50; 
             let camZ = 130;
@@ -3156,15 +3413,28 @@
             pitch = camera.rotation.x;
         }
         
+        // Randomize Sky Color
+        randomizeSky();
+        
         // Ensure zoom is OFF
         toggleZoom(true); 
 
         // Setup UI for pause state
         document.getElementById('menu').style.display = 'none';
-        document.getElementById('ready-overlay').style.display = 'flex'; // SHOW OVERLAY
-        document.getElementById('fixed-timer-container').style.display = (gameMode === 'TIMED') ? 'block' : 'none';
+        
+        if (mode === 'DREAM') {
+            document.getElementById('ready-overlay').style.display = 'none';
+            confirmReady(); // Auto start audio/logic
+        } else {
+            document.getElementById('ready-overlay').style.display = 'flex'; // SHOW OVERLAY
+            document.getElementById('top-ui-container').style.display = 'block';
+            document.getElementById('crosshair').style.display = 'block';
+            document.getElementById('phone-overlay').style.display = 'block';
+            document.getElementById('fixed-timer-container').style.display = (gameMode === 'TIMED') ? 'block' : 'none';
+            document.getElementById('menu-streak-box').style.display = (gameMode === 'STREAK') ? 'block' : 'none';
+        }
+        
         document.getElementById('timer-ui').innerText = "00.000";
-        document.getElementById('menu-streak-box').style.display = (gameMode === 'STREAK') ? 'block' : 'none';
         document.getElementById('vol-music-container').style.display = SETTING_MUSIC_ON ? 'flex' : 'none';
         document.getElementById('vol-sfx-container').style.display = SETTING_SFX_ON ? 'flex' : 'none';
         
@@ -3172,6 +3442,14 @@
         const phoneOverlay = document.getElementById('phone-overlay');
         phoneOverlay.style.bottom = "-200px";
         phoneOverlay.dataset.phase = "0"; // Reset phase
+        
+        // Reset Dream Panel
+        const dreamPanel = document.getElementById('dream-target-panel');
+        if (dreamPanel) {
+            dreamPanel.style.display = 'none';
+            dreamPanel.classList.remove('alert'); // Remove alert state
+        }
+        dreamIntelPhase = 0;
         
         document.getElementById('blood-screen-container').innerHTML = '';
         document.getElementById('blood-screen-container').style.display = 'none';
@@ -3200,7 +3478,7 @@
         
         drawBoard(["AWAITING DATA..."]);
 
-        gameState = 'READY_CHECK'; // Wait here
+        gameState = (mode === 'DREAM') ? 'DREAM' : 'READY_CHECK'; 
         targetObj = null;
         boardDataGenerated = false;
         trainsDeparted = false;
@@ -3248,7 +3526,7 @@
         }
         
         // Start Logic
-        gameState = 'MINGLE';
+        if (gameState !== 'DREAM') gameState = 'MINGLE';
         gameTime = 0;
         bleedTimer = 0;
         bloodSpawned = false;
@@ -3264,6 +3542,22 @@
         for(let i=0; i<5; i++) {
             const mesh = createPerson('WORKER', (Math.random()-0.5)*200, -30 + Math.random()*10);
             civilians.push({mesh:mesh, role:'WORKER', state:'IDLE', waypoints:[]});
+        }
+        
+        // ADDED: ALWAYS AT LEAST 3 BLACK OFFICER HI-VIS WORKERS (Using Guard Model)
+        // Black skin tones: 0x5C3836, 0x3B2319. Let's pick dark brown explicitly.
+        for(let i=0; i<3; i++) {
+            // Guard role uses same mesh as worker generally unless customized, 
+            // but let's ensure they have GUARD behavior or similar.
+            // Using random locations near tracks
+            const bGuard = createPerson('GUARD', (Math.random()-0.5)*200, -50 + Math.random()*10, 0x3B2319);
+            civilians.push({
+                mesh: bGuard, 
+                role: 'GUARD', 
+                state: 'WALKING', 
+                waypoints: [new THREE.Vector3(100,0,-50), new THREE.Vector3(-100,0,-50)], 
+                speed: 0.02
+            });
         }
         
         // Romance Decoy (The Special Hi-Vis)
@@ -3338,7 +3632,16 @@
     }
 
     function triggerRush() {
-        gameState = 'RUSH';
+        // ALLOW RUSH IN DREAM MODE, BUT DON'T CHANGE MAIN STATE
+        // BUG FIX: Ensure triggerRush is called ONLY ONCE per cycle in dream mode
+        if (gameState === 'DREAM') {
+            if (!dreamRushActive) {
+                dreamRushActive = true;
+            }
+        } else {
+            gameState = 'RUSH';
+        }
+        
         civilians.forEach(c => {
             if(c.role === 'WORKER' || c.role === 'GUARD' || c.role === 'STATIC' || c.role === 'POLICEMAN') {
                 if(c.role === 'WORKER') { c.state = 'WALKING'; c.speed = 0.02; c.waypoints = [new THREE.Vector3((Math.random()-0.5)*200, 0, -40 - Math.random()*40)]; }
@@ -3409,29 +3712,58 @@
             }
         }
         
-        // --- PHONE OVERLAY LOGIC WITH EASTER EGG ---
+                // --- INTEL UI LOGIC ---
         const overlay = document.getElementById('phone-overlay');
         const text = document.getElementById('phone-text');
-        const phase = parseInt(overlay.dataset.phase || "0");
-        
-        // Phase 1: Show Target Info (Around 14s)
-        if(phase === 0 && gameTime > 14) {
-            text.innerText = "TARGET TO: " + targetTown;
-            overlay.style.bottom = "20px";
-            overlay.dataset.phase = "1";
+        const dreamPanel = document.getElementById('dream-target-panel');
+        const dreamText = document.getElementById('dream-target-text');
+
+        // NORMAL GAME MODES: use phone overlay as before
+        if (gameState !== 'DREAM') {
+            const phase = parseInt(overlay.dataset.phase || "0");
+            
+            // Phase 1: Show Target Info (Around 14s)
+            if (phase === 0 && gameTime > 14) {
+                text.innerText = "TARGET TO: " + targetTown;
+                overlay.style.bottom = "20px";
+                overlay.dataset.phase = "1";
+            }
+            
+            // Phase 2: Show Base Query (After 2 minutes / 121s)
+            if (phase === 1 && gameTime > 121) {
+                text.innerText = "REPORT TO BASE - ETA?";
+                overlay.dataset.phase = "2";
+            }
+            
+            // Phase 3: Fade Away (After 2m30s / 151s)
+            if (phase === 2 && gameTime > 151) {
+                overlay.style.bottom = "-200px";
+                overlay.dataset.phase = "3";
+            }
+
+            // Make sure dream panel stays hidden in non-dream modes
+            if (dreamPanel) dreamPanel.style.display = 'none';
         }
-        
-        // Phase 2: Show Base Query (After 2 minutes / 121s)
-        if(phase === 1 && gameTime > 121) {
-            text.innerText = "REPORT TO BASE - ETA?";
-            overlay.dataset.phase = "2";
-        }
-        
-        // Phase 3: Fade Away (After 2m30s / 151s)
-        if(phase === 2 && gameTime > 151) {
+        // DREAM MODE: use bottom-right DREAM INTEL panel instead
+        else {
+            // Hide / park phone overlay off-screen
             overlay.style.bottom = "-200px";
-            overlay.dataset.phase = "3";
+            overlay.dataset.phase = "0";
+
+            if (!dreamPanel || !dreamText) {
+                // Fail-safe: nothing to show
+            } else {
+                // Phase timings mirror the original phone overlay timings
+                if (dreamIntelPhase === 0 && gameTime > 14) {
+                    dreamPanel.style.display = 'block';
+                    dreamText.innerText = "TARGET DESTINATION: " + String(targetTown || "").toUpperCase();
+                    dreamIntelPhase = 1;
+                } 
+                // Act 2 Info handled below (using train count now)
+            }
         }
+
+        
         
         // BUG FIX: Ensure board only generates ONCE to prevent freeze/loop
         if(gameTime > 17 && !boardDataGenerated) {
@@ -3451,7 +3783,16 @@
              drawBoard(boardRows);
         }
         
-        if(gameTime > 24 && gameState === 'MINGLE') triggerRush();
+        // TRIGGER RUSH LOGIC (UNIFIED - DREAM = NORMAL BEHAVIOUR)
+        // Ensure called only once
+        if (gameTime > 24) {
+            if (gameState === 'MINGLE') {
+                triggerRush();
+            } else if (gameState === 'DREAM' && !dreamRushActive) {
+                triggerRush();
+            }
+        }
+
 
         // TRAIN DEPARTURE EVENT - CHECK EVERY FRAME
         
@@ -3499,7 +3840,7 @@
             }
         }
         
-                // --- SECOND ACT: ARRIVAL SEQUENCE ---
+        // --- SECOND ACT: ARRIVAL SEQUENCE ---
         if(gameTime > arrivalStartTime) {
             // Check through scheduled arrivals
             arrivalTrainData.forEach((data) => {
@@ -3512,39 +3853,34 @@
                     const trainGrp = new THREE.Group();
                     
                     // CLOSER PARKING: 
-                    // Previously offset was -16. Now updated logic uses -13.5 in createTrain and spawnArrivingPassenger
-                    // createTrain expects platform offset.
-                    // IMPORTANT: zStart must be 0 here so that trainGrp.position.z correctly represents the front of the train in world space.
                     const sirenMesh = createTrain(x - 13.5, -1.0, 0, trainGrp, data.color, {
                         isStripe: (data.type === 'STRIPE'),
                         isSiren: (data.type === 'SIREN')
                     });
                     
                     // NEW PHYSICS: Spawn closer.
-                    // If target Z is ~-30, spawn ~-110.
-                    // Store randomized target
-                    trainGrp.position.z = data.targetZ - 80; // Start 80 units away (visible but back)
+                    trainGrp.position.z = data.targetZ - 80; 
                     
                     scene.add(trainGrp);
                     arrivingTrains.push({
                         mesh: trainGrp,
                         data: data,
                         atStation: false,
-                        speed: 40.0, // Initial high approach speed
-                        sirenMesh: sirenMesh, // Reference for flashing
-                        stationTimer: 0 // Timer for door delay
+                        speed: 40.0, 
+                        sirenMesh: sirenMesh, 
+                        stationTimer: 0 
                     });
                 }
             });
             
             // 2. Move Arrival Trains
             let allArrived = true;
-            let anyArrived = false;
+            let trainsArrivedCount = 0; // NEW: Count arrived trains for intel timing
+
             arrivingTrains.forEach(t => {
                 // Flash Siren Logic
                 if(t.data.type === 'SIREN' && t.sirenMesh) {
-                    // Flash interval based on gameTime
-                    const val = Math.sin(gameTime * 20); // Fast flash
+                    const val = Math.sin(gameTime * 20); 
                     if(val > 0) t.sirenMesh.material.emissive.setHex(0xFF0000);
                     else t.sirenMesh.material.emissive.setHex(0x000000);
                 }
@@ -3561,35 +3897,28 @@
                         t.atStation = true;
                     } else {
                         // Late Deceleration Logic
-                        // Maintain high speed until dist < 30
                         let targetSpeed = 0;
-                        if(dist > 30) targetSpeed = 35.0; // Cruise fast
-                        else if (dist > 5) targetSpeed = 15.0; // Hard brake
-                        else targetSpeed = 2.0; // Roll last bit
+                        if(dist > 30) targetSpeed = 35.0; 
+                        else if (dist > 5) targetSpeed = 15.0; 
+                        else targetSpeed = 2.0; 
 
-                        // Lerp actual speed to desired (responsiveness)
                         t.speed += (targetSpeed - t.speed) * 3.0 * dt;
-                        
                         t.mesh.position.z += t.speed * dt;
                         
-                        // Simple Fade In based on dist from start
-                        // If it started at targetZ - 80...
-                        // Just ensure opacity is 1.0 (spawned close enough to be solid or fading quickly)
                         t.mesh.traverse(child => {
                              if (child.isMesh && child.material) {
-                                 // Fade in over first 10 units of travel
                                  const travel = (t.mesh.position.z - (t.data.targetZ - 80));
                                  let opacity = Math.min(1.0, travel / 20.0);
-                                 // Or just maximize it since user wants them "arriving quickly"
                                  child.material.transparent = true;
                                  child.material.opacity = Math.max(opacity, 0.1);
                              }
                         });
                     }
                 } else {
-                    anyArrived = true;
+                    t.atStation = true;
+                    trainsArrivedCount++; // Increment for each train parked
+
                     // 3. Spawn Passengers logic
-                    // ADDED DOOR DELAY: Wait 15s after stopping
                     t.stationTimer += dt;
                     
                     if(t.stationTimer > 15.0) {
@@ -3602,8 +3931,6 @@
                                 // DETERMINE IF THIS IS THE GREEN TARGET
                                 let isGreen = false;
                                 if(!greenTargetAssigned) {
-                                    // Simple chance per spawn to trigger, must ensure it happens eventually though
-                                    // Let's just do random chance, but force it if last passenger
                                     const remaining = t.data.passengerCount - t.data.passengersSpawned - k;
                                     if(Math.random() < 0.05 || (arrivalPhase === 'ARRIVING' && remaining === 1)) {
                                         isGreen = true;
@@ -3619,6 +3946,47 @@
                 }
             });
             
+            // --- NEW: TRIGGER INTEL ON 3RD TRAIN ARRIVAL ---
+            // Trigger if count >= 3 and NOT already triggered
+            if (trainsArrivedCount >= 3) {
+                // We use dreamIntelPhase = 1 to indicate 'Act 1 Intel shown'.
+                // So if phase is 1, upgrade to Act 2.
+                // For phone UI, phase 99 is special alert.
+                
+                // Human readable package color
+                let colName = "NEON GREEN";
+                if(currentPackageType === 'WHITE') colName = "WHITE";
+                if(currentPackageType === 'LIGHT_BLUE') colName = "LIGHT BLUE";
+                const msg = "NEW TARGET: " + colName + " PACKAGE HOLDER. ";
+
+                // DREAM MODE UI
+                if (gameState === 'DREAM') {
+                    if (dreamIntelPhase === 1) { // Only if not already shown
+                        dreamIntelPhase = 2; // Mark shown
+                        const dreamPanel = document.getElementById('dream-target-panel');
+                        const dreamText = document.getElementById('dream-target-text');
+                        if(dreamPanel && dreamText) {
+                            dreamPanel.classList.add('alert');
+                            dreamText.innerText = msg;
+                        }
+                    }
+                } 
+                // NORMAL MODE UI (Phone) - also trigger here for consistency if not already done via position check
+                else {
+                    const overlay = document.getElementById('phone-overlay');
+                    // Check if phase 99 already set by Z-position check (which we kept as fallback/alternative)
+                    if (overlay.dataset.phase !== "99") {
+                        const body = document.getElementById('phone-text');
+                        overlay.style.bottom = "20px";
+                        overlay.dataset.phase = "99"; 
+                        document.querySelector('.intel-header').innerText = "PRIORITY ALERT";
+                        document.querySelector('.intel-header').style.color = "#FFCC00";
+                        body.innerText = msg;
+                        body.style.color = "#fff";
+                    }
+                }
+            }
+            
             if(allArrived && arrivingTrains.length === 6) {
                 if(!lateDepartureTriggered) {
                      lateDepartureTriggered = true;
@@ -3630,11 +3998,8 @@
             // 4. Late Departure Logic
             if(lateDepartureTriggered && gameTime > lateDepartureTime) {
                 // Pick random arrived train to leave
-                // We use a flag inside arrivingTrains to track if it's leaving
                 const sitting = arrivingTrains.filter(t => t.atStation && !t.isLeaving);
                 if(sitting.length > 0) {
-                     // Pick one and mark it leaving
-                     // But we only want ONE to leave. So check if any are already leaving.
                      const leaving = arrivingTrains.find(t => t.isLeaving);
                      if(!leaving) {
                          const t = sitting[Math.floor(Math.random()*sitting.length)];
@@ -3642,7 +4007,6 @@
                      }
                 }
                 
-                // Move leaving trains
                 arrivingTrains.forEach(t => {
                     if(t.isLeaving) {
                         t.mesh.position.z -= 4.0 * dt; // Very slow departure
@@ -3650,6 +4014,110 @@
                 });
             }
         }
+    }
+    
+    // NEW: Update Dream Mode Camera
+    function updateDreamCamera(dt) {
+        if (gameState !== 'DREAM') return;
+        
+        dreamCamTimer += dt;
+        
+        // AUTO RESTART LOOP - INTELLIGENT
+        // Wait for Late Departure Trigger AND ensure passengers have mostly exited
+        let gameComplete = false;
+        if (lateDepartureTriggered && gameTime > lateDepartureTime + 20) {
+            // Check if most arriving people are gone (simple count check of civs that are exiting)
+            const remaining = civilians.filter(c => c.state !== 'BOARDED' && c.role !== 'STATIC').length;
+            if (remaining < 3) gameComplete = true;
+        }
+        // Safety net hard timer (350s = ~6 mins)
+        if (gameTime > 350) gameComplete = true;
+
+        if (gameComplete) {
+             prepareGameEnv('DREAM');
+             return;
+        }
+
+        // FADE LOGIC
+        const fadeEl = document.getElementById('fade-overlay');
+        
+        // Should we switch?
+        if (dreamCamTimer >= dreamNextSwitch && dreamFadeState === 'NONE') {
+            dreamFadeState = 'FADE_OUT';
+            fadeEl.style.transition = 'opacity 3s ease-in-out';
+            fadeEl.style.opacity = '1';
+        }
+        
+        // Handle Fade Events
+        if (dreamFadeState === 'FADE_OUT') {
+            // Wait for 3s opacity transition
+            if (dreamCamTimer >= dreamNextSwitch + 3.0) {
+                // Switch Camera Position - UPDATED ALTERNATING LOGIC
+                
+                // Determine target side (Flip from last)
+                let targetSide = (lastDreamSide === 'LEFT') ? 'RIGHT' : 'LEFT';
+                
+                // Filter available cams by target side (allow CENTER cams to be picked occasionally, but count towards flip)
+                // Center cams are treated as wildcards, but we assign them to specific sides in definitions to force rotation
+                const availableCams = DREAM_CAM_DEFS.filter(c => c.side === targetSide);
+                
+                // Fallback if empty (shouldn't happen)
+                const listToUse = (availableCams.length > 0) ? availableCams : DREAM_CAM_DEFS;
+                
+                const def = listToUse[Math.floor(Math.random() * listToUse.length)];
+                
+                // Apply new pos
+                camera.position.set(def.pos.x, def.pos.y, def.pos.z);
+                dreamTargetLook.set(def.look.x, def.look.y, def.look.z);
+                camera.lookAt(dreamTargetLook);
+                
+                // Update tracker
+                lastDreamSide = targetSide;
+                
+                // ZOOM LOGIC - VARIED START POINTS
+                // Randomly pick direction
+                const zoomType = Math.random(); 
+                
+                if (zoomType < 0.4) {
+                    // ZOOM IN FROM FAR (Wide -> Medium)
+                    dreamZoomDir = 1;
+                    camera.fov = 70; // Start Wide
+                } else if (zoomType < 0.7) {
+                    // ZOOM IN FROM MID (Medium -> Close)
+                    dreamZoomDir = 1;
+                    camera.fov = 45; // Start Mid
+                } else {
+                    // ZOOM OUT FROM CLOSE (Close -> Wide)
+                    dreamZoomDir = -1;
+                    camera.fov = 10; // Start Close
+                }
+                
+                camera.updateProjectionMatrix();
+                
+                // Start Fade In
+                dreamFadeState = 'FADE_IN';
+                fadeEl.style.opacity = '0';
+                
+                // Reset timers for next interval
+                dreamCamTimer = 0;
+                dreamNextSwitch = 15 + Math.random() * 10; // 15-25s
+            }
+        } else if (dreamFadeState === 'FADE_IN') {
+             // 3s later, just reset state
+             if (dreamCamTimer > 3.0) {
+                 dreamFadeState = 'NONE';
+             }
+        }
+        
+        // Apply Zoom (Dolly via FOV)
+        if (dreamZoomDir === 1) {
+             // Zooming IN (decrease FOV)
+             if (camera.fov > 5) camera.fov -= dt * dreamZoomSpeed * 10.0;
+        } else {
+             // Zooming OUT (increase FOV)
+             if (camera.fov < 100) camera.fov += dt * dreamZoomSpeed * 5.0;
+        }
+        camera.updateProjectionMatrix();
     }
 
     function createParticle(x, y, z, col, speed) {
@@ -3768,19 +4236,6 @@
                     victimRef.mesh.position.y = Math.max(0.2, victimRef.mesh.position.y - dt); 
                 } 
                 
-                // Specific floating logic only for main target (Act 1) or Courier roles? 
-                // Act 2 target should also just fall.
-                // The floating logic below was:
-                // else if(bleedTimer > 1.0 && victimRef.mesh.position.y < 15) { victimRef.mesh.position.y += dt * 2.0; victimRef.mesh.rotation.y = 0; }
-                
-                // Let's make sure Green Target (Act 2) does NOT float up like a soul (unless desired, but user said "disappear like target in first act")
-                // Wait, Act 1 target usually floats up in this codebase?
-                // "they don't fall down or disappear, they should disappear just like the target in the first act does"
-                
-                // Checking code: Act 1 target has `victimRef.mesh.position.y += dt * 2.0` after 1s.
-                // This makes them ascend.
-                // So Act 2 target should ALSO ascend if it's "just like target in first act".
-                
                 if(victimRef.role === 'TARGET' || victimRef.role === 'GREEN_TARGET') {
                      if(bleedTimer > 1.0 && victimRef.mesh.position.y < 15) {
                          victimRef.mesh.position.y += dt * 2.0;
@@ -3813,6 +4268,9 @@
         if(gameState === 'SCREEN_EFFECT') {
             bleedTimer += dt; if(bleedTimer > 2.0) showEndScreen(); renderer.render(scene, camera); return;
         }
+        
+                // --- UPDATE DREAM CAMERA IF IN DREAM MODE ---
+        updateDreamCamera(dt);
 
         for(let i=particles.length-1; i>=0; i--) {
             const p = particles[i]; 
@@ -3854,18 +4312,21 @@
         updateJambonis(dt); // Update the cleaners
         updateShopStaff(dt); // Update shopkeepers
         
-        // SCREENSAVER MODE: Update Crosshair Timer
-        if (!isZoomed && (gameState === 'MINGLE' || gameState === 'RUSH')) {
+        // SCREENSAVER MODE: Update Crosshair Timer (SKIP IN DREAM MODE)
+        if (gameState !== 'DREAM' && !isZoomed && (gameState === 'MINGLE' || gameState === 'RUSH')) {
             crosshairIdleTime += dt;
             if (crosshairIdleTime > 6.0) {
                 document.getElementById('crosshair').classList.add('faded');
             }
         }
         
-        const aimSpeed = isZoomed ? 0.2 * dt : 1.0 * dt;
-        if(keyState['w'] || keyState['arrowup']) pitch += aimSpeed; if(keyState['s'] || keyState['arrowdown']) pitch -= aimSpeed;
-        if(keyState['a'] || keyState['arrowleft']) yaw += aimSpeed; if(keyState['d'] || keyState['arrowright']) yaw -= aimSpeed;
-        pitch = Math.max(-1.2, Math.min(0.2, pitch)); camera.rotation.x = pitch; camera.rotation.y = yaw;
+        // PLAYER CONTROLS (SKIP IN DREAM MODE)
+        if (gameState !== 'DREAM') {
+            const aimSpeed = isZoomed ? 0.2 * dt : 1.0 * dt;
+            if(keyState['w'] || keyState['arrowup']) pitch += aimSpeed; if(keyState['s'] || keyState['arrowdown']) pitch -= aimSpeed;
+            if(keyState['a'] || keyState['arrowleft']) yaw += aimSpeed; if(keyState['d'] || keyState['arrowright']) yaw -= aimSpeed;
+            pitch = Math.max(-1.2, Math.min(0.2, pitch)); camera.rotation.x = pitch; camera.rotation.y = yaw;
+        }
         
         // --- LOOP CIVILIANS (Modified for Fade Out & Phone Trigger) ---
         for(let i=civilians.length-1; i>=0; i--) {
@@ -3898,7 +4359,7 @@
                      // DELAY ALERT 1.5s
                      setTimeout(() => {
                          // Only if game still active
-                         if(gameState !== 'ENDED' && gameState !== 'BLEEDING') {
+                         if(gameState !== 'ENDED' && gameState !== 'BLEEDING' && gameState !== 'DREAM') {
                             const overlay = document.getElementById('phone-overlay');
                             const body = document.getElementById('phone-text');
                             overlay.style.bottom = "20px";
@@ -3913,7 +4374,7 @@
                             if(currentPackageType === 'LIGHT_BLUE') colName = "LIGHT BLUE";
                             
                             // AMENDED PHRASING AS REQUESTED
-                            body.innerText = "NEW TARGET ON CONCOURSE: " + colName + " PACKAGE HOLDER. SHOOT TO KILL.";
+                            body.innerText = "NEW TARGET On CONCOURSE: " + colName + " PACKAGE HOLDER. SHOOT TO KILL.";
                             body.style.color = "#fff"; // Revert to white
                          }
                      }, 1500);
@@ -4060,8 +4521,13 @@
                     c.waypoints.shift();
                     if(c.waypoints.length === 0) {
                         if(c.role === 'GUARD') c.waypoints = [new THREE.Vector3(c.mesh.position.x > 0 ? -100 : 100, 0, -50)];
-                        else if(gameState === 'RUSH' && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && c.role !== 'STATIC' && c.role !== 'POLICEMAN') { c.state = 'BOARDED'; scene.remove(c.mesh); } 
-                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } else if (c.role !== 'ROMANCE_WORKER' && c.role !== 'POLICEMAN' && c.state !== 'EXITING') c.state = 'IDLE';
+                        // FIX: Explicitly check for DREAM mode rush to allow despawn/boarding
+                        else if((gameState === 'RUSH' || (gameState === 'DREAM' && dreamRushActive)) && c.role !== 'WORKER' && c.role !== 'ROMANCE_WORKER' && c.role !== 'STATIC' && c.role !== 'POLICEMAN') { 
+                            c.state = 'BOARDED'; 
+                            scene.remove(c.mesh); 
+                        } 
+                        else if(c.role === 'STATIC') { c.state = 'STATIC'; } 
+                        else if (c.role !== 'ROMANCE_WORKER' && c.role !== 'POLICEMAN' && c.state !== 'EXITING') c.state = 'IDLE';
                     }
                 } else {
                     dir.normalize(); 
@@ -4118,7 +4584,13 @@
         }
         
         bullets.forEach((b,i) => { b.age+=dt; b.mesh.material.opacity-=dt*3; if(b.age>0.3){scene.remove(b.mesh);bullets.splice(i,1);} });
-        const fov = isZoomed ? 10 : 60; camera.fov += (fov - camera.fov) * 0.15; camera.updateProjectionMatrix();
+        
+        const fov = isZoomed ? 10 : 60; 
+        if(gameState !== 'DREAM') {
+            camera.fov += (fov - camera.fov) * 0.15; 
+            camera.updateProjectionMatrix();
+        }
+        
         renderer.render(scene, camera);
     }
 
