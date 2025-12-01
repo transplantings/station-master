@@ -2249,7 +2249,7 @@
         });
     }
 
-    function createDetailedPlant(x, z) {
+        function createDetailedPlant(x, z) {
         const grp = new THREE.Group();
         grp.position.set(x, 0, z);
         
@@ -2260,22 +2260,22 @@
         
         const type = Math.random();
         if(type < 0.5) {
-            // Skinny Tall
+            // Skinny Tall - Duller Green/Grey (0x354a35) instead of bright green
             const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 8, 5), new THREE.MeshLambertMaterial({color: 0x554433}));
             stem.position.y = 5.5;
             grp.add(stem);
             // Foliage: Layers of cones
             for(let i=0; i<3; i++) {
-                const foliage = new THREE.Mesh(new THREE.ConeGeometry(2 - (i*0.5), 3, 6), new THREE.MeshLambertMaterial({color: 0x228B22}));
+                const foliage = new THREE.Mesh(new THREE.ConeGeometry(2 - (i*0.5), 3, 6), new THREE.MeshLambertMaterial({color: 0x354a35}));
                 foliage.position.y = 6 + (i * 2);
                 grp.add(foliage);
             }
         } else {
-            // Round Small
+            // Round Small - Duller Sage/Grey (0x586658) instead of lime green
             const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 5), new THREE.MeshLambertMaterial({color: 0x554433}));
             stem.position.y = 3.5;
             grp.add(stem);
-            const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5), new THREE.MeshLambertMaterial({color: 0x32CD32}));
+            const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5), new THREE.MeshLambertMaterial({color: 0x586658}));
             foliage.position.y = 5.5;
             grp.add(foliage);
         }
@@ -4374,7 +4374,7 @@
                             if(currentPackageType === 'LIGHT_BLUE') colName = "LIGHT BLUE";
                             
                             // AMENDED PHRASING AS REQUESTED
-                            body.innerText = "NEW TARGET On CONCOURSE: " + colName + " PACKAGE HOLDER. SHOOT TO KILL.";
+                            body.innerText = "NEW TARGET: " + colName + " PACKAGE HOLDER. SHOOT TO KILL.";
                             body.style.color = "#fff"; // Revert to white
                          }
                      }, 1500);
